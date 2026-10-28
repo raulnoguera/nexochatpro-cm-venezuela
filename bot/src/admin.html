@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Administración · CM Venezuela</title>
+<style>
+:root{--bg:#F2F2EF;--s:#fff;--s2:#F7F7F4;--ink:#121212;--muted:#5E5E5A;--line:#E2E2DC;--y:#F5D90A;--ok:#0B7A4B;--bad:#A12A2A}
+@media(prefers-color-scheme:dark){:root{--bg:#0C0C0C;--s:#171717;--s2:#1E1E1E;--ink:#F2F2EE;--muted:#A5A59E;--line:#2B2B28;--ok:#5EDB9C;--bad:#FF8F8F}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:#141414;color:#fff;border-bottom:3px solid var(--y);padding:14px 16px;font-weight:800;letter-spacing:.02em;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+header a{color:var(--y);font-weight:600;font-size:14px;margin-left:auto}
+main{max-width:1000px;margin:0 auto;padding:18px 16px 60px}
+.card{background:var(--s);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
+h2{font-size:14px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+p{margin:6px 0}.muted{color:var(--muted)}.err{color:var(--bad);font-weight:700}.ok{color:var(--ok);font-weight:700}
+input,select{font:inherit;color:inherit;background:var(--s2);border:1.5px solid var(--line);border-radius:10px;min-height:44px;padding:0 12px;width:100%}
+input[type=checkbox]{width:auto;min-height:0}input[type=file]{padding:10px}
+button{border:0;border-radius:10px;background:var(--y);color:#121212;font:inherit;font-weight:800;min-height:44px;padding:0 18px;cursor:pointer}
+button.sec{background:transparent;border:1.5px solid var(--line);color:inherit;font-weight:700}button.del{background:transparent;border:1.5px solid var(--bad);color:var(--bad)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.tabs{display:flex;gap:8px;margin-bottom:12px;overflow-x:auto}.tabs button{background:var(--s);border:1.5px solid var(--line);color:inherit;border-radius:99px;min-height:44px}.tabs button[aria-pressed=true]{background:var(--y);border-color:var(--y);color:#121212}
+.bar{display:grid;grid-template-columns:1fr;gap:10px}@media(min-width:700px){.bar{grid-template-columns:2fr 1.2fr auto auto}}
+.row{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.th{width:56px;height:56px;border-radius:10px;background:var(--s2);border:1px solid var(--line);object-fit:cover;display:grid;place-items:center;color:var(--muted);font-size:11px;text-align:center}
+.nm b{display:block}.nm small{color:var(--muted)}.tag{display:inline-block;background:var(--s2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12px;margin-left:4px}
+.acc{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.acc button{min-height:38px;padding:0 12px}
+.pg{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+dialog{border:1px solid var(--line);border-radius:18px;background:var(--s);color:var(--ink);width:min(560px,94vw);padding:20px;max-height:92vh}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+.f{display:grid;grid-template-columns:1fr 1fr;gap:10px}.f .w{grid-column:1/-1}label span{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:3px}
+.p.off{display:none!important}.c{display:none}.c.on{display:block}
+.prev{width:96px;height:96px;border-radius:12px;object-fit:cover;background:var(--s2);border:1px solid var(--line)}
+.n{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.n div{background:var(--bg);border-radius:12px;padding:10px;text-align:center}.n b{display:block;font-size:24px}
+details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20px;max-height:200px;overflow:auto;font-size:14px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#141414;color:#fff;border-left:5px solid var(--y);border-radius:12px;padding:12px 16px;opacity:0;pointer-events:none;transition:.2s;max-width:92vw}.toast.on{opacity:1}
+</style></head>
+<body><header>CM VENEZUELA · Administración<a href="https://cmvenezuela.com" target="_blank" rel="noopener">Ver la web ↗</a></header>
+<main>
+  <div class="tabs" id="tabs"><button data-c="cauchos" aria-pressed="true">Cauchos</button><button data-c="baterias" aria-pressed="false">Baterías</button><button data-c="aceites" aria-pressed="false">Aceites</button><button data-c="bicicletas" aria-pressed="false">Bicicletas</button><button data-c="compatibilidad" aria-pressed="false">Vehículos → batería</button></div>
+  <div class="card">
+    <div class="bar">
+      <input id="q" placeholder="Buscar por marca, medida, grupo o tipo" aria-label="Buscar">
+      <select id="fm" aria-label="Marca"><option value="">Todas las marcas</option></select>
+      <label style="display:flex;gap:8px;align-items:center;white-space:nowrap"><input type="checkbox" id="sf"> Sin foto</label>
+      <button id="nuevo">＋ Nuevo producto</button>
+    </div>
+  </div>
+
+  <div class="card"><div id="cont" class="muted">Cargando…</div><div class="pg"><button class="sec" id="prev">← Anterior</button><span id="pgi" class="muted"></span><button class="sec" id="next">Siguiente →</button></div></div>
+
+  <details class="card"><summary>Cargar lista de precios desde Excel</summary>
+    <p class="muted">Sube «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES (y COMPATIBILIDAD si ya la tienes). Antes de publicar te mostramos qué cambia. Las fotos se conservan y los productos creados a mano no se tocan. Los cambios hechos aquí a un producto que viene del Excel se reemplazan con la próxima carga.</p>
+    <p><input type="file" id="xf" accept=".xlsx"></p><p><button id="xrev" disabled>Revisar archivo</button></p><p id="xmsg"></p>
+    <div id="xres" hidden><div id="xdet"></div><p style="margin-top:12px"><button id="xpub">Publicar ahora</button> <button class="sec" id="xcan">Cancelar</button></p></div>
+  </details>
+</main>
+
+<dialog id="dlg"><form method="dialog" id="frm">
+  <h2 id="dt">Producto</h2>
+  <div class="f">
+    <label><span>Marca</span><input id="marca" list="marcas" required maxlength="60" autocomplete="off"></label>
+    <label class="c c-cauchos"><span>Medida</span><input id="medida" maxlength="30" placeholder="265/60R18" autocomplete="off"></label>
+    <label class="c c-baterias"><span>Descripción</span><input id="descripcion" maxlength="80" placeholder="1000 AMP / 24R" autocomplete="off"></label>
+    <label class="c c-baterias"><span>Grupo</span><input id="grupo" maxlength="40" list="grupos" placeholder="GRUPO 24" autocomplete="off"></label>
+    <label class="c c-baterias"><span>Amperaje (opcional)</span><input id="amp" type="number" min="0" step="1" inputmode="numeric"></label>
+    <label class="c c-baterias"><span>Garantía en meses (opcional)</span><input id="garantia" type="number" min="0" step="1" inputmode="numeric"></label>
+    <label class="c c-compatibilidad"><span>Modelo del vehículo</span><input id="vmodelo" maxlength="60" placeholder="COROLLA" autocomplete="off"></label>
+    <label class="c c-compatibilidad"><span>Año desde (opcional)</span><input id="vdesde" type="number" min="1900" max="2100" step="1" inputmode="numeric" placeholder="2009"></label>
+    <label class="c c-compatibilidad"><span>Año hasta (opcional)</span><input id="vhasta" type="number" min="1900" max="2100" step="1" inputmode="numeric" placeholder="2019"></label>
+    <label class="c c-compatibilidad w"><span>Grupo(s) de batería (como en la lista de precios; varios separados por coma)</span><input id="vgrupo" maxlength="80" list="grupos" placeholder="GRUPO 24, GRUPO 34" autocomplete="off"></label>
+    <label class="c c-bicicletas"><span>Rin</span><input id="rin" type="number" min="10" max="32" step="1" inputmode="numeric" placeholder="20"></label>
+    <label class="c c-bicicletas"><span>Modelo</span><input id="modelo" maxlength="30" placeholder="130" autocomplete="off"></label>
+    <label class="c c-bicicletas"><span>Para (opcional)</span><input id="para" maxlength="30" placeholder="NIÑO, NIÑA…" autocomplete="off"></label>
+    <label class="c c-bicicletas w"><span>Colores (separados por coma)</span><input id="colores" maxlength="120" placeholder="Azul, Rojo, Verde" autocomplete="off"></label>
+    <label class="c c-aceites"><span>Tipo / viscosidad</span><input id="tipo" maxlength="60" list="tipos" placeholder="20W-50 MINERAL" autocomplete="off"></label>
+    <label class="c c-aceites"><span>Presentación</span><input id="presentacion" maxlength="40" list="presentaciones" placeholder="Litro, 4 Litros…" autocomplete="off"></label>
+    <label class="p"><span>Precio en dólares (0 = «Consultar precio»)</span><input id="usd" type="number" step="0.01" min="0" required inputmode="decimal"></label>
+    <label class="p"><span>Equivalente en $ si paga en bolívares</span><input id="usd_bs" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Automático (+5 %)"></label>
+    <label class="p"><span>Hay en CM Maracay (unidades)</span><input id="cm" type="number" min="0" step="1" inputmode="numeric" value="0"></label>
+    <label class="p"><span>Hay en Master Cauchos (unidades)</span><input id="mc" type="number" min="0" step="1" inputmode="numeric" value="0"></label>
+    <label class="w p"><span>Texto que se ve en la web (opcional, ej. Con set, 16 lonas)</span><input id="etiqueta" maxlength="60"></label>
+    <div class="w p" style="display:flex;gap:14px;align-items:center"><img class="prev" id="pv" alt="Foto"><div style="flex:1">
+      <label><span>Foto del producto</span><input type="file" id="foto" accept="image/jpeg,image/png,image/webp"></label>
+      <label id="lmarca" style="display:flex;gap:8px;align-items:center;margin-top:6px"><input type="checkbox" id="cmarca"><span style="margin:0;font-weight:400"></span></label>
+      <button type="button" class="sec" id="qfoto" style="margin-top:6px;min-height:36px">Quitar foto</button></div></div>
+  </div>
+  <p id="emsg" class="err"></p>
+  <p style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="sec" id="cancel">Cancelar</button><button id="guardar">Guardar</button></p>
+</form></dialog>
+<datalist id="marcas"></datalist><datalist id="grupos"></datalist><datalist id="tipos"></datalist><datalist id="presentaciones"></datalist>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const $ = s => document.querySelector(s), esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z.]/g, '')
+const api = async (m, p, body, raw) => {
+  const r = await fetch('/admin/api' + p, { method: m, headers: body && !raw ? { 'Content-Type': 'application/json' } : raw ? { 'Content-Type': raw } : undefined, body: raw ? body : body ? JSON.stringify(body) : undefined })
+  const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || 'No se pudo completar la acción.'); return j
+}
+const toast = t => { const e = $('#toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 3500) }
+let CAT = 'cauchos', ITEMS = [], pag = 0, edit = null, quitar = false
+const PAG = 40, IMG = 'https://crm.nexochatpro.cloud/img/'
+const CFG = {   // campos propios de cada categoría, cómo se titula cada fila y por cuáles se busca
+  cauchos: { campos: ['medida'], titulo: i => i.medida, detalle: i => '', buscar: i => i.marca + i.medida },
+  baterias: { campos: ['descripcion', 'grupo', 'amp', 'garantia'], titulo: i => i.descripcion, detalle: i => ` · ${i.grupo}${i.garantia ? ' · garantía ' + i.garantia + ' m' : ''}`, buscar: i => i.marca + i.descripcion + i.grupo },
+  compatibilidad: { campos: ['modelo', 'desde', 'hasta', 'grupo'], titulo: i => i.modelo, detalle: i => ` · ${i.desde || 'cualquier año'}${i.hasta ? '–' + i.hasta : i.desde ? ' en adelante' : ''} · batería: ${i.grupo}`, buscar: i => i.marca + i.modelo + i.grupo },
+  bicicletas: { campos: ['rin', 'modelo', 'para', 'colores'], titulo: i => `Rin ${i.rin} · Modelo ${i.modelo}${i.para ? ' (' + i.para + ')' : ''}`, detalle: i => (i.colores ? ' · ' + i.colores : ''), buscar: i => 'rin' + i.rin + i.modelo + i.para + i.colores },
+  aceites: { campos: ['tipo', 'presentacion'], titulo: i => `${i.tipo} · ${i.presentacion}`, detalle: i => '', buscar: i => i.marca + i.tipo + i.presentacion },
+}
+const filtrados = () => {
+  const tok = $('#q').value.split(/\s+/).map(norm).filter(Boolean), m = $('#fm').value, sf = $('#sf').checked
+  return ITEMS.filter(i => (!m || i.marca === m) && (!sf || !i.imagen) && tok.every(x => norm(CFG[CAT].buscar(i)).includes(x)))
+}
+function pintar() {
+  const r = filtrados(), max = Math.max(0, Math.ceil(r.length / PAG) - 1); pag = Math.min(pag, max), c = CFG[CAT]
+  $('#cont').innerHTML = esCompat() ? r.slice(pag * PAG, pag * PAG + PAG).map(i => `<div class="row" style="grid-template-columns:1fr auto">
+    <div class="nm"><b>${esc(i.marca)} · ${esc(i.modelo)}${i.manual ? '<span class="tag">creado a mano</span>' : ''}</b><small>${esc(c.detalle(i).slice(3))}</small></div>
+    <div class="acc"><button class="sec" data-e="${i.sku}">Editar</button><button class="del" data-d="${i.sku}">Eliminar</button></div></div>`).join('') || '<p class="muted">Todavía no hay vehículos cargados. Sube la hoja COMPATIBILIDAD del Excel o crea uno con «Nuevo producto».</p>'
+  : r.slice(pag * PAG, pag * PAG + PAG).map(i => `<div class="row">
+    ${i.imagen ? `<img class="th" src="${IMG}${i.imagen}" alt="" loading="lazy">` : '<div class="th">Sin foto</div>'}
+    <div class="nm"><b>${esc(i.marca)} · ${esc(c.titulo(i))}${i.manual ? '<span class="tag">creado a mano</span>' : ''}</b><small>${i.usd > 0 ? `$${i.usd} · equiv. $${i.usd_bs}` : 'Consultar precio'} · CM ${i.cm} · Master ${i.mc}${esc(c.detalle(i))}${i.etiqueta ? ' · ' + esc(i.etiqueta) : ''}</small></div>
+    <div class="acc"><button class="sec" data-e="${i.sku}">Editar</button><button class="del" data-d="${i.sku}">Eliminar</button></div></div>`).join('') || '<p class="muted">No hay productos con ese filtro.</p>'
+  $('#pgi').textContent = `${r.length} productos · página ${pag + 1} de ${max + 1}`
+  $('#prev').disabled = pag === 0; $('#next').disabled = pag >= max
+}
+const opciones = (id, vals) => { $(id).innerHTML = [...new Set(vals.filter(Boolean))].sort().map(v => `<option value="${esc(v)}">`).join('') }
+async function cargar() {
+  ITEMS = await api('GET', `/${CAT}/items`)
+  const marcas = [...new Set(ITEMS.map(i => i.marca))].sort(), cur = $('#fm').value
+  $('#fm').innerHTML = '<option value="">Todas las marcas</option>' + marcas.map(m => `<option ${m === cur ? 'selected' : ''}>${esc(m)}</option>`).join('')
+  opciones('#marcas', marcas); opciones('#grupos', (CAT === 'compatibilidad' ? (await api('GET', '/baterias/items')) : ITEMS).map(i => i.grupo)); opciones('#tipos', ITEMS.map(i => i.tipo)); opciones('#presentaciones', ITEMS.map(i => i.presentacion))
+  pintar()
+}
+$('#tabs').onclick = async e => {
+  const b = e.target.closest('[data-c]'); if (!b || b.dataset.c === CAT) return
+  CAT = b.dataset.c; pag = 0; $('#q').value = ''; $('#fm').value = ''; $('#sf').checked = false
+  $('#sf').parentElement.hidden = esCompat(); $('#nuevo').textContent = esCompat() ? '＋ Nuevo vehículo' : '＋ Nuevo producto'
+  document.querySelectorAll('#tabs button').forEach(x => x.setAttribute('aria-pressed', x === b))
+  try { await cargar() } catch (er) { $('#cont').textContent = er.message }
+}
+const reducir = file => new Promise((ok, no) => {                    // la foto se reduce en el navegador (máx. 900 px) para que la web cargue rápido
+  const img = new Image(), u = URL.createObjectURL(file)
+  img.onload = () => { const k = Math.min(1, 900 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k)
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); c.toBlob(b => b ? ok(b) : no(new Error('No se pudo procesar la imagen.')), 'image/jpeg', 0.85) }
+  img.onerror = () => no(new Error('No se pudo leer la imagen.')); img.src = u
+})
+const COMUNES = ['marca', 'usd', 'usd_bs', 'cm', 'mc', 'etiqueta']
+const esCompat = () => CAT === 'compatibilidad'
+const camposDe = () => (esCompat() ? ['marca', ...CFG.compatibilidad.campos] : [...COMUNES, ...CFG[CAT].campos])
+const idc = k => (esCompat() && k !== 'marca' ? 'v' + k : k)
+function abrir(i) {
+  edit = i; quitar = false; $('#emsg').textContent = ''; $('#foto').value = ''; $('#cmarca').checked = false
+  $('#dt').textContent = (i ? 'Editar ' : 'Nuevo ') + (esCompat() ? 'vehículo' : 'producto')
+  document.querySelectorAll('.c').forEach(x => x.classList.toggle('on', x.classList.contains('c-' + CAT)))
+  document.querySelectorAll('.p').forEach(x => x.classList.toggle('off', esCompat()))
+  for (const k of camposDe()) $('#' + idc(k)).value = i ? (i[k] ?? '') : (k === 'cm' || k === 'mc' ? 0 : '')
+  const bici = CAT === 'bicicletas'; $('#marca').closest('label').hidden = bici; $('#marca').required = !bici; if (bici && !$('#marca').value) $('#marca').value = 'Bicicleta'   // las bicicletas no llevan marca
+  $('#pv').src = i?.imagen ? IMG + i.imagen : 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#ddd"/></svg>')
+  $('#qfoto').hidden = !i?.imagen; actualizarMarca(); $('#dlg').showModal()
+}
+function actualizarMarca() {
+  if (esCompat()) { $('#lmarca').hidden = true; return }
+  const m = $('#marca').value.trim(), n = ITEMS.filter(x => x.marca === m && x.sku !== edit?.sku).length
+  $('#lmarca').hidden = !n; $('#lmarca span').textContent = `Usar también esta foto en los otros ${n} cauchos de «${m}»`
+}
+$('#marca').oninput = actualizarMarca
+$('#usd').oninput = () => { $('#usd_bs').value = '' }          // al cambiar el precio, el equivalente en bolívares se recalcula solo (+5 %) salvo que lo escribas
+$('#foto').onchange = () => { const f = $('#foto').files[0]; if (f) { $('#pv').src = URL.createObjectURL(f); quitar = false; $('#qfoto').hidden = false } }
+$('#qfoto').onclick = () => { quitar = true; $('#foto').value = ''; $('#pv').removeAttribute('src'); $('#qfoto').hidden = true }
+$('#cancel').onclick = () => $('#dlg').close()
+$('#nuevo').onclick = () => abrir(null)
+$('#frm').onsubmit = async e => {
+  e.preventDefault(); $('#guardar').disabled = true; $('#emsg').textContent = ''
+  try {
+    const body = Object.fromEntries(camposDe().map(k => [k, $('#' + idc(k)).value]))
+    const sku = edit ? (await api('PUT', `/${CAT}/items/${edit.sku}`, body)).sku : (await api('POST', `/${CAT}/items`, body)).sku
+    const f = esCompat() ? null : $('#foto').files[0]
+    if (f) { const b = await reducir(f); await api('POST', `/${CAT}/items/${sku}/imagen?marca=${$('#cmarca').checked && !$('#lmarca').hidden ? 1 : 0}`, b, 'image/jpeg') }
+    else if (!esCompat() && quitar && edit?.imagen) await api('DELETE', `/${CAT}/items/${sku}/imagen`)
+    $('#dlg').close(); toast('Guardado. Ya se ve en la web y en Nexo.'); await cargar()
+  } catch (er) { $('#emsg').textContent = er.message }
+  $('#guardar').disabled = false
+}
+document.addEventListener('click', async e => {
+  const ed = e.target.closest('[data-e]'), de = e.target.closest('[data-d]')
+  if (ed) abrir(ITEMS.find(i => i.sku === ed.dataset.e))
+  if (de) { const i = ITEMS.find(x => x.sku === de.dataset.d)
+    if (!confirm(`¿Eliminar «${i.marca} ${CFG[CAT].titulo(i)}»?${i.manual ? '' : '\n\nSi este producto sigue en el Excel, volverá a aparecer con la próxima carga.'}`)) return
+    try { await api('DELETE', `/${CAT}/items/${i.sku}`); toast('Producto eliminado.'); await cargar() } catch (er) { toast(er.message) } }
+})
+for (const id of ['#q', '#fm', '#sf']) $(id).oninput = () => { pag = 0; pintar() }
+$('#prev').onclick = () => { pag--; pintar() }; $('#next').onclick = () => { pag++; pintar() }
+
+// ---- Excel
+const lista = (t, a) => a.length ? `<details><summary>${t} (${a.length})</summary><ul>${a.slice(0, 200).map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>` : ''
+$('#xf').onchange = () => { $('#xrev').disabled = !$('#xf').files[0]; $('#xres').hidden = true; $('#xmsg').textContent = '' }
+const NOMBRES = { cauchos: 'Cauchos', baterias: 'Baterías', aceites: 'Aceites', bicicletas: 'Bicicletas', compatibilidad: 'Vehículos → batería' }
+$('#xrev').onclick = async () => {
+  $('#xrev').disabled = true; $('#xmsg').className = 'muted'; $('#xmsg').textContent = 'Revisando…'
+  try {
+    const j = await api('POST', '/excel/revisar', $('#xf').files[0], 'application/octet-stream'), cats = Object.entries(j)
+    $('#xmsg').textContent = ''
+    $('#xdet').innerHTML = cats.map(([c, r]) => `<h2 style="margin-top:14px">${NOMBRES[c]}</h2><div class="n"><div><b>${r.total}</b>en la lista</div><div><b>${r.nuevos.length}</b>nuevos</div><div><b>${r.precios.length}</b>con precio distinto</div></div>
+      <p class="muted">${r.quitados.length ? `Salen de la lista ${r.quitados.length} productos que estaban antes.` : 'No sale ningún producto.'}${r.antes && r.total < r.antes * 0.7 ? ' <span class="err">Atención: la lista nueva es mucho más corta que la actual. Revisa que sea el archivo correcto.</span>' : ''}</p>`
+      + lista('Productos nuevos', r.nuevos) + lista('Precios que cambian', r.precios) + lista('Productos que salen', r.quitados) + lista('Filas que no se publican', r.omitidas)).join('')
+    $('#xres').hidden = false
+  } catch (er) { $('#xmsg').className = 'err'; $('#xmsg').textContent = er.message }
+  $('#xrev').disabled = false
+}
+$('#xcan').onclick = () => { $('#xres').hidden = true; $('#xf').value = ''; $('#xrev').disabled = true }
+$('#xpub').onclick = async () => {
+  $('#xpub').disabled = true
+  try { const j = await api('POST', '/excel/publicar'); $('#xres').hidden = true; $('#xmsg').className = 'ok'; $('#xmsg').textContent = `Listo: ${Object.entries(j.totales).map(([c, n]) => n + ' ' + NOMBRES[c].toLowerCase()).join(', ')} publicados. La web y Nexo ya usan la lista nueva.`; $('#xf').value = ''; $('#xrev').disabled = true; await cargar() }
+  catch (er) { $('#xmsg').className = 'err'; $('#xmsg').textContent = er.message }
+  $('#xpub').disabled = false
+}
+cargar().catch(er => { $('#cont').textContent = er.message })
+</script></body></html>

@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Uso del modelo</title>
+<style>
+body{font:15px system-ui,sans-serif;margin:0;padding:24px 16px;background:#f6f6f4;color:#1a1a1a}
+main{max-width:860px;margin:auto}
+h1{font-size:20px;margin:0 0 4px}p{color:#666;margin:0 0 18px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px solid #eee;white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{background:#1a1a1a;color:#fff;font-weight:600;font-size:13px}
+.mal{color:#b00020;font-weight:600}.wrap{overflow-x:auto}
+</style></head><body><main>
+<h1>Uso del modelo</h1><p>Llamadas y tokens por día (hora de Caracas). Cuenta desde que se activó el contador. «Pensando» es el razonamiento interno del modelo y se cobra como salida; «En caché» es la entrada repetida que Google cobra con descuento.</p>
+<div class="wrap"><table><thead><tr><th>Día</th><th>Modelo</th><th>Llamadas</th><th>Tokens entrada</th><th>En caché</th><th>Pensando</th><th>Tokens salida</th><th>429 (cuota)</th><th>Otros errores</th><th>Costo est. US$</th></tr></thead><tbody id="t"></tbody></table></div>
+<h1 style="margin-top:32px">Gasto por conversación</h1><p id="res">Cargando…</p>
+<div class="wrap"><table><thead><tr><th>Conversación</th><th>Canal</th><th>Última actividad</th><th>Mensajes</th><th>Llamadas</th><th>Tokens entrada</th><th>En caché</th><th>Costo est. US$</th></tr></thead><tbody id="c"></tbody></table></div>
+<script>
+const n=x=>x.toLocaleString('es-VE');
+// Precio por millón de tokens (lista pública de Google); lo que está en caché se cobra al 10 % de la entrada. Es una estimación.
+const hora=t=>new Date(t).toLocaleString('es-VE',{timeZone:'America/Caracas',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
+const costo=(m,v)=>{const p=/lite/i.test(m)?[0.25,1.5]:[0.5,3],c=v.cache||0;return (((v.entrada-c)*p[0]+c*p[0]*0.1+((v.salida||0)+(v.pensando||0))*p[1])/1e6).toFixed(3)};
+fetch('/admin/api/uso').then(r=>r.json()).then(d=>{
+  const f=[];
+  for(const dia of Object.keys(d).sort().reverse())for(const [m,v] of Object.entries(d[dia]))
+    f.push(`<tr><td>${dia}</td><td>${m}</td><td>${n(v.llamadas)}</td><td>${n(v.entrada)}</td><td>${n(v.cache||0)}</td><td>${n(v.pensando||0)}</td><td>${n(v.salida)}</td><td class="${v.limite?'mal':''}">${n(v.limite)}</td><td class="${v.errores?'mal':''}">${n(v.errores)}</td><td>${costo(m,v)}</td></tr>`);
+  document.getElementById('t').innerHTML=f.join('')||'<tr><td colspan="10" style="text-align:center;color:#666">Todavía sin datos</td></tr>';
+});
+fetch('/admin/api/uso/conversaciones').then(r=>r.json()).then(c=>{
+  const tot=c.reduce((a,x)=>a+x.usd,0),prom=c.length?tot/c.length:0;
+  document.getElementById('res').textContent=c.length?`${c.length} conversaciones registradas · promedio US$ ${prom.toFixed(4)} por conversación · a 3.000 por semana: unos US$ ${(prom*3000).toFixed(0)} por semana. Cuenta desde que se activó este registro; es una estimación con precios de lista.`:'Todavía sin conversaciones registradas. Se llena con las conversaciones reales de clientes.';
+  document.getElementById('c').innerHTML=c.slice(0,100).map(x=>`<tr><td>#${x.id}</td><td>${x.canal||'—'}</td><td>${hora(x.actualizado)}</td><td>${n(x.mensajes)}</td><td>${n(x.llamadas)}</td><td>${n(x.entrada)}</td><td>${n(x.cache)}</td><td>${x.usd.toFixed(4)}</td></tr>`).join('')||'<tr><td colspan="8" style="text-align:center;color:#666">Sin datos</td></tr>';
+});
+</script></main></body></html>

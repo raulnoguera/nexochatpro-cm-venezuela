@@ -1,0 +1,28 @@
+# ---- Secretos: nunca se suben ----
+.env
+.env.*
+!.env.example
+.chatwoot.env
+*.pem
+*.key
+id_*
+
+# ---- Dependencias y sistema ----
+node_modules/
+.DS_Store
+.claude/
+
+# ---- Datos del cliente: viven en el servidor (bot/data), no en git ----
+bot/data/*
+!bot/data/README.md
+!bot/data/inventario.ejemplo.json
+!bot/data/servicios.json
+!bot/data/tiendas.json
+
+# ---- Documentos comerciales y material pesado ----
+Cotizacion_*.pdf
+documentos/Recibo_*.pdf
+*.mp4
+
+# ---- Copia de respaldo del catálogo para la web (se descarga de /catalogo.json) ----
+web/catalogo.json

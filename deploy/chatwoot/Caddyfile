@@ -1,0 +1,12 @@
+crm.nexochatpro.cloud {
+	encode gzip
+	handle_path /brand/* {
+		root * /srv/brand
+		file_server
+	}
+	@bot path /lista /admin /admin/* /img/* /catalogo.json /meta/*
+	handle @bot {
+		reverse_proxy nexochatpro-bot:4001
+	}
+	reverse_proxy rails:3000
+}

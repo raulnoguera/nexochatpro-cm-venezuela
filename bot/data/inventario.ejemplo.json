@@ -1,0 +1,171 @@
+[
+ {
+  "sku": "MIC-1956515",
+  "marca": "Michelin",
+  "modelo": "Energy XM2+",
+  "medida": "195/65R15",
+  "rin": 15,
+  "usd": 98,
+  "stock": {
+   "tienda_1": 8,
+   "tienda_2": 4,
+   "caracas": 6
+  }
+ },
+ {
+  "sku": "BRI-1956515",
+  "marca": "Bridgestone",
+  "modelo": "Turanza T005",
+  "medida": "195/65R15",
+  "rin": 15,
+  "usd": 92,
+  "stock": {
+   "tienda_1": 0,
+   "tienda_2": 3,
+   "caracas": 4
+  }
+ },
+ {
+  "sku": "PIR-1956515",
+  "marca": "Pirelli",
+  "modelo": "Cinturato P1",
+  "medida": "195/65R15",
+  "rin": 15,
+  "usd": 85,
+  "stock": {
+   "tienda_1": 0,
+   "tienda_2": 0,
+   "caracas": 0
+  }
+ },
+ {
+  "sku": "HAN-1956515",
+  "marca": "Hankook",
+  "modelo": "Kinergy Eco",
+  "medida": "195/65R15",
+  "rin": 15,
+  "usd": 68,
+  "stock": {
+   "tienda_1": 12,
+   "tienda_2": -2,
+   "caracas": 10
+  }
+ },
+ {
+  "sku": "MIC-2055516",
+  "marca": "Michelin",
+  "modelo": "Primacy 4",
+  "medida": "205/55R16",
+  "rin": 16,
+  "usd": 125,
+  "stock": {
+   "tienda_1": 4,
+   "tienda_2": 2,
+   "caracas": 3
+  }
+ },
+ {
+  "sku": "GDY-2055516",
+  "marca": "Goodyear",
+  "modelo": "EfficientGrip",
+  "medida": "205/55R16",
+  "rin": 16,
+  "usd": 110,
+  "stock": {
+   "tienda_1": 6,
+   "tienda_2": 4,
+   "caracas": 5
+  }
+ },
+ {
+  "sku": "HAN-2055516",
+  "marca": "Hankook",
+  "modelo": "Ventus Prime3",
+  "medida": "205/55R16",
+  "rin": 16,
+  "usd": 89,
+  "stock": {
+   "tienda_1": 9,
+   "tienda_2": 5,
+   "caracas": 7
+  }
+ },
+ {
+  "sku": "GDY-1857014",
+  "marca": "Goodyear",
+  "modelo": "Assurance",
+  "medida": "185/70R14",
+  "rin": 14,
+  "usd": 62,
+  "stock": {
+   "tienda_1": 10,
+   "tienda_2": 6,
+   "caracas": 8
+  }
+ },
+ {
+  "sku": "HAN-1857014",
+  "marca": "Hankook",
+  "modelo": "Optimo H426",
+  "medida": "185/70R14",
+  "rin": 14,
+  "usd": 55,
+  "stock": {
+   "tienda_1": 14,
+   "tienda_2": 8,
+   "caracas": 11
+  }
+ },
+ {
+  "sku": "BRI-2657017",
+  "marca": "Bridgestone",
+  "modelo": "Dueler H/T",
+  "medida": "265/70R17",
+  "rin": 17,
+  "usd": 165,
+  "stock": {
+   "tienda_1": 3,
+   "tienda_2": 2,
+   "caracas": 3
+  }
+ },
+ {
+  "sku": "GDY-2657017",
+  "marca": "Goodyear",
+  "modelo": "Wrangler AT",
+  "medida": "265/70R17",
+  "rin": 17,
+  "usd": 178,
+  "stock": {
+   "tienda_1": 2,
+   "tienda_2": 1,
+   "caracas": 2
+  }
+ },
+ {
+  "sku": "HAN-2357516",
+  "marca": "Hankook",
+  "modelo": "Dynapro HT",
+  "medida": "235/75R16",
+  "rin": 16,
+  "usd": 120,
+  "stock": {
+   "tienda_1": 6,
+   "tienda_2": 3,
+   "caracas": 5
+  }
+ },
+ {
+  "sku": "MIC-2656518",
+  "marca": "Michelin",
+  "modelo": "LTX Force",
+  "medida": "265/65R18",
+  "rin": 18,
+  "usd": 210,
+  "stock": {
+   "tienda_1": 3,
+   "tienda_2": 1,
+   "caracas": 2
+  }
+ }
+]

@@ -1,0 +1,460 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Recorrido NexoChatPro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Diseño: recorrido de 7 pasos. Arriba el relato, debajo el celular del cliente a la izquierda y el CRM del equipo a la derecha.
+   Paleta de la marca NexoChatPro: azul/índigo, menta de acento, tinta y neblina. */
+:root{
+  --bg:#EDF0F7; --surface:#FFFFFF; --surface2:#F5F7FB; --ink:#0B1220; --muted:#5A6479; --line:#E1E5EE;
+  --blue:#2F5BFF; --indigo:#5B3DF5; --mint:#19D3A2; --mint-ink:#08785D; --mint-bg:#DDF8F0;
+  --warn:#9A5B00; --warn-bg:#FFF1D6; --bad-bg:#FDE4E4; --bad:#B42318;
+  --bub-in:#FFFFFF; --bub-out:#DCE7FF; --bub-note:#FFF6D8; --chat-bg:#E9EDF6; --shadow:0 12px 40px rgba(11,18,32,.12);
+  --show-light:block; --show-dark:none;
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A0F1C; --surface:#121A2B; --surface2:#182138; --ink:#EEF2FB; --muted:#98A3BA; --line:#26324B;
+  --blue:#6D8CFF; --indigo:#8D79FF; --mint:#19D3A2; --mint-ink:#4FE3BC; --mint-bg:#103A33;
+  --warn:#F5BC63; --warn-bg:#3A2D12; --bad-bg:#3B1A1E; --bad:#FF8A80;
+  --bub-in:#1B2640; --bub-out:#2A3F7A; --bub-note:#3A3216; --chat-bg:#0E1626; --shadow:0 12px 40px rgba(0,0,0,.45);
+  --show-light:none; --show-dark:block; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A0F1C; --surface:#121A2B; --surface2:#182138; --ink:#EEF2FB; --muted:#98A3BA; --line:#26324B;
+  --blue:#6D8CFF; --indigo:#8D79FF; --mint:#19D3A2; --mint-ink:#4FE3BC; --mint-bg:#103A33;
+  --warn:#F5BC63; --warn-bg:#3A2D12; --bad-bg:#3B1A1E; --bad:#FF8A80;
+  --bub-in:#1B2640; --bub-out:#2A3F7A; --bub-note:#3A3216; --chat-bg:#0E1626; --shadow:0 12px 40px rgba(0,0,0,.45);
+  --show-light:none; --show-dark:block; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap>*{min-width:0}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+button{font:inherit;color:inherit;cursor:pointer}
+img{max-width:100%}
+.logo-light{display:var(--show-light)}.logo-dark{display:var(--show-dark)}
+
+/* encabezado */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top img{height:34px;width:auto}
+.top .who{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.top .who img{height:26px;background:#000;border-radius:6px;padding:2px 6px}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
+.tag.ok{background:var(--mint-bg);color:var(--mint-ink);border-color:transparent}
+.tag.opt{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+
+/* pasos */
+.steps{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:thin}
+.steps button{flex:1 0 auto;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 13px;white-space:nowrap;font-weight:600;color:var(--muted)}
+.steps button b{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--surface2);font-size:12px;color:var(--muted)}
+.steps button[aria-current="step"]{border-color:var(--blue);color:var(--ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 18%,transparent)}
+.steps button[aria-current="step"] b{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff}
+.steps button.done b{background:var(--mint);color:#04372B}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+/* relato */
+.story{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:14px;align-items:stretch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;min-width:0}
+.story h2{margin:6px 0 0;font-size:22px;line-height:1.2;font-weight:800;letter-spacing:-.01em;text-wrap:balance}
+.story .k{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.story p{margin:0;color:var(--ink)}
+.nav{display:flex;gap:8px;margin-top:14px}
+.nav button{border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:8px 14px;font-weight:600}
+.nav button.primary{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff;border-color:transparent}
+.nav button:disabled{opacity:.4;cursor:default}
+
+/* escenario */
+.stage{display:grid;grid-template-columns:330px minmax(0,1fr);gap:18px;align-items:start}
+
+/* celular */
+.phone{width:310px;height:610px;margin:0 auto;border-radius:38px;background:#0B1220;padding:10px;box-shadow:var(--shadow);position:relative}
+.screen{height:100%;border-radius:29px;overflow:hidden;background:var(--chat-bg);display:flex;flex-direction:column}
+.p-head{display:flex;align-items:center;gap:10px;padding:14px 14px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+.p-head .av{width:34px;height:34px;border-radius:50%;background:#000;display:grid;place-items:center;overflow:hidden;flex:none}
+.p-head .av img{width:26px}
+.p-head strong{display:block;font-size:13.5px;line-height:1.2}.p-head small{color:var(--mint-ink);font-size:11.5px;font-weight:600}
+.p-body{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:7px;scrollbar-width:none}
+.p-body::-webkit-scrollbar{display:none}
+.p-foot{padding:8px 10px 12px;background:var(--surface);border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+.p-foot div{background:var(--surface2);border-radius:99px;padding:8px 14px}
+.msg{max-width:88%;padding:8px 11px;border-radius:14px;font-size:13px;line-height:1.4;animation:rise .32s ease both;overflow-wrap:anywhere}
+.msg.c{align-self:flex-end;background:var(--bub-out);border-bottom-right-radius:4px}
+.msg.n,.msg.a{align-self:flex-start;background:var(--bub-in);border-bottom-left-radius:4px}
+.msg .who{display:block;font-size:10.5px;font-weight:700;color:var(--indigo);margin-bottom:2px;letter-spacing:.02em}
+.msg.a .who{color:var(--mint-ink)}
+.msg time{display:block;text-align:right;font-size:10px;color:var(--muted);margin-top:2px}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.msg{animation:none}}
+.opt-card{margin-top:7px;border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:var(--surface)}
+.opt-card b{display:block;font-size:12.5px}.opt-card span{display:block;font-size:11.5px;color:var(--muted)}
+.opt-card .pr{margin-top:3px;font-size:12.5px;color:var(--ink)}.opt-card .pr em{font-style:normal;font-weight:800;color:var(--blue)}
+.link-card{margin-top:7px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.link-card i{display:block;height:46px;background:linear-gradient(135deg,#0B1220,#2F5BFF)}
+.link-card div{padding:7px 9px;font-size:11.5px}.link-card b{display:block;font-size:12.5px}.link-card span{color:var(--blue)}
+.ig-post{background:var(--surface);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.ig-post .im{height:160px;background:linear-gradient(#111 0 62%,#F5D90A 62%);color:#fff;padding:14px;font-weight:800;font-size:15px;line-height:1.15;display:flex;flex-direction:column;justify-content:space-between}
+.ig-post .im small{color:#F5D90A;font-weight:700;font-size:11px}.ig-post .im strong{color:#111;font-size:20px;line-height:1}
+.ig-c{padding:9px 11px;font-size:12.5px;border-top:1px solid var(--line)}.ig-c b{font-weight:700}.ig-c.re{margin-left:18px;background:var(--surface2)}
+.ig-c .by{font-size:10.5px;color:var(--indigo);font-weight:700}
+
+/* CRM */
+.crm{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);display:grid;grid-template-columns:62px minmax(0,1fr);min-height:610px}
+.side{background:var(--ink);display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0}
+:root[data-theme="dark"] .side{background:#060A14}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .side{background:#060A14}}
+.side img.m{width:34px;margin-bottom:10px}
+.side button{width:42px;height:42px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;color:#8E9AB5}
+.side button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.side button[aria-current="page"]{background:#1C2745;color:#fff}
+.main{display:flex;flex-direction:column;min-width:0}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bar h3{margin:0;font-size:15px;font-weight:800}
+.bar .sel{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;border:1px solid var(--line);background:var(--surface2);color:var(--muted)}
+.chip.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chip.mint{background:var(--mint-bg);color:var(--mint-ink);border-color:transparent}
+.chip.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.chip.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.chip.blue{background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue);border-color:transparent}
+.inbox{display:grid;grid-template-columns:200px minmax(0,1fr) 210px;flex:1;min-height:0}
+.list{border-right:1px solid var(--line);overflow:auto}
+.conv{display:block;width:100%;text-align:left;border:0;background:transparent;padding:11px 13px;border-bottom:1px solid var(--line);position:relative}
+.conv[aria-current="true"]{background:color-mix(in srgb,var(--blue) 9%,var(--surface))}
+.conv b{display:flex;justify-content:space-between;gap:6px;font-size:12.5px}.conv b time{font-weight:500;color:var(--muted);font-size:11px}
+.conv p{margin:2px 0 5px;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv .chips{display:flex;gap:4px;flex-wrap:wrap}
+.thread{display:flex;flex-direction:column;min-width:0}
+.t-head{padding:11px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.t-head strong{font-size:13.5px}
+.t-body{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:var(--surface2);max-height:430px}
+.t-body .msg{max-width:78%;font-size:12.5px}
+.t-body .msg.c{align-self:flex-start;background:var(--bub-in)}
+.t-body .msg.n{align-self:flex-end;background:var(--bub-out);border-bottom-left-radius:14px;border-bottom-right-radius:4px}
+.t-body .msg.a{align-self:flex-end;background:var(--mint-bg);border-bottom-left-radius:14px;border-bottom-right-radius:4px}
+.t-body .msg.a .who{color:var(--mint-ink)}
+.t-body .note{align-self:center;max-width:90%;background:var(--bub-note);color:var(--warn);border-radius:10px;padding:6px 10px;font-size:11.5px;font-weight:600;animation:rise .32s ease both}
+.composer{border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;align-items:center;color:var(--muted);font-size:12.5px}
+.composer .box{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--surface)}
+.composer .send{border:0;border-radius:10px;padding:8px 13px;font-weight:700;background:var(--surface2);color:var(--muted)}
+.composer.live .send{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff}
+.info{border-left:1px solid var(--line);padding:14px;overflow:auto;font-size:12.5px}
+.info h4{margin:0 0 8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.info dl{margin:0 0 14px;display:grid;gap:8px}.info dt{font-size:11px;color:var(--muted)}.info dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.info .fresh{animation:flash 1.4s ease}
+@keyframes flash{0%{background:color-mix(in srgb,var(--mint) 35%,transparent)}100%{background:transparent}}
+@media (prefers-reduced-motion:reduce){.info .fresh{animation:none}}
+.pane{padding:16px;overflow:auto;flex:1}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.new td{background:color-mix(in srgb,var(--mint) 14%,transparent)}
+.tbl{overflow-x:auto}
+.agenda{display:grid;gap:0}
+.slot{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;min-height:54px;border-top:1px solid var(--line);padding:6px 0}
+.slot time{color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums;padding-top:4px}
+.ev{border-radius:10px;padding:8px 11px;background:var(--surface2);border:1px solid var(--line);font-size:12.5px}
+.ev b{display:block}.ev span{color:var(--muted)}
+.ev.new{background:var(--mint-bg);border-color:var(--mint);animation:rise .4s ease both}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--surface)}
+.kpi small{color:var(--muted);font-size:11.5px;display:block}.kpi b{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bars{display:grid;gap:9px}.bars div{display:grid;grid-template-columns:96px 1fr 38px;align-items:center;gap:8px;font-size:12px}
+.bars i{display:block;height:9px;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--indigo))}
+.bars em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.rank{margin:0;padding:0;list-style:none;display:grid;gap:7px;font-size:12.5px}.rank li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.sim{font-size:11.5px;color:var(--muted);margin:2px 0 0}
+.foot{color:var(--muted);font-size:12px;text-align:center}
+
+@media (max-width:1020px){.story{grid-template-columns:1fr}.stage{grid-template-columns:1fr}.inbox{grid-template-columns:minmax(0,1fr) 200px}.list{display:none}}
+@media (max-width:640px){.inbox{grid-template-columns:1fr}.info{border-left:0;border-top:1px solid var(--line)}.two{grid-template-columns:1fr}.crm{grid-template-columns:1fr}.side{flex-direction:row;justify-content:center;padding:8px}.side img.m{display:none}.phone{width:min(310px,100%)}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <img class="logo-light" src="__LOGO_LIGHT__" alt="NexoChatPro"><img class="logo-dark" src="__LOGO_DARK__" alt="NexoChatPro">
+    </div>
+    <div class="who"><span>Recorrido para</span><img src="__CM__" alt="CM Venezuela"><span class="tag">Datos de ejemplo</span></div>
+  </header>
+
+  <nav class="steps" id="steps" aria-label="Pasos del recorrido"></nav>
+
+  <section class="story" aria-live="polite">
+    <div class="card"><div class="k" id="k-step"></div><h2 id="s-title"></h2><div style="margin-top:10px" id="s-phase"></div>
+      <div class="nav"><button id="prev">Anterior</button><button id="next" class="primary">Siguiente</button></div></div>
+    <div class="card"><div class="k">En el chat del cliente</div><p id="s-chat"></p></div>
+    <div class="card"><div class="k">En el CRM del equipo</div><p id="s-crm"></p></div>
+  </section>
+
+  <section class="stage">
+    <div class="phone" aria-label="Chat del cliente"><div class="screen" id="phone"></div></div>
+    <div class="crm" aria-label="CRM del equipo">
+      <nav class="side" id="side"><img class="m" src="__MARK__" alt="NexoChatPro"></nav>
+      <div class="main" id="crm"></div>
+    </div>
+  </section>
+  <p class="foot">Nombres, teléfonos, precios y cifras son ejemplos para ilustrar el flujo. Los precios en bolívares usan una tasa de ejemplo por tienda.</p>
+</div>
+
+<script>
+const TASA = { maracay: 1040, caracas: 886.23 };           // Bs por USD (ejemplo): tasa euro en Maracay, BCV en Caracas
+const bs = n => Math.round(n).toLocaleString('es-VE');
+const OPCIONES = [
+  { n: 'ACDelco 24F-950', d: 'Garantía 12 meses · económica', lista: 95 },
+  { n: 'Willard Titanio 24F-1000', d: 'Garantía 18 meses · la más pedida', lista: 118 },
+  { n: 'Bosch S5 24F-1100', d: 'Garantía 24 meses · mayor duración', lista: 149 },
+];
+const usd = l => Math.round(l * 0.92);                      // precio en dólares con descuento
+
+const STEPS = [
+  { short: 'El cliente escribe', title: 'Un cliente escribe por WhatsApp', phase: 'ok',
+    chat: 'Escribe a cualquiera de los 2 números. Nexo responde en segundos, se presenta y pregunta lo necesario: vehículo y ciudad.',
+    crm: 'La conversación aparece sola en la bandeja del equipo, con el cliente como visitante hasta que dé su nombre.', view: 'inbox' },
+  { short: 'Nexo recomienda', title: 'Nexo busca en el inventario y recomienda', phase: 'ok',
+    chat: 'Con el vehículo y la sede, ofrece opciones disponibles con precio en dólares (con descuento) y en bolívares a la tasa de esa tienda.',
+    crm: 'La ficha se completa sola: vehículo, sede e interés. Nadie tiene que escribir nada.', view: 'inbox' },
+  { short: 'Catálogo y datos', title: 'Catálogo para comparar y datos del cliente', phase: 'ok',
+    chat: 'Nexo envía un enlace al catálogo web para comparar marcas y precios, y guarda el nombre y el teléfono.',
+    crm: 'El cliente pasa a la lista de contactos con su vehículo, su sede y etiquetas para filtrar.', view: 'contacts' },
+  { short: 'Agenda la cita', title: 'La cita queda agendada', phase: 'ok',
+    chat: 'El cliente elige día y hora. Nexo confirma la cita y avisa que le enviará un recordatorio.',
+    crm: 'La cita aparece en la agenda de la sede. El horario ocupado no se puede ofrecer dos veces.', view: 'agenda' },
+  { short: 'Pasa a un asesor', title: 'Cuando hay que negociar, entra una persona', phase: 'ok',
+    chat: 'El cliente pide un descuento. Nexo avisa que lo atenderá un asesor y deja de responder. El asesor continúa en el mismo chat.',
+    crm: 'La conversación se marca como "Requiere asesor". Carla responde desde la bandeja, con todo el historial a la vista.', view: 'inbox' },
+  { short: 'Instagram', title: 'Comentarios de Instagram con respuesta automática', phase: 'ok',
+    chat: 'Alguien comenta una publicación. Nexo responde en el comentario y sigue la conversación por mensaje directo.',
+    crm: 'Los mensajes de Instagram llegan a la misma bandeja que los de WhatsApp, con sus datos y etiquetas.', view: 'inbox' },
+  { short: 'Resumen', title: 'Qué se consulta y cuánto resuelve Nexo', phase: 'later',
+    chat: 'El cliente no ve este paso. Es lo que el dueño revisa para decidir qué promocionar.',
+    crm: 'Conversaciones atendidas, citas por canal y productos más consultados en una sola pantalla.', view: 'summary' },
+];
+const PHASE = { ok: ['Incluido en la cotización', 'ok'], opt: ['Opcional · se cotiza aparte', 'opt'], later: ['Vista previa · fase posterior', 'opt'] };
+
+// mensajes de WhatsApp (el paso en que aparece cada uno)
+const WA = [
+  { at: 0, f: 'c', t: '9:41', x: 'Hola, necesito una batería para mi Corolla 2015' },
+  { at: 0, f: 'n', t: '9:41', x: '¡Hola! Soy Nexo, el asistente virtual de CM Venezuela 👋 Para recomendarte la batería correcta, ¿me confirmas el motor de tu Corolla y en qué ciudad estás, Maracay o Caracas?' },
+  { at: 1, f: 'c', t: '9:42', x: 'Es el 1.8, estoy en Maracay' },
+  { at: 1, f: 'n', t: '9:42', x: 'Perfecto. Para un Corolla 2015 1.8 tengo estas opciones disponibles en Maracay:', opts: true },
+  { at: 2, f: 'c', t: '9:44', x: 'La Willard. Me llamo Raúl Méndez, mi número es 0414-1234567' },
+  { at: 2, f: 'n', t: '9:44', x: 'Gracias, Raúl, ya quedaste registrado. Aquí puedes comparar marcas y precios 👇', link: true },
+  { at: 3, f: 'c', t: '9:46', x: 'Quiero instalarla mañana a las 10' },
+  { at: 3, f: 'n', t: '9:46', x: 'Listo, Raúl ✅ Cita confirmada: sábado 24 de octubre, 10:00 a. m., sede Maracay, con instalación incluida. Te escribo un día antes para recordártela.' },
+  { at: 4, f: 'c', t: '9:49', x: '¿Me hacen descuento si compro 2 baterías?' },
+  { at: 4, f: 'n', t: '9:49', x: 'Para negociar el precio por cantidad te paso con un asesor. En unos minutos te escribe 🙌' },
+  { at: 4, f: 'a', t: '9:52', x: 'Hola Raúl, soy Carla de CM Venezuela. Por 2 baterías Willard te las dejo en $205 en total. ¿Te las aparto?' },
+];
+const NOTES = [
+  { at: 3, x: '📅 Cita #1 creada: Raúl Méndez · Instalación de batería · sáb 24 oct 10:00 · Maracay' },
+  { at: 4, x: '🙋 Nexo pasó la conversación a un asesor: el cliente pide descuento por cantidad' },
+];
+const OTROS = [
+  { id: 'maria', n: 'María Fernández', p: '¿Tienen 195/65 R15?', t: '9:38', ch: 'WhatsApp', sede: 'Caracas', tags: [['mint','cauchos']] },
+  { id: 'luis', n: 'Luis Rojas', p: 'Gracias, ya voy para allá', t: '9:15', ch: 'WhatsApp', sede: 'Maracay', tags: [['blue','cita']] },
+];
+
+let step = 0, crmView = null, userNav = false;
+const lim = { v: Infinity };                               // cuántos mensajes del paso actual se muestran (para el video)
+const inStep = m => WA.filter(x => x.at === m.at);
+const vis = m => m.at < step || (m.at === step && inStep(m).indexOf(m) < lim.v);
+const reached = (s, k) => step > s || (step === s && lim.v >= k);
+const $ = s => document.querySelector(s);
+const esc = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const chip = (k, t) => `<span class="chip ${k}">${t}</span>`;
+
+/* ---------- celular ---------- */
+function renderPhone() {
+  if (step === 5) { // Instagram
+    $('#phone').innerHTML = `
+      <div class="p-head"><div class="av"><img src="__CM__" alt=""></div><div><strong>cmvenezuela</strong><small>Instagram · publicación</small></div></div>
+      <div class="p-body">
+        <div class="ig-post"><div class="im"><small>CM VENEZUELA</small><span>Alineación 3D computarizada</span><strong>Desde $11,99</strong></div>
+          <div class="ig-c"><b>jose.m</b> ¿Cuánto cuesta para una Hilux?</div>
+          <div class="ig-c re"><span class="by">cmvenezuela · Nexo</span><br>¡Hola José! Te escribimos por mensaje directo con el precio para tu Hilux 📩</div></div>
+        <div class="msg n"><span class="who">Mensaje directo · Nexo</span>¡Hola José! Para tu Hilux la alineación 3D sale en $24 (Bs ${bs(24*TASA.maracay)} en Maracay). ¿Quieres que te agende una cita?<time>10:03</time></div>
+      </div>
+      <div class="p-foot"><div>Mensaje…</div></div>`;
+    return;
+  }
+  const msgs = WA.filter(m => m.at <= Math.min(step, 4) && vis(m));
+  $('#phone').innerHTML = `
+    <div class="p-head"><div class="av"><img src="__CM__" alt=""></div><div><strong>CM Venezuela</strong><small>en línea</small></div></div>
+    <div class="p-body" id="pb">${msgs.map(m => phoneMsg(m)).join('')}</div>
+    <div class="p-foot"><div>Escribe un mensaje</div></div>`;
+  const pb = $('#pb'); if (pb) pb.scrollTop = pb.scrollHeight;
+}
+function phoneMsg(m) {
+  const who = m.f === 'n' ? '<span class="who">Nexo · asistente virtual</span>' : m.f === 'a' ? '<span class="who">Carla · asesora</span>' : '';
+  let extra = '';
+  if (m.opts) extra = OPCIONES.map(o => `<div class="opt-card"><b>${o.n}</b><span>${o.d}</span><div class="pr">Pagando en dólares: <em>$${usd(o.lista)}</em><br>En bolívares: Bs ${bs(o.lista * TASA.maracay)} <span style="display:inline">(tasa euro)</span></div></div>`).join('');
+  if (m.link) extra = `<div class="link-card"><i></i><div><b>Catálogo Maracay · Baterías</b>Corolla 2015 · comparar marcas y precios<br><span>cmvenezuela.com/maracay/baterias</span></div></div>`;
+  return `<div class="msg ${m.f}">${who}${esc(m.x)}${extra}<time>${m.t}</time></div>`;
+}
+
+/* ---------- CRM ---------- */
+const ICONS = {
+  inbox: '<path d="M4 13l2-8h12l2 8M4 13v6h16v-6M4 13h5l1 2h4l1-2h5"/>',
+  contacts: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.5-3.6 3-5.4 6-5.4s5.5 1.8 6 5.4M16 5.2a3 3 0 010 5.6M18 14.8c1.8.7 2.8 2.4 3 5.2"/>',
+  agenda: '<rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  summary: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+};
+const VIEWS = { inbox: 'Bandeja', contacts: 'Contactos', agenda: 'Agenda', summary: 'Resumen' };
+
+function renderSide() {
+  $('#side').innerHTML = `<img class="m" src="__MARK__" alt="NexoChatPro">` + Object.keys(VIEWS).map(v =>
+    `<button data-v="${v}" title="${VIEWS[v]}" aria-label="${VIEWS[v]}" ${v === crmView ? 'aria-current="page"' : ''}><svg viewBox="0 0 24 24">${ICONS[v]}</svg></button>`).join('');
+  document.querySelectorAll('#side button').forEach(b => b.onclick = () => { userNav = true; crmView = b.dataset.v; renderCrm(); });
+}
+
+const contact = () => ({
+  nombre: reached(2, 1) ? 'Raúl Méndez' : 'Visitante 4821',
+  tel: reached(2, 1) ? '+58 414 1234567' : '—',
+  veh: reached(1, 1) ? 'Toyota Corolla 2015 · 1.8' : '—',
+  sede: reached(1, 1) ? 'Maracay' : '—',
+  prod: reached(2, 1) ? 'Willard Titanio 24F-1000' : reached(1, 1) ? 'Batería' : '—',
+  cita: reached(3, 2) ? 'Sáb 24 oct · 10:00' : '—',
+});
+const tagsFor = () => {
+  const t = [];
+  if (reached(1, 1)) t.push(['mint', 'batería']);
+  if (reached(3, 2)) t.push(['blue', 'cita agendada']);
+  if (reached(4, 2)) t.push(['bad', 'requiere asesor']);
+  return t;
+};
+
+function threadMsgs() {
+  const order = WA.filter(m => m.at <= step && vis(m)).map(m => ({ k: 'm', m, key: WA.indexOf(m) }));
+  NOTES.filter(n => n.at <= step).forEach(n => {
+    const rel = WA.find(m => m.at === n.at && m.f === 'n');
+    if (rel && vis(rel)) order.push({ k: 'n', n, key: WA.indexOf(rel) + .5 });
+  });
+  order.sort((a, b) => a.key - b.key);
+  return order.map(o => o.k === 'n' ? `<div class="note">${o.n.x}</div>` : crmMsg(o.m)).join('');
+}
+function crmMsg(m) {
+  const who = m.f === 'n' ? '<span class="who">Nexo</span>' : m.f === 'a' ? '<span class="who">Carla · asesora</span>' : '';
+  let extra = '';
+  if (m.opts) extra = ' <span style="color:var(--muted)">[3 opciones con precio en USD y Bs]</span>';
+  if (m.link) extra = ' <span style="color:var(--blue)">[enlace al catálogo]</span>';
+  return `<div class="msg ${m.f}">${who}${esc(m.x)}${extra}<time>${m.t}</time></div>`;
+}
+
+function viewInbox() {
+  const ig = step === 5;
+  const c = contact();
+  const human = reached(4, 2) && !ig;
+  const igTags = [['blue', 'instagram'], ['mint', 'alineación']];
+  const list = [
+    ...(ig ? [`<button class="conv" aria-current="true"><b>jose.m <time>10:03</time></b><p>¿Cuánto cuesta para una Hilux?</p><div class="chips">${chip('blue','Instagram')}${chip('mint','alineación')}</div></button>`] : []),
+    `<button class="conv" ${ig ? '' : 'aria-current="true"'}><b>${c.nombre} <time>9:${reached(4, 3) ? '52' : '4' + (step + 1)}</time></b><p>${esc(lastText())}</p><div class="chips">${chip('', 'WhatsApp')}${tagsFor().map(t => chip(t[0], t[1])).join('')}</div></button>`,
+    ...OTROS.map(o => `<button class="conv"><b>${o.n} <time>${o.t}</time></b><p>${o.p}</p><div class="chips">${chip('', o.ch)}${chip('', o.sede)}${o.tags.map(t => chip(t[0], t[1])).join('')}</div></button>`),
+  ].join('');
+  const thread = ig ? `
+    <div class="note">Comentario en publicación «Alineación 3D» · respondido por Nexo</div>
+    <div class="msg c"><span class="who" style="color:var(--muted)">jose.m</span>¿Cuánto cuesta para una Hilux?<time>10:02</time></div>
+    <div class="msg n"><span class="who">Nexo</span>¡Hola José! Te escribimos por mensaje directo con el precio para tu Hilux 📩<time>10:02</time></div>
+    <div class="msg n"><span class="who">Nexo</span>Para tu Hilux la alineación 3D sale en $24 (Bs ${bs(24*TASA.maracay)} en Maracay). ¿Quieres que te agende una cita?<time>10:03</time></div>` : threadMsgs();
+  const info = ig ? `
+    <h4>Contacto</h4><dl><div><dt>Usuario</dt><dd>@jose.m</dd></div><div><dt>Vehículo</dt><dd>Toyota Hilux</dd></div><div><dt>Interés</dt><dd>Alineación 3D</dd></div><div><dt>Canal</dt><dd>Instagram</dd></div></dl>
+    <h4>Etiquetas</h4><div class="chips" style="display:flex;gap:4px;flex-wrap:wrap">${igTags.map(t => chip(t[0], t[1])).join('')}</div>` : `
+    <h4>Contacto</h4>
+    <dl>
+      <div><dt>Nombre</dt><dd ${step === 2 ? 'class="fresh"' : ''}>${c.nombre}</dd></div>
+      <div><dt>Teléfono</dt><dd ${step === 2 ? 'class="fresh"' : ''}>${c.tel}</dd></div>
+      <div><dt>Vehículo</dt><dd ${step === 1 ? 'class="fresh"' : ''}>${c.veh}</dd></div>
+      <div><dt>Sede</dt><dd ${step === 1 ? 'class="fresh"' : ''}>${c.sede}</dd></div>
+      <div><dt>Producto de interés</dt><dd ${step === 2 ? 'class="fresh"' : ''}>${c.prod}</dd></div>
+      <div><dt>Próxima cita</dt><dd ${step === 3 ? 'class="fresh"' : ''}>${c.cita}</dd></div>
+    </dl>
+    <h4>Etiquetas</h4><div style="display:flex;gap:4px;flex-wrap:wrap">${tagsFor().map(t => chip(t[0], t[1])).join('') || '<span style="color:var(--muted)">Sin etiquetas</span>'}</div>`;
+  const stat = ig ? chip('mint', 'Nexo atendiendo') : human ? chip('bad', 'Requiere asesor') : chip('mint', 'Nexo atendiendo');
+  const comp = human
+    ? `<div class="composer live"><div class="box">Carla escribe una respuesta…</div><button class="send">Enviar</button></div>`
+    : `<div class="composer"><div class="box">Nexo está respondiendo. Puedes tomar la conversación cuando quieras.</div><button class="send">Tomar</button></div>`;
+  return `
+    <div class="bar"><h3>Bandeja</h3><div class="sel">${chip('on','Todas')}${chip('','Maracay · WhatsApp 1')}${chip('','Caracas · WhatsApp 2')}${chip('','Instagram')}</div></div>
+    <div class="inbox">
+      <div class="list">${list}</div>
+      <div class="thread"><div class="t-head"><strong>${ig ? 'jose.m' : c.nombre}</strong><span style="display:flex;gap:6px;flex-wrap:wrap">${chip('', ig ? 'Instagram' : 'WhatsApp')}${stat}</span></div>
+        <div class="t-body" id="tb">${thread}</div>${comp}</div>
+      <aside class="info">${info}</aside>
+    </div>`;
+}
+const lastText = () => WA.filter(m => m.at <= Math.min(step, 4) && vis(m)).at(-1)?.x ?? '';
+
+function viewContacts() {
+  const rows = [
+    ...(reached(2, 1) ? [`<tr class="new"><td><b>Raúl Méndez</b><br><span class="chip mint">nuevo</span></td><td>+58 414 1234567</td><td>Toyota Corolla 2015</td><td>Maracay</td><td>${chip('mint','batería')} ${reached(3,2)?chip('blue','cita agendada'):''} ${reached(4,2)?chip('bad','requiere asesor'):''}</td><td>Hoy 9:${step>=4?'52':'44'}</td></tr>`] : []),
+    `<tr><td><b>María Fernández</b></td><td>+58 412 5550192</td><td>Chevrolet Aveo 2012</td><td>Caracas</td><td>${chip('mint','cauchos')}</td><td>Hoy 9:38</td></tr>`,
+    `<tr><td><b>Luis Rojas</b></td><td>+58 424 5550841</td><td>Ford Fiesta 2010</td><td>Maracay</td><td>${chip('blue','cita agendada')}</td><td>Hoy 9:15</td></tr>`,
+    `<tr><td><b>Andrea Pérez</b></td><td>+58 416 5550377</td><td>Kia Rio 2018</td><td>Maracay</td><td>${chip('mint','alineación')}</td><td>Ayer</td></tr>`,
+    `<tr><td><b>Carlos Medina</b></td><td>+58 414 5550615</td><td>Toyota Hilux 2016</td><td>Caracas</td><td>${chip('mint','cauchos')} ${chip('warn','Cashea')}</td><td>Ayer</td></tr>`,
+  ].join('');
+  return `<div class="bar"><h3>Contactos</h3><div class="sel">${chip('on','Todos')}${chip('','Maracay')}${chip('','Caracas')}${chip('','Con cita')}</div></div>
+    <div class="pane"><div class="tbl"><table><thead><tr><th>Nombre</th><th>Teléfono</th><th>Vehículo</th><th>Sede</th><th>Etiquetas</th><th>Última vez</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="sim">Cada cliente guarda su vehículo y su historial. Se puede filtrar para avisar, por ejemplo, a quienes cambiaron cauchos hace seis meses.</p></div>`;
+}
+
+function viewAgenda() {
+  const slots = [
+    ['8:00', null], ['9:00', { t: 'Montaje y balanceo', s: 'Luis Rojas · Ford Fiesta' }],
+    ['10:00', reached(3, 2) ? { t: 'Instalación de batería', s: 'Raúl Méndez · Toyota Corolla 2015', n: true } : null],
+    ['11:00', { t: 'Alineación 3D', s: 'Pedro Gómez · Toyota Hilux' }], ['12:00', null],
+    ['14:00', { t: 'Reparación de caucho', s: 'Andrea Pérez · Kia Rio' }], ['15:00', null],
+  ];
+  return `<div class="bar"><h3>Agenda · sábado 24 de octubre</h3><div class="sel">${chip('on','Maracay')}${chip('','Caracas')}</div></div>
+    <div class="pane"><div class="agenda">${slots.map(([h, e]) => `<div class="slot"><time>${h}</time>${e ? `<div class="ev ${e.n ? 'new' : ''}"><b>${e.t}${e.n ? ' · nueva' : ''}</b><span>${e.s}</span></div>` : '<div></div>'}</div>`).join('')}</div>
+    <p class="sim">Un horario ocupado no se vuelve a ofrecer. Nexo propone el siguiente disponible.</p></div>`;
+}
+
+function viewSummary() {
+  const canales = [['WhatsApp', 71], ['Instagram', 21], ['Web', 8]];
+  const top = [['Baterías 12 V', 118], ['Cauchos 195/65 R15', 96], ['Alineación 3D', 74], ['Montaje y balanceo', 61], ['Cauchos 205/55 R16', 47]];
+  return `<div class="bar"><h3>Resumen de la semana</h3><div class="sel">${chip('on','Todas las sedes')}${chip('','Maracay')}${chip('','Caracas')}</div></div>
+    <div class="pane">
+      <div class="kpis"><div class="kpi"><small>Conversaciones</small><b>412</b></div><div class="kpi"><small>Resueltas por Nexo</small><b>78%</b></div><div class="kpi"><small>Citas agendadas</small><b>64</b></div><div class="kpi"><small>Pasadas a asesor</small><b>91</b></div></div>
+      <div class="two">
+        <div class="kpi"><small style="margin-bottom:10px">De dónde llegan</small><div class="bars">${canales.map(([n, v]) => `<div><span>${n}</span><i style="width:${v}%"></i><em>${v}%</em></div>`).join('')}</div></div>
+        <div class="kpi"><small style="margin-bottom:10px">Lo que más preguntan</small><ul class="rank">${top.map(([n, v]) => `<li><span>${n}</span><b style="font-size:12.5px">${v}</b></li>`).join('')}</ul></div>
+      </div>
+      <p class="sim">Cifras de ejemplo. Los reportes avanzados se cotizan en una fase posterior.</p></div>`;
+}
+
+function renderCrm() {
+  if (!crmView) crmView = STEPS[step].view;
+  const v = { inbox: viewInbox, contacts: viewContacts, agenda: viewAgenda, summary: viewSummary }[crmView]();
+  $('#crm').innerHTML = v; renderSide();
+  const tb = $('#tb'); if (tb) tb.scrollTop = tb.scrollHeight;
+}
+
+/* ---------- navegación ---------- */
+function renderStory() {
+  const s = STEPS[step];
+  $('#k-step').textContent = `Paso ${step + 1} de ${STEPS.length}`;
+  $('#s-title').textContent = s.title;
+  $('#s-phase').innerHTML = `<span class="tag ${PHASE[s.phase][1]}">${PHASE[s.phase][0]}</span>`;
+  $('#s-chat').textContent = s.chat; $('#s-crm').textContent = s.crm;
+  $('#prev').disabled = step === 0; $('#next').disabled = step === STEPS.length - 1;
+  $('#steps').innerHTML = STEPS.map((x, i) => `<button data-i="${i}" class="${i < step ? 'done' : ''}" ${i === step ? 'aria-current="step"' : ''}><b>${i + 1}</b>${x.short}</button>`).join('');
+  document.querySelectorAll('#steps button').forEach(b => b.onclick = () => go(+b.dataset.i));
+}
+function go(i) { lim.v = Infinity; step = Math.max(0, Math.min(STEPS.length - 1, i)); crmView = null; userNav = false; renderStory(); renderPhone(); renderCrm(); }
+$('#prev').onclick = () => go(step - 1); $('#next').onclick = () => go(step + 1);
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') go(step + 1); if (e.key === 'ArrowLeft') go(step - 1); });
+window.setBeat = (s, k) => { step = s; lim.v = k; crmView = null; userNav = false; renderStory(); renderPhone(); renderCrm(); };
+window.beats = () => {
+  const out = [];
+  STEPS.forEach((st, s) => {
+    const n = WA.filter(m => m.at === s).length;
+    for (let k = (s === 0 ? 1 : 0); k <= n; k++) out.push({ s, k, n, last: k === n });
+  });
+  return out;
+};
+go(0);
+</script>

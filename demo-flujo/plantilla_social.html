@@ -1,0 +1,367 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Redes sociales NexoChatPro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+<style>
+/* Diseño: recorrido de 7 pasos. Arriba el relato, debajo el celular del cliente a la izquierda y el CRM del equipo a la derecha.
+   Paleta de la marca NexoChatPro: azul/índigo, menta de acento, tinta y neblina. */
+:root{
+  --bg:#EDF0F7; --surface:#FFFFFF; --surface2:#F5F7FB; --ink:#0B1220; --muted:#5A6479; --line:#E1E5EE;
+  --blue:#2F5BFF; --indigo:#5B3DF5; --mint:#19D3A2; --mint-ink:#08785D; --mint-bg:#DDF8F0;
+  --warn:#9A5B00; --warn-bg:#FFF1D6; --bad-bg:#FDE4E4; --bad:#B42318;
+  --bub-in:#FFFFFF; --bub-out:#DCE7FF; --bub-note:#FFF6D8; --chat-bg:#E9EDF6; --shadow:0 12px 40px rgba(11,18,32,.12);
+  --show-light:block; --show-dark:none;
+  --font:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A0F1C; --surface:#121A2B; --surface2:#182138; --ink:#EEF2FB; --muted:#98A3BA; --line:#26324B;
+  --blue:#6D8CFF; --indigo:#8D79FF; --mint:#19D3A2; --mint-ink:#4FE3BC; --mint-bg:#103A33;
+  --warn:#F5BC63; --warn-bg:#3A2D12; --bad-bg:#3B1A1E; --bad:#FF8A80;
+  --bub-in:#1B2640; --bub-out:#2A3F7A; --bub-note:#3A3216; --chat-bg:#0E1626; --shadow:0 12px 40px rgba(0,0,0,.45);
+  --show-light:none; --show-dark:block; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A0F1C; --surface:#121A2B; --surface2:#182138; --ink:#EEF2FB; --muted:#98A3BA; --line:#26324B;
+  --blue:#6D8CFF; --indigo:#8D79FF; --mint:#19D3A2; --mint-ink:#4FE3BC; --mint-bg:#103A33;
+  --warn:#F5BC63; --warn-bg:#3A2D12; --bad-bg:#3B1A1E; --bad:#FF8A80;
+  --bub-in:#1B2640; --bub-out:#2A3F7A; --bub-note:#3A3216; --chat-bg:#0E1626; --shadow:0 12px 40px rgba(0,0,0,.45);
+  --show-light:none; --show-dark:block; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:14px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap>*{min-width:0}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+button{font:inherit;color:inherit;cursor:pointer}
+img{max-width:100%}
+.logo-light{display:var(--show-light)}.logo-dark{display:var(--show-dark)}
+
+/* encabezado */
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.top img{height:34px;width:auto}
+.top .who{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}
+.top .who img{height:26px;background:#000;border-radius:6px;padding:2px 6px}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;background:var(--surface2);color:var(--muted);border:1px solid var(--line)}
+.tag.ok{background:var(--mint-bg);color:var(--mint-ink);border-color:transparent}
+.tag.opt{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+
+/* pasos */
+.steps{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:thin}
+.steps button{flex:1 0 auto;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 13px;white-space:nowrap;font-weight:600;color:var(--muted)}
+.steps button b{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--surface2);font-size:12px;color:var(--muted)}
+.steps button[aria-current="step"]{border-color:var(--blue);color:var(--ink);box-shadow:0 0 0 3px color-mix(in srgb,var(--blue) 18%,transparent)}
+.steps button[aria-current="step"] b{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff}
+.steps button.done b{background:var(--mint);color:#04372B}
+button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+/* relato */
+.story{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:14px;align-items:stretch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px 18px;min-width:0}
+.story h2{margin:6px 0 0;font-size:22px;line-height:1.2;font-weight:800;letter-spacing:-.01em;text-wrap:balance}
+.story .k{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.story p{margin:0;color:var(--ink)}
+.nav{display:flex;gap:8px;margin-top:14px}
+.nav button{border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:8px 14px;font-weight:600}
+.nav button.primary{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff;border-color:transparent}
+.nav button:disabled{opacity:.4;cursor:default}
+
+/* escenario */
+.stage{display:grid;grid-template-columns:330px minmax(0,1fr);gap:18px;align-items:start}
+
+/* celular */
+.phone{width:310px;height:610px;margin:0 auto;border-radius:38px;background:#0B1220;padding:10px;box-shadow:var(--shadow);position:relative}
+.screen{height:100%;border-radius:29px;overflow:hidden;background:var(--chat-bg);display:flex;flex-direction:column}
+.p-head{display:flex;align-items:center;gap:10px;padding:14px 14px 10px;background:var(--surface);border-bottom:1px solid var(--line)}
+.p-head .av{width:34px;height:34px;border-radius:50%;background:#000;display:grid;place-items:center;overflow:hidden;flex:none}
+.p-head .av img{width:26px}
+.p-head strong{display:block;font-size:13.5px;line-height:1.2}.p-head small{color:var(--mint-ink);font-size:11.5px;font-weight:600}
+.p-body{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:7px;scrollbar-width:none}
+.p-body::-webkit-scrollbar{display:none}
+.p-foot{padding:8px 10px 12px;background:var(--surface);border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+.p-foot div{background:var(--surface2);border-radius:99px;padding:8px 14px}
+.msg{max-width:88%;padding:8px 11px;border-radius:14px;font-size:13px;line-height:1.4;animation:rise .32s ease both;overflow-wrap:anywhere}
+.msg.c{align-self:flex-end;background:var(--bub-out);border-bottom-right-radius:4px}
+.msg.n,.msg.a{align-self:flex-start;background:var(--bub-in);border-bottom-left-radius:4px}
+.msg .who{display:block;font-size:10.5px;font-weight:700;color:var(--indigo);margin-bottom:2px;letter-spacing:.02em}
+.msg.a .who{color:var(--mint-ink)}
+.msg time{display:block;text-align:right;font-size:10px;color:var(--muted);margin-top:2px}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.msg{animation:none}}
+.opt-card{margin-top:7px;border:1px solid var(--line);border-radius:10px;padding:7px 9px;background:var(--surface)}
+.opt-card b{display:block;font-size:12.5px}.opt-card span{display:block;font-size:11.5px;color:var(--muted)}
+.opt-card .pr{margin-top:3px;font-size:12.5px;color:var(--ink)}.opt-card .pr em{font-style:normal;font-weight:800;color:var(--blue)}
+.link-card{margin-top:7px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.link-card i{display:block;height:46px;background:linear-gradient(135deg,#0B1220,#2F5BFF)}
+.link-card div{padding:7px 9px;font-size:11.5px}.link-card b{display:block;font-size:12.5px}.link-card span{color:var(--blue)}
+.ig-post{background:var(--surface);border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.ig-post .im{height:160px;background:linear-gradient(#111 0 62%,#F5D90A 62%);color:#fff;padding:14px;font-weight:800;font-size:15px;line-height:1.15;display:flex;flex-direction:column;justify-content:space-between}
+.ig-post .im small{color:#F5D90A;font-weight:700;font-size:11px}.ig-post .im strong{color:#111;font-size:20px;line-height:1}
+.ig-c{padding:9px 11px;font-size:12.5px;border-top:1px solid var(--line)}.ig-c b{font-weight:700}.ig-c.re{margin-left:18px;background:var(--surface2)}
+.ig-c .by{font-size:10.5px;color:var(--indigo);font-weight:700}
+
+/* CRM */
+.crm{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);display:grid;grid-template-columns:62px minmax(0,1fr);min-height:610px}
+.side{background:var(--ink);display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0}
+:root[data-theme="dark"] .side{background:#060A14}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .side{background:#060A14}}
+.side img.m{width:34px;margin-bottom:10px}
+.side button{width:42px;height:42px;border-radius:12px;border:0;background:transparent;display:grid;place-items:center;color:#8E9AB5}
+.side button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.side button[aria-current="page"]{background:#1C2745;color:#fff}
+.main{display:flex;flex-direction:column;min-width:0}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.bar h3{margin:0;font-size:15px;font-weight:800}
+.bar .sel{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:99px;border:1px solid var(--line);background:var(--surface2);color:var(--muted)}
+.chip.on{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.chip.mint{background:var(--mint-bg);color:var(--mint-ink);border-color:transparent}
+.chip.warn{background:var(--warn-bg);color:var(--warn);border-color:transparent}
+.chip.bad{background:var(--bad-bg);color:var(--bad);border-color:transparent}
+.chip.blue{background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue);border-color:transparent}
+.inbox{display:grid;grid-template-columns:200px minmax(0,1fr) 210px;flex:1;min-height:0}
+.list{border-right:1px solid var(--line);overflow:auto}
+.conv{display:block;width:100%;text-align:left;border:0;background:transparent;padding:11px 13px;border-bottom:1px solid var(--line);position:relative}
+.conv[aria-current="true"]{background:color-mix(in srgb,var(--blue) 9%,var(--surface))}
+.conv b{display:flex;justify-content:space-between;gap:6px;font-size:12.5px}.conv b time{font-weight:500;color:var(--muted);font-size:11px}
+.conv p{margin:2px 0 5px;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.conv .chips{display:flex;gap:4px;flex-wrap:wrap}
+.thread{display:flex;flex-direction:column;min-width:0}
+.t-head{padding:11px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.t-head strong{font-size:13.5px}
+.t-body{flex:1;overflow:auto;padding:14px 16px;display:flex;flex-direction:column;gap:8px;background:var(--surface2);max-height:430px}
+.t-body .msg{max-width:78%;font-size:12.5px}
+.t-body .msg.c{align-self:flex-start;background:var(--bub-in)}
+.t-body .msg.n{align-self:flex-end;background:var(--bub-out);border-bottom-left-radius:14px;border-bottom-right-radius:4px}
+.t-body .msg.a{align-self:flex-end;background:var(--mint-bg);border-bottom-left-radius:14px;border-bottom-right-radius:4px}
+.t-body .msg.a .who{color:var(--mint-ink)}
+.t-body .note{align-self:center;max-width:90%;background:var(--bub-note);color:var(--warn);border-radius:10px;padding:6px 10px;font-size:11.5px;font-weight:600;animation:rise .32s ease both}
+.composer{border-top:1px solid var(--line);padding:10px 14px;display:flex;gap:8px;align-items:center;color:var(--muted);font-size:12.5px}
+.composer .box{flex:1;border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--surface)}
+.composer .send{border:0;border-radius:10px;padding:8px 13px;font-weight:700;background:var(--surface2);color:var(--muted)}
+.composer.live .send{background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff}
+.info{border-left:1px solid var(--line);padding:14px;overflow:auto;font-size:12.5px}
+.info h4{margin:0 0 8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.info dl{margin:0 0 14px;display:grid;gap:8px}.info dt{font-size:11px;color:var(--muted)}.info dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.info .fresh{animation:flash 1.4s ease}
+@keyframes flash{0%{background:color-mix(in srgb,var(--mint) 35%,transparent)}100%{background:transparent}}
+@media (prefers-reduced-motion:reduce){.info .fresh{animation:none}}
+.pane{padding:16px;overflow:auto;flex:1}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.new td{background:color-mix(in srgb,var(--mint) 14%,transparent)}
+.tbl{overflow-x:auto}
+.agenda{display:grid;gap:0}
+.slot{display:grid;grid-template-columns:62px minmax(0,1fr);gap:10px;min-height:54px;border-top:1px solid var(--line);padding:6px 0}
+.slot time{color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums;padding-top:4px}
+.ev{border-radius:10px;padding:8px 11px;background:var(--surface2);border:1px solid var(--line);font-size:12.5px}
+.ev b{display:block}.ev span{color:var(--muted)}
+.ev.new{background:var(--mint-bg);border-color:var(--mint);animation:rise .4s ease both}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.kpi{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:var(--surface)}
+.kpi small{color:var(--muted);font-size:11.5px;display:block}.kpi b{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bars{display:grid;gap:9px}.bars div{display:grid;grid-template-columns:96px 1fr 38px;align-items:center;gap:8px;font-size:12px}
+.bars i{display:block;height:9px;border-radius:99px;background:linear-gradient(90deg,var(--blue),var(--indigo))}
+.bars em{font-style:normal;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.rank{margin:0;padding:0;list-style:none;display:grid;gap:7px;font-size:12.5px}.rank li{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.sim{font-size:11.5px;color:var(--muted);margin:2px 0 0}
+.foot{color:var(--muted);font-size:12px;text-align:center}
+
+@media (max-width:1020px){.story{grid-template-columns:1fr}.stage{grid-template-columns:1fr}.inbox{grid-template-columns:minmax(0,1fr) 200px}.list{display:none}}
+@media (max-width:640px){.inbox{grid-template-columns:1fr}.info{border-left:0;border-top:1px solid var(--line)}.two{grid-template-columns:1fr}.crm{grid-template-columns:1fr}.side{flex-direction:row;justify-content:center;padding:8px}.side img.m{display:none}.phone{width:min(310px,100%)}}
+
+.chan{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:99px;color:var(--c);background:color-mix(in srgb,var(--c) 13%,transparent)}
+.chan::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--c)}
+.chan.ig{--c:#D6336C}.chan.fb{--c:#3F6DF5}.chan.mk{--c:#0E9F6E}.chan.wa{--c:#14916A}
+:root[data-theme="dark"] .chan.ig{--c:#FF7AAE}:root[data-theme="dark"] .chan.fb{--c:#8FB0FF}:root[data-theme="dark"] .chan.mk{--c:#4FE3BC}:root[data-theme="dark"] .chan.wa{--c:#4FE3BC}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .chan.ig{--c:#FF7AAE}:root:not([data-theme="light"]) .chan.fb{--c:#8FB0FF}:root:not([data-theme="light"]) .chan.mk{--c:#4FE3BC}:root:not([data-theme="light"]) .chan.wa{--c:#4FE3BC}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div><img class="logo-light" src="__LOGO_LIGHT__" alt="NexoChatPro"><img class="logo-dark" src="__LOGO_DARK__" alt="NexoChatPro"></div>
+    <div class="who"><span>Redes sociales de</span><img src="__CM__" alt="CM Venezuela"><span class="tag">Datos de ejemplo</span></div>
+  </header>
+
+  <nav class="steps" id="steps" aria-label="Pasos del recorrido"></nav>
+
+  <section class="story" aria-live="polite">
+    <div class="card"><div class="k" id="k-step"></div><h2 id="s-title"></h2><div style="margin-top:10px" id="s-phase"></div>
+      <div class="nav"><button id="prev">Anterior</button><button id="next" class="primary">Siguiente</button></div></div>
+    <div class="card"><div class="k">Lo que ve el cliente</div><p id="s-chat"></p></div>
+    <div class="card"><div class="k">En el CRM del equipo</div><p id="s-crm"></p></div>
+  </section>
+
+  <section class="stage">
+    <div class="phone" aria-label="Pantalla del cliente"><div class="screen" id="phone"></div></div>
+    <div class="crm" aria-label="CRM del equipo">
+      <nav class="side" id="side"><img class="m" src="__MARK__" alt="NexoChatPro"></nav>
+      <div class="main" id="crm"></div>
+    </div>
+  </section>
+  <p class="foot">Nombres, cuentas, precios y cifras son ejemplos para ilustrar el flujo. Los precios en bolívares usan una tasa de ejemplo por tienda.</p>
+</div>
+
+<script>
+const BS = n => Math.round(n).toLocaleString('es-VE');
+const STEPS = [
+  { short: 'Comentario en Instagram', title: 'Comentarios de Instagram con respuesta automática', phase: ['ok', 'Incluido en la cotización'],
+    chat: 'Alguien comenta una publicación. Nexo responde en el mismo comentario y avisa que seguirá por mensaje directo.',
+    crm: 'La conversación aparece en la bandeja con el canal Instagram y el comentario original.' },
+  { short: 'Mensaje directo', title: 'La conversación sigue por mensaje directo', phase: ['ok', 'Incluido en la cotización'],
+    chat: 'Nexo da el precio en dólares y en bolívares según la sede, y agenda la cita cuando el cliente la pide.',
+    crm: 'La ficha se llena sola: vehículo, interés y próxima cita.' },
+  { short: 'Facebook', title: 'Facebook: comentario y Messenger', phase: ['ok', 'Incluido en la cotización'],
+    chat: 'Un comentario en una publicación de baterías recibe respuesta pública, y el detalle llega por Messenger.',
+    crm: 'La clienta queda registrada con su vehículo y su interés, igual que en WhatsApp.' },
+  { short: 'Marketplace', title: 'Mensajes de Marketplace', phase: ['opt', 'Incluido · comentarios según Meta'],
+    chat: 'Quien pregunta por un anuncio recibe respuesta al instante, y Nexo pide el vehículo para recomendar.',
+    crm: 'Los mensajes de Marketplace llegan a la misma bandeja. Los comentarios dentro de Marketplace dependen del acceso que Meta habilite.' },
+  { short: 'Una sola bandeja', title: 'Todos los canales en una sola bandeja', phase: ['ok', 'Incluido en la cotización'],
+    chat: 'El cliente sigue escribiendo por el canal de siempre.',
+    crm: 'WhatsApp, Instagram, Facebook y Marketplace se filtran y se atienden desde un solo lugar. El asesor responde y el mensaje sale por el canal del cliente.' },
+];
+const N = [3, 4, 3, 4, 1];                       // momentos por paso (k = 0..N-1 mensajes mostrados)
+
+let step = 0, k = 99, crmView = 'inbox';
+const $ = s => document.querySelector(s);
+const chip = (c, t) => `<span class="chip ${c}">${t}</span>`;
+const CH = { ig: ['Instagram', 'ig'], fb: ['Facebook', 'fb'], mk: ['Marketplace', 'mk'], wa: ['WhatsApp', 'wa'] };
+const chCh = c => `<span class="chan ${CH[c][1]}">${CH[c][0]}</span>`;
+const reached = (s, kk) => step > s || (step === s && k >= kk);
+
+/* ---------- celular ---------- */
+const head = (n, sub) => `<div class="p-head"><div class="av"><img src="__CM__" alt=""></div><div><strong>${n}</strong><small>${sub}</small></div></div>`;
+const bub = (f, who, x, t, extra = '') => `<div class="msg ${f}">${who ? `<span class="who">${who}</span>` : ''}${x}${extra}<time>${t}</time></div>`;
+const comment = (u, x, re) => `<div class="ig-c${re ? ' re' : ''}">${re ? `<span class="by">${u}</span><br>` : `<b>${u}</b> `}${x}</div>`;
+
+function phoneHtml() {
+  if (step === 0) {
+    return head('cmvenezuela', 'Instagram · publicación') + `<div class="p-body">
+      <div class="ig-post"><div class="im"><small>CM VENEZUELA</small><span>Alineación 3D computarizada</span><strong>Desde $11,99</strong></div>
+      ${k >= 1 ? comment('jose.m', '¿Cuánto cuesta para una Hilux?') : '<div class="ig-c" style="color:var(--muted)">Aún no hay comentarios</div>'}
+      ${k >= 2 ? comment('cmvenezuela · Nexo', '¡Hola José! Te escribimos por mensaje directo con el precio para tu Hilux 📩', true) : ''}</div></div>`
+      + `<div class="p-foot"><div>Añade un comentario…</div></div>`;
+  }
+  if (step === 1) {
+    return head('cmvenezuela', 'Instagram · mensaje directo') + `<div class="p-body">
+      ${k >= 1 ? bub('n', 'Nexo · asistente virtual', '¡Hola José! Para tu Hilux la alineación 3D sale en $24 (Bs ' + BS(24 * 1040) + ' en Maracay, tasa euro). ¿Quieres que te agende una cita?', '10:03') : '<div class="msg n"><span class="who">Nexo · asistente virtual</span>Te escribo por aquí con el precio…<time>10:03</time></div>'}
+      ${k >= 2 ? bub('c', '', '¿Hay para mañana?', '10:04') : ''}
+      ${k >= 3 ? bub('n', 'Nexo · asistente virtual', 'Sí, mañana sábado a las 10:00 a. m. en Maracay. Cita confirmada ✅ Te escribo un día antes para recordártela.', '10:04') : ''}</div>`
+      + `<div class="p-foot"><div>Mensaje…</div></div>`;
+  }
+  if (step === 2) {
+    return head('CM Venezuela', 'Facebook · publicación') + `<div class="p-body">
+      <div class="ig-post"><div class="im" style="background:linear-gradient(#0B1220 0 62%,#19D3A2 62%)"><small>CM VENEZUELA</small><span>Baterías con 24 meses de garantía</span><strong>Instalación incluida</strong></div>
+      ${k >= 1 ? comment('María P.', '¿Cuánto cuesta la 24F para un Aveo?') : '<div class="ig-c" style="color:var(--muted)">Aún no hay comentarios</div>'}
+      ${k >= 2 ? comment('CM Venezuela · Nexo', '¡Hola María! Te enviamos el precio por mensaje privado 📩', true) : ''}</div>
+      ${k >= 2 ? bub('n', 'Messenger · Nexo', 'Hola María, para tu Aveo la Willard Titanio 24F-1000 está en $109 pagando en dólares, o Bs ' + BS(118 * 1040) + ' (tasa euro). ¿Te la apartamos?', '11:20') : ''}</div>`
+      + `<div class="p-foot"><div>Escribe un comentario…</div></div>`;
+  }
+  // Marketplace y vista general
+  return head('Marketplace', 'CM Venezuela · Maracay') + `<div class="p-body">
+    <div class="opt-card" style="margin:0"><b>Batería Willard Titanio 24F-1000</b><span>Garantía 18 meses · Maracay</span><div class="pr"><em style="font-style:normal;font-weight:800;color:var(--blue)">$109</em> · Disponible</div></div>
+    ${reached(3, 1) ? bub('c', '', '¿Sigue disponible?', '2:10') : ''}
+    ${reached(3, 2) ? bub('n', 'Nexo · asistente virtual', '¡Hola! Sí, está disponible en Maracay 👋 ¿Para qué vehículo la necesitas?', '2:10') : ''}
+    ${reached(3, 3) ? bub('c', '', 'Para un Aveo 2012', '2:11') + bub('n', 'Nexo · asistente virtual', 'Esa te sirve. Puedes pasar hoy hasta las 5:00 p. m., o te la apartamos.', '2:11') : ''}</div>`
+    + `<div class="p-foot"><div>Escribe un mensaje…</div></div>`;
+}
+
+/* ---------- CRM ---------- */
+const CONV = {
+  ig: { id: 'ig', n: 'jose.m', ch: 'ig', s: 0 },
+  fb: { id: 'fb', n: 'María P.', ch: 'fb', s: 2 },
+  mk: { id: 'mk', n: 'Luis G.', ch: 'mk', s: 3 },
+};
+const FILLERS = [
+  { n: 'Raúl Méndez', ch: 'wa', p: 'Hola Raúl, soy Carla de CM Venezuela…', t: '9:52' },
+  { n: 'Andrea Pérez', ch: 'wa', p: 'Gracias, ya voy para allá', t: '9:15' },
+];
+function preview(c) {
+  if (c.ch === 'ig') return step >= 1 && reached(1, 3) ? 'Cita confirmada ✅' : step >= 1 ? 'Para tu Hilux la alineación…' : (k >= 2 ? '¡Hola José! Te escribimos por…' : '¿Cuánto cuesta para una Hilux?');
+  if (c.ch === 'fb') return reached(2, 2) ? 'Hola María, para tu Aveo la Willard…' : '¿Cuánto cuesta la 24F para un Aveo?';
+  return reached(3, 3) ? 'Esa te sirve. Puedes pasar hoy…' : reached(3, 2) ? '¡Hola! Sí, está disponible…' : '¿Sigue disponible?';
+}
+function selected() { return step <= 1 ? 'ig' : step === 2 ? 'fb' : 'mk'; }
+
+function threadHtml(id) {
+  const m = (f, who, x, t) => bub(f, who, x, t);
+  if (id === 'ig') {
+    let h = `<div class="note">Comentario en publicación «Alineación 3D» · respondido por Nexo</div>`;
+    if (reached(0, 1)) h += m('c', '<span style="color:var(--muted)">jose.m</span>', '¿Cuánto cuesta para una Hilux?', '10:02');
+    if (reached(0, 2)) h += m('n', 'Nexo · comentario público', '¡Hola José! Te escribimos por mensaje directo con el precio para tu Hilux 📩', '10:02');
+    if (reached(1, 1)) h += m('n', 'Nexo · mensaje directo', '¡Hola José! Para tu Hilux la alineación 3D sale en $24 (Bs ' + BS(24 * 1040) + ' en Maracay, tasa euro). ¿Quieres que te agende una cita?', '10:03');
+    if (reached(1, 2)) h += m('c', '<span style="color:var(--muted)">jose.m</span>', '¿Hay para mañana?', '10:04');
+    if (reached(1, 3)) h += m('n', 'Nexo · mensaje directo', 'Sí, mañana sábado a las 10:00 a. m. en Maracay. Cita confirmada ✅', '10:04') + `<div class="note">📅 Cita #2 creada: jose.m · Alineación 3D · sáb 24 oct 10:00 · Maracay</div>`;
+    return h;
+  }
+  if (id === 'fb') {
+    let h = `<div class="note">Comentario en publicación «Baterías con 24 meses de garantía» · respondido por Nexo</div>`;
+    if (reached(2, 1)) h += m('c', '<span style="color:var(--muted)">María P.</span>', '¿Cuánto cuesta la 24F para un Aveo?', '11:19');
+    if (reached(2, 2)) h += m('n', 'Nexo · comentario público', '¡Hola María! Te enviamos el precio por mensaje privado 📩', '11:19') + m('n', 'Nexo · Messenger', 'Hola María, para tu Aveo la Willard Titanio 24F-1000 está en $109 pagando en dólares, o Bs ' + BS(118 * 1040) + ' (tasa euro). ¿Te la apartamos?', '11:20');
+    return h;
+  }
+  let h = `<div class="note">Mensaje desde el anuncio «Batería Willard Titanio 24F-1000»</div>`;
+  if (reached(3, 1)) h += m('c', '<span style="color:var(--muted)">Luis G.</span>', '¿Sigue disponible?', '2:10');
+  if (reached(3, 2)) h += m('n', 'Nexo · Marketplace', '¡Hola! Sí, está disponible en Maracay 👋 ¿Para qué vehículo la necesitas?', '2:10');
+  if (reached(3, 3)) h += m('c', '<span style="color:var(--muted)">Luis G.</span>', 'Para un Aveo 2012', '2:11') + m('n', 'Nexo · Marketplace', 'Esa te sirve. Puedes pasar hoy hasta las 5:00 p. m., o te la apartamos.', '2:11');
+  if (step === 4) h += `<div class="note">🙋 Un asesor puede tomar la conversación y su respuesta sale por Marketplace</div>`;
+  return h;
+}
+function infoHtml(id) {
+  const dl = rows => `<dl>${rows.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl>`;
+  if (id === 'ig') return `<h4>Contacto</h4>` + dl([['Usuario', '@jose.m'], ['Canal', 'Instagram'], ['Vehículo', reached(0, 1) ? 'Toyota Hilux' : '—'], ['Interés', reached(0, 1) ? 'Alineación 3D' : '—'], ['Próxima cita', reached(1, 3) ? 'Sáb 24 oct · 10:00' : '—']])
+    + `<h4>Etiquetas</h4><div style="display:flex;gap:4px;flex-wrap:wrap">${chip('blue', 'instagram')}${reached(0, 1) ? chip('mint', 'alineación') : ''}${reached(1, 3) ? chip('blue', 'cita agendada') : ''}</div>`;
+  if (id === 'fb') return `<h4>Contacto</h4>` + dl([['Nombre', 'María P.'], ['Canal', 'Facebook'], ['Vehículo', reached(2, 1) ? 'Chevrolet Aveo' : '—'], ['Interés', reached(2, 1) ? 'Batería 24F' : '—'], ['Último mensaje', reached(2, 2) ? 'Precio enviado' : '—']])
+    + `<h4>Etiquetas</h4><div style="display:flex;gap:4px;flex-wrap:wrap">${chip('blue', 'facebook')}${reached(2, 1) ? chip('mint', 'batería') : ''}</div>`;
+  return `<h4>Contacto</h4>` + dl([['Nombre', 'Luis G.'], ['Canal', 'Marketplace'], ['Vehículo', reached(3, 3) ? 'Chevrolet Aveo 2012' : '—'], ['Producto', 'Willard 24F-1000'], ['Estado', reached(3, 3) ? 'Por retirar hoy' : 'Consultando']])
+    + `<h4>Etiquetas</h4><div style="display:flex;gap:4px;flex-wrap:wrap">${chip('mint', 'marketplace')}${chip('mint', 'batería')}</div>`;
+}
+
+function viewInbox() {
+  const sel = selected();
+  const live = Object.values(CONV).filter(c => step > c.s || (step === c.s && k >= 1)).reverse();
+  const conv = c => `<button class="conv" ${c.id === sel ? 'aria-current="true"' : ''}><b>${c.n} <time>${c.id === 'ig' ? '10:03' : c.id === 'fb' ? '11:20' : '2:11'}</time></b><p>${preview(c)}</p><div class="chips">${chCh(c.ch)}</div></button>`;
+  const list = live.map(conv).join('') + FILLERS.map(f => `<button class="conv"><b>${f.n} <time>${f.t}</time></b><p>${f.p}</p><div class="chips">${chCh(f.ch)}</div></button>`).join('');
+  const c = CONV[sel];
+  const comp = `<div class="composer ${step === 4 ? 'live' : ''}"><div class="box">${step === 4 ? 'Carla escribe una respuesta… saldrá por ' + CH[c.ch][0] : 'Nexo está respondiendo. Puedes tomar la conversación cuando quieras.'}</div><button class="send">${step === 4 ? 'Enviar' : 'Tomar'}</button></div>`;
+  const filt = ['Todas', 'WhatsApp', 'Instagram', 'Facebook', 'Marketplace'].map((x, i) => chip(i === 0 ? 'on' : '', x)).join('');
+  return `<div class="bar"><h3>Bandeja</h3><div class="sel">${filt}</div></div>
+    <div class="inbox"><div class="list">${list}</div>
+      <div class="thread"><div class="t-head"><strong>${c.n}</strong><span style="display:flex;gap:6px;flex-wrap:wrap">${chCh(c.ch)}${chip('mint', 'Nexo atendiendo')}</span></div>
+        <div class="t-body" id="tb">${threadHtml(sel)}</div>${comp}</div>
+      <aside class="info">${infoHtml(sel)}</aside></div>`;
+}
+const ICONS = {
+  inbox: '<path d="M4 13l2-8h12l2 8M4 13v6h16v-6M4 13h5l1 2h4l1-2h5"/>',
+  contacts: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.5-3.6 3-5.4 6-5.4s5.5 1.8 6 5.4M16 5.2a3 3 0 010 5.6M18 14.8c1.8.7 2.8 2.4 3 5.2"/>',
+  agenda: '<rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  summary: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+};
+function renderCrm() {
+  $('#crm').innerHTML = viewInbox();
+  $('#side').innerHTML = `<img class="m" src="__MARK__" alt="NexoChatPro">` + Object.keys(ICONS).map(v => `<button title="${v}" ${v === 'inbox' ? 'aria-current="page"' : ''}><svg viewBox="0 0 24 24">${ICONS[v]}</svg></button>`).join('');
+  const tb = $('#tb'); if (tb) tb.scrollTop = tb.scrollHeight;
+}
+function renderPhone() { $('#phone').innerHTML = phoneHtml(); const pb = document.querySelector('.p-body'); if (pb) pb.scrollTop = pb.scrollHeight; }
+function renderStory() {
+  const s = STEPS[step];
+  $('#k-step').textContent = `Paso ${step + 1} de ${STEPS.length}`;
+  $('#s-title').textContent = s.title;
+  $('#s-phase').innerHTML = `<span class="tag ${s.phase[0]}">${s.phase[1]}</span>`;
+  $('#s-chat').textContent = s.chat; $('#s-crm').textContent = s.crm;
+  $('#prev').disabled = step === 0; $('#next').disabled = step === STEPS.length - 1;
+  $('#steps').innerHTML = STEPS.map((x, i) => `<button data-i="${i}" class="${i < step ? 'done' : ''}" ${i === step ? 'aria-current="step"' : ''}><b>${i + 1}</b>${x.short}</button>`).join('');
+  document.querySelectorAll('#steps button').forEach(b => b.onclick = () => go(+b.dataset.i));
+}
+function paint() { renderStory(); renderPhone(); renderCrm(); }
+function go(i) { step = Math.max(0, Math.min(STEPS.length - 1, i)); k = 99; paint(); }
+$('#prev').onclick = () => go(step - 1); $('#next').onclick = () => go(step + 1);
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') go(step + 1); if (e.key === 'ArrowLeft') go(step - 1); });
+window.setBeat = (s, kk) => { step = s; k = kk; paint(); };
+window.beats = () => N.flatMap((n, s) => Array.from({ length: n }, (_, kk) => ({ s, k: kk, n })).filter(b => !(b.s === 0 && b.k === 0)));
+go(0);
+</script>

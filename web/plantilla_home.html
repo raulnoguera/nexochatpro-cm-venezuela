@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CM Venezuela · Cauchos, baterías, aceites y bicicletas en Maracay y Caracas</title>
+<meta name="description" content="Cauchos, baterías, aceites y bicicletas en Maracay y Caracas. Mira el precio en dólares y en bolívares, la existencia por ciudad y consulta por WhatsApp.">
+<link rel="icon" href="assets/favicon.ico" sizes="32x32 48x48">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap">
+<style>
+/*__CSS__*/
+/* ---- portada ---- */
+html{scroll-behavior:smooth}
+header.top{position:sticky}
+.nav{display:none;gap:4px;margin-left:12px}
+.nav a{color:#E6E6DF;text-decoration:none;font-weight:600;font-size:15px;padding:8px 12px;border-radius:10px}
+.nav a:hover{background:var(--dark2);color:var(--y)}
+@media(min-width:900px){.nav{display:flex}}
+.hero2{position:relative;overflow:hidden;background:var(--dark);color:#fff;padding-block:44px 56px}
+.hero2::before{content:"";position:absolute;right:-140px;top:-120px;width:560px;height:560px;border-radius:50%;background:radial-gradient(closest-side,rgba(245,217,10,.22),transparent 70%)}
+.hero2 .wrap{position:relative;display:grid;gap:28px;align-items:center}
+@media(min-width:960px){.hero2 .wrap{grid-template-columns:1.15fr .85fr}}
+.kick{display:inline-flex;align-items:center;gap:8px;background:var(--dark2);border:1px solid #3A3A3A;color:var(--y);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.hero2 h1{font-family:var(--display);font-weight:800;font-size:clamp(46px,10vw,92px);line-height:.92;text-transform:uppercase;margin:0;letter-spacing:.005em;text-wrap:balance}
+.hero2 h1 em{font-style:normal;background:var(--y);color:var(--y-ink);padding:0 .14em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hero2 p.lead{margin:16px 0 0;color:#C9C9C2;font-size:18px;max-width:540px}
+.finder{background:var(--surface);color:var(--ink);border-radius:20px;padding:18px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.ftabs{display:flex;gap:6px;margin-bottom:8px}
+.ftabs button{flex:1;min-height:46px;border:1.5px solid #3A3A3A;background:var(--dark2);color:#E6E6DF;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer}
+.ftabs button[aria-pressed="true"]{background:var(--y);border-color:var(--y);color:var(--y-ink)}
+.vstack{display:grid;gap:8px}.vstack label span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em}
+.vstack select{width:100%;min-height:50px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 10px;font-weight:700;color:var(--ink);font-size:16px}
+[hidden]{display:none!important}
+.finder h2{font-family:var(--display);font-size:28px;text-transform:uppercase;margin:0 0 4px;line-height:1}
+.finder p{margin:0 0 12px;color:var(--muted);font-size:14px}
+.finder .three{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.finder label span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em}
+.finder select,.finder input{width:100%;min-height:50px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 10px;font-weight:700;color:var(--ink);font-size:16px}
+.finder .go{width:100%;margin-top:10px;min-height:52px;border:0;border-radius:12px;background:var(--y);color:var(--y-ink);font-weight:800;font-size:17px;cursor:pointer}
+.finder .or{display:flex;align-items:center;gap:10px;margin:12px 0;color:var(--muted);font-size:13px;font-weight:700}
+.finder .or::before,.finder .or::after{content:"";flex:1;height:1px;background:var(--line)}
+.finder .q{display:flex;gap:8px}
+.finder .q button{border:0;border-radius:12px;background:var(--dark);color:#fff;font-weight:700;padding:0 16px;cursor:pointer;min-height:50px}
+section.blk{scroll-margin-top:72px;padding-block:48px 8px}
+.sec-h{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:18px}
+.sec-h h2{font-family:var(--display);font-weight:800;font-size:clamp(34px,7vw,52px);line-height:1;margin:0;text-transform:uppercase}
+.sec-h p{margin:6px 0 0;color:var(--muted)}
+.tiles{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:640px){.tiles{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:640px){.tiles{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1100px){.tiles{grid-template-columns:repeat(5,1fr);gap:16px}}
+.tile{position:relative;overflow:hidden;display:flex;flex-direction:column;gap:6px;text-decoration:none;color:#fff;background:var(--dark);border-radius:20px;padding:20px;min-height:210px;transition:transform .18s}
+.tile:hover{transform:translateY(-4px)}
+.tile svg.ic{width:58px;height:58px;color:var(--y);margin-bottom:auto}
+.tile b{font-family:var(--display);font-size:34px;line-height:1;text-transform:uppercase;font-weight:800}
+.tile small{color:#B9B9B2;font-size:14px}
+.tile .n{position:absolute;right:16px;top:16px;background:var(--y);color:var(--y-ink);font-weight:800;border-radius:99px;padding:4px 10px;font-size:13px}
+.tile::after{content:"";position:absolute;right:-40px;bottom:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(closest-side,rgba(245,217,10,.25),transparent)}
+.tile.srv{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.tile .pic{position:absolute;right:-4px;bottom:-6px;width:46%;max-width:230px;height:auto;aspect-ratio:1;object-fit:contain;z-index:1;pointer-events:none;filter:drop-shadow(0 16px 18px rgba(0,0,0,.55));transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.tile:hover .pic{transform:translateY(-8px) rotate(-5deg) scale(1.06)}
+.tile b,.tile small{position:relative;z-index:2}
+.tile .n{z-index:3}
+.tile small{max-width:54%}
+.tile.srv .pic{filter:drop-shadow(0 14px 16px rgba(0,0,0,.25))}.tile.srv small{color:var(--muted)}
+.tile.srv svg.ic{color:var(--ink)}
+.chips2{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.chips2 a{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:9px 15px;font-weight:700;text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
+.chips2 a:hover{background:var(--y);border-color:var(--y);color:var(--y-ink)}
+.sub2{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:22px 0 4px}
+.sizes{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:640px){.sizes{grid-template-columns:repeat(3,1fr)}}
+@media(min-width:1000px){.sizes{grid-template-columns:repeat(6,1fr);gap:12px}}
+.size{display:flex;flex-direction:column;gap:2px;text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 14px 12px;transition:transform .15s,border-color .15s;min-height:96px}
+.size:hover{transform:translateY(-3px);border-color:var(--y);box-shadow:var(--shadow)}
+.size b{font-family:var(--display);font-size:28px;line-height:1;font-weight:800;letter-spacing:.01em}
+.size small{color:var(--muted);font-size:13px;font-weight:600}
+.size em{font-style:normal;margin-top:auto;font-weight:800;font-size:14px;color:var(--ink)}
+.size em::after{content:" →";color:var(--muted)}
+.rinbar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin-top:14px;background:var(--dark);color:#fff;border-radius:16px;padding:12px 14px}
+.rinbar>span{font-weight:700;font-size:14px;color:#CFCFC8}
+.rinbar .chips2{margin:0}
+.rinbar .chips2 a{background:var(--dark2);border-color:#3A3A3A;color:#fff;padding:6px 14px;min-height:40px}
+.rinbar .chips2 a:hover{background:var(--y);border-color:var(--y);color:var(--y-ink)}
+.brands{display:grid;gap:10px;grid-template-columns:repeat(2,1fr)}
+@media(min-width:760px){.brands{grid-template-columns:repeat(4,1fr)}}
+.brand2{position:relative;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;min-height:104px;overflow:hidden;text-decoration:none;background:var(--dark);color:#fff;border-radius:16px;padding:14px;border-bottom:4px solid var(--y);transition:transform .15s}
+.brand2:hover{transform:translateY(-3px)}
+.brand2 i{position:absolute;right:8px;top:-6px;font-style:normal;font-family:var(--display);font-weight:800;font-size:84px;line-height:1;color:rgba(245,217,10,.16)}
+.brand2 b{position:relative;font-family:var(--display);font-size:26px;line-height:1;text-transform:uppercase;font-weight:800}
+.brand2 small{position:relative;color:#B9B9B2;font-size:13px;font-weight:600}
+.oils{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:760px){.oils{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1100px){.oils{grid-template-columns:repeat(4,1fr)}}
+.oil{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px}
+.oil h3{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:0 0 10px;font-family:var(--display);font-size:26px;line-height:1;text-transform:uppercase}
+.oil h3 small{font-family:var(--font);font-size:12px;font-weight:700;color:var(--muted);text-transform:none}
+.oil .chips2{margin:0}
+.oil .chips2 a{padding:6px 13px;min-height:40px;font-size:15px}
+.oil.min h3{border-left:5px solid #8A5A00;padding-left:10px}.oil.semi h3{border-left:5px solid #C9A400;padding-left:10px}.oil.sint h3{border-left:5px solid #0B7A4B;padding-left:10px}.oil.otros h3{border-left:5px solid var(--muted);padding-left:10px}
+.why{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:760px){.why{grid-template-columns:repeat(3,1fr)}}
+.why div{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px}
+.why b{display:block;font-family:var(--display);font-size:26px;text-transform:uppercase;line-height:1.05}
+.why span{color:var(--muted)}
+.why .ico{width:40px;height:40px;border-radius:12px;background:var(--y);color:var(--y-ink);display:grid;place-items:center;margin-bottom:10px}
+.why .ico svg{width:22px;height:22px}
+.stores{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:900px){.stores{grid-template-columns:repeat(3,1fr)}}
+.store2{display:flex;flex-direction:column;background:var(--dark);color:#fff;border-radius:20px;padding:22px;border-top:4px solid var(--y)}
+.store2 .city{align-self:flex-start;background:var(--dark2);border:1px solid #3A3A3A;color:var(--y);border-radius:99px;padding:4px 12px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px}
+.store2 h3{font-family:var(--display);font-size:32px;text-transform:uppercase;margin:0;line-height:1}
+.store2 .dir{margin:10px 0 0;color:#E6E6DF;font-weight:500}
+.store2 .hor{display:flex;align-items:center;gap:8px;margin:10px 0 18px;color:#C9C9C2;font-size:14px;font-weight:600}
+.store2 .hor svg{width:16px;height:16px;color:var(--y);flex:none}
+.store2 .btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}
+.store2 .btns a,.store2 .btns span{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:800;border-radius:12px;padding:12px 14px;text-decoration:none;min-height:48px;flex:1 1 auto}
+.store2 .btns a.wa2{background:var(--y);color:var(--y-ink)}
+.store2 .btns a.map{background:transparent;color:#fff;border:1.5px solid #5A5A5A}
+.store2 .btns a.map:hover{border-color:var(--y);color:var(--y)}
+.store2 .btns span{background:var(--dark2);color:#9A9A92;font-weight:700;font-size:14px}
+.store2 .btns svg{width:18px;height:18px}
+.cta{margin-block:48px;background:var(--y);color:var(--y-ink);border-radius:24px;padding:30px 22px;display:grid;gap:14px;align-items:center}
+@media(min-width:760px){.cta{grid-template-columns:1fr auto;padding:34px}}
+.cta h2{font-family:var(--display);font-size:clamp(32px,6vw,48px);text-transform:uppercase;line-height:1;margin:0}
+.cta p{margin:6px 0 0;font-weight:500}
+.cta a{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--dark);color:#fff;font-weight:800;border-radius:14px;padding:14px 20px;text-decoration:none;min-height:52px}
+.cta a svg{width:20px;height:20px;color:var(--y)}
+.skel{opacity:.5}
+.cityfld{display:block;margin-bottom:10px}
+.cityfld select{border:2px solid var(--y)!important;font-size:17px!important}
+.finder.bloq .three,.finder.bloq .vstack,.finder.bloq .q,.finder.bloq .go,.finder.bloq .or{opacity:.4;pointer-events:none}
+.cityhint{display:none;color:#B00020;font-size:13px;font-weight:700;margin:-4px 0 8px}.cityhint.on{display:block}
+.sect{margin:4px 0 10px}.sect>span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.ftabs2{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.ftabs2 button{min-height:48px;border:1.5px solid #3A3A3A;background:var(--dark2);color:#E6E6DF;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer}
+.ftabs2 button[aria-pressed="true"]{background:var(--y);border-color:var(--y);color:var(--y-ink)}
+.finder.bloq .sect,.finder.bloq .pane{opacity:.4;pointer-events:none}
+.pane{margin-top:12px}.pane .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pane .nota{margin:8px 0 0;color:var(--muted);font-size:13px;font-weight:600}
+.finder .q{position:relative}
+.sug{position:absolute;left:0;right:0;top:100%;margin-top:6px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:30;max-height:260px;overflow:auto;padding:4px}
+.sug button{display:flex!important;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 12px!important;border:0;background:none!important;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;text-align:left;color:var(--ink)!important}
+.sug button:hover,.sug button:focus{background:var(--y)!important;color:var(--y-ink)!important}
+.sug small{color:var(--muted);font-weight:600;font-size:13px}.sug .none{padding:12px;color:var(--muted);font-weight:600;font-size:14px}
+.avisoCiudad{background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:18px;color:var(--muted);font-weight:600;margin-top:12px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="gut"><div class="wrap bar">
+    <a href="./" aria-label="CM Venezuela, inicio"><img class="logo" src="assets/logo.png" alt="CM Venezuela"></a>
+    <nav class="nav" aria-label="Principal"><a href="catalogo.html?cat=cauchos">Cauchos</a><a href="catalogo.html?cat=baterias">Baterías</a><a href="catalogo.html?cat=aceites">Aceites</a><a href="catalogo.html?cat=bicicletas">Bicicletas</a><a href="#sedes">Sedes</a></nav>
+    <div class="sp"></div>
+    <a class="wa" id="wa" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.2 13.9c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.5-4-4.7-4.2-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.2c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg><span>Escríbenos</span></a>
+  </div></div>
+</header>
+
+<section class="hero2 gut"><div class="wrap">
+  <div>
+    <h1>Todo para tu <em>vehículo</em></h1>
+    <p class="lead">Cauchos, baterías, aceites y bicicletas con el precio en dólares y en bolívares a la tasa del día. Elige tu ciudad, mira lo que hay disponible y escríbenos por WhatsApp: te atendemos al momento.</p>
+  </div>
+  <div class="finder-wrap">
+  <form class="finder" id="finder" autocomplete="off" onsubmit="return false">
+    <h2>Encuentra lo que buscas</h2>
+    <p>Primero tu ciudad y luego la sección: así solo ves lo que hay disponible.</p>
+    <label class="cityfld"><span>1. Tu ciudad</span><select class="ciudad" aria-label="Ciudad"><option value="">Elige tu ciudad…</option><option value="maracay">Maracay</option><option value="caracas">Caracas</option></select></label>
+    <div class="cityhint">Elige primero tu ciudad.</div>
+    <div class="sect"><span>2. ¿Qué buscas?</span><div class="ftabs2" id="ftabs2"><button type="button" data-s="cauchos" aria-pressed="false">Cauchos</button><button type="button" data-s="baterias" aria-pressed="false">Baterías</button><button type="button" data-s="aceites" aria-pressed="false">Aceites</button><button type="button" data-s="bicicletas" aria-pressed="false">Bicicletas</button></div></div>
+
+    <div class="pane" id="pCauchos" hidden>
+      <div class="two">
+        <label><span>Rin</span><select id="frin" aria-label="Rin"><option value="">Elige el rin…</option></select></label>
+        <label><span>Medida disponible</span><select id="fmed" aria-label="Medida" disabled><option value="">Primero el rin</option></select></label>
+      </div>
+      <button class="go" type="button" id="goCauchos">Ver cauchos</button>
+      <div class="or">o escríbela</div>
+      <div class="q"><input id="fq" placeholder="Ej. 175/65R13" inputmode="text" autocomplete="off" aria-label="Medida del caucho"><button type="button" id="fqb">Buscar</button><div class="sug" id="sug" hidden></div></div>
+      <p class="nota" id="notaMed"></p>
+    </div>
+
+    <div class="pane" id="pBaterias" hidden>
+      <div class="vstack" id="vehiculoBox" hidden>
+        <label><span>Marca</span><select id="vm" aria-label="Marca del vehículo"><option value="">—</option></select></label>
+        <label><span>Modelo</span><select id="vd" aria-label="Modelo" disabled><option value="">—</option></select></label>
+        <label><span>Año</span><select id="va" aria-label="Año" disabled><option value="">Cualquier año</option></select></label>
+      </div>
+      <button class="go" type="button" id="goBaterias">Ver baterías</button>
+    </div>
+
+    <div class="pane" id="pBicis" hidden>
+      <label><span style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em">Rin</span><select id="brin" aria-label="Rin de la bicicleta"><option value="">Todos los rines</option></select></label>
+      <button class="go" type="button" id="goBicis">Ver bicicletas</button>
+      <p class="nota" id="notaBici"></p>
+    </div>
+
+    <div class="pane" id="pAceites" hidden>
+      <button class="go" type="button" id="goAceites" style="margin-top:0">Ver aceites</button>
+    </div>
+  </form>
+  </div>
+</div></section>
+
+<section class="blk gut" id="categorias"><div class="wrap">
+  <div class="sec-h"><div><h2>¿Qué estás buscando?</h2><p>Entra a la categoría y filtra hasta encontrarlo.</p></div></div>
+  <div class="tiles">
+    <a class="tile" href="catalogo.html?cat=cauchos"><svg class="ic" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5"><circle cx="32" cy="32" r="26"/><circle cx="32" cy="32" r="14"/><circle cx="32" cy="32" r="3" fill="currentColor"/><path d="M32 6v8M32 50v8M6 32h8M50 32h8M13.6 13.6l5.7 5.7M44.7 44.7l5.7 5.7M13.6 50.4l5.7-5.7M44.7 19.3l5.7-5.7"/></svg><span class="n" data-n="cauchos"></span><b>Cauchos</b><small>Por medida, rin o marca</small></a>
+    <a class="tile" href="catalogo.html?cat=baterias"><svg class="ic" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="6" y="18" width="52" height="34" rx="4"/><path d="M16 18v-6h8v6M40 18v-6h8v6"/><path d="M33 25l-7 10h8l-3 11 9-13h-8z" fill="currentColor"/></svg><span class="n" data-n="baterias"></span><b>Baterías</b><small>Por grupo, amperaje y marca</small></a>
+    <a class="tile" href="catalogo.html?cat=aceites"><svg class="ic" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M10 40h28l12-14h8M18 40V28h12v12M14 28h20"/><path d="M10 40v10a4 4 0 004 4h22a4 4 0 004-4V40"/><path d="M54 30c3 4 5 7 5 10a5 5 0 01-10 0c0-3 2-6 5-10z"/></svg><span class="n" data-n="aceites"></span><b>Aceites</b><small>Por viscosidad y presentación</small></a>
+    <a class="tile" href="catalogo.html?cat=bicicletas"><svg class="ic" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="42" r="11"/><circle cx="49" cy="42" r="11"/><path d="M15 42l12-20h16l6 20M27 22l8 20 8-20M24 18h8M40 16h8"/></svg><span class="n" data-n="bicicletas"></span><b>Bicicletas</b><small>Por rin y modelo</small></a>
+    <a class="tile srv" id="servicios" href="#" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M44 8a12 12 0 00-10 16L10 48a5 5 0 007 7l24-24a12 12 0 0016-10l-8 7-6-2-2-6z"/></svg><b>Servicios</b><small>Montura, balanceo, rotación y alineación. Pregúntanos por WhatsApp.</small></a>
+  </div>
+</div></section>
+
+<section class="blk gut" id="atajos"><div class="wrap">
+  <div class="sec-h"><div><h2>Atajos rápidos</h2><p id="atajosSub">Las medidas, marcas y aceites con más opciones disponibles en tienda.</p></div></div>
+  <div class="avisoCiudad" id="avisoAtajos" hidden></div>
+
+  <div class="sub2">Medidas con más opciones</div>
+  <div class="sizes" id="medidasTop"></div>
+  <div class="rinbar"><span>Todos los cauchos por rin</span><div class="chips2" id="rines"></div></div>
+
+  <div class="sub2">Marcas de cauchos</div>
+  <div class="brands" id="marcas"></div>
+
+  <div class="sub2">Aceites por tipo y viscosidad</div>
+  <div class="oils" id="aceites"></div>
+</div></section>
+
+<section class="blk gut"><div class="wrap">
+  <div class="sec-h"><div><h2>Compra con confianza</h2></div></div>
+  <div class="why">
+    <div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 6H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></span><b>Precio en dólares y bolívares</b><span>Ves el monto en dólares y en bolívares a la tasa del BCV de hoy, sin sorpresas.</span></div>
+    <div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg></span><b>Existencia por ciudad</b><span>Elige Maracay o Caracas y te decimos qué hay disponible en esa ciudad antes de que vayas.</span></div>
+    <div><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.6A8 8 0 1121 12z"/></svg></span><b>Atención por WhatsApp</b><span>Nuestro asistente Nexo responde al instante y un asesor te acompaña cuando lo necesitas.</span></div>
+  </div>
+</div></section>
+
+<section class="blk gut" id="sedes"><div class="wrap">
+  <div class="sec-h"><div><h2>Nuestras sedes</h2><p>Visítanos o escríbenos: te atendemos de lunes a sábado.</p></div></div>
+  <div class="stores">
+    <div class="store2"><span class="city">Maracay</span><h3>CM Maracay</h3><p class="dir">Av. Bolívar, diagonal al C.C. Global La Barraca, Maracay, Estado Aragua.</p><div class="hor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Lunes a sábado · 8:00 a. m. a 5:30 p. m.</div><div class="btns"><a class="wa2" href="https://wa.me/584144540116?text=Hola%2C%20quiero%20consultar%20un%20producto" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>WhatsApp</a><a class="map" href="https://maps.app.goo.gl/MWg9NVBA6bVGjwvy8" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Cómo llegar</a></div></div>
+    <div class="store2"><span class="city">Maracay</span><h3>Master Cauchos</h3><p class="dir">La Pirelli de Parque Aragua. Av. Bolívar Este #150, diagonal al C.C. Parque Aragua, Maracay, Estado Aragua.</p><div class="hor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Lunes a sábado · 8:00 a. m. a 5:30 p. m.</div><div class="btns"><a class="wa2" href="https://wa.me/584144885724?text=Hola%2C%20quiero%20consultar%20un%20producto" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>WhatsApp</a><a class="map" href="https://maps.app.goo.gl/R27ovfXRWT6QmL5W7" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Cómo llegar</a></div></div>
+    <div class="store2"><span class="city">Caracas</span><h3>CM Caracas</h3><p class="dir">Av. Rómulo Gallegos con calle El Carmen, diagonal a la iglesia Claret y Banesco, Dos Caminos, Caracas.</p><div class="hor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Lunes a sábado · 8:00 a. m. a 5:00 p. m.</div><div class="btns"><span>WhatsApp: próximamente</span><a class="map" href="https://maps.app.goo.gl/YWjdgnTpCAevL9Ve8" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>Cómo llegar</a></div></div>
+  </div>
+  <div class="cta"><div><h2>¿No sabes cuál te sirve?</h2><p>Cuéntanos tu vehículo y te ayudamos a elegir.</p></div><a id="wa2" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>Hablar por WhatsApp</a></div>
+</div></section>
+
+<footer class="gut"><div class="wrap"><b>CM Maracay</b> · Av. Bolívar, diagonal al C.C. Global La Barraca, Maracay · Lunes a sábado, 8:00 a. m. a 5:30 p. m.<br><b>Master Cauchos</b> · Av. Bolívar Este #150, diagonal al C.C. Parque Aragua, Maracay · Lunes a sábado, 8:00 a. m. a 5:30 p. m.<br><b>CM Caracas</b> · Av. Rómulo Gallegos con calle El Carmen, diagonal a la iglesia Claret y Banesco, Dos Caminos, Caracas · Lunes a sábado, 8:00 a. m. a 5:00 p. m.</div></footer>
+
+<script>
+const CATALOGO_URL = 'https://crm.nexochatpro.cloud/catalogo.json';   // lo actualiza el cliente desde el panel de administración; catalogo.json local queda de respaldo
+const WA = 'https://wa.me/584144540116?text=';
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const uniq = a => [...new Set(a)];
+const asc = (a, b) => Number(a) - Number(b);
+const MED = /^(\d+)\/(\d+)R(\d+(?:\.\d)?)$/;
+let CIUDAD = '';
+try { CIUDAD = localStorage.getItem('cm_ciudad') || ''; } catch (_) {}
+const link = o => 'catalogo.html?' + new URLSearchParams(CIUDAD ? { ciudad: CIUDAD, ...o } : o).toString();
+$('#wa').href = WA + encodeURIComponent('Hola, quiero consultar un producto');
+$('#wa2').href = WA + encodeURIComponent('Hola, necesito ayuda para elegir');
+$('#servicios').href = WA + encodeURIComponent('Hola, quiero consultar por servicios (montura, balanceo, alineación)');
+
+function llenar(id, vals, cur) { $(id).innerHTML = '<option value="">—</option>' + vals.map(v => `<option ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join(''); }
+const num = (a, b) => String(a).localeCompare(String(b), 'es', { numeric: true });
+const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z.]/g, '');
+function pedirCiudad() { if (CIUDAD) return false; $('.cityhint').classList.add('on'); $('select.ciudad').focus(); return true; }
+
+let COMPAT = [];
+const anioMax = new Date().getFullYear() + 1;
+function refinarVeh(cambio) {
+  if (cambio === 'vm') { $('#vd').value = ''; $('#va').value = ''; }
+  if (cambio === 'vd') $('#va').value = '';
+  const m = $('#vm').value, d = $('#vd').value;
+  const modelos = m ? uniq(COMPAT.filter(c => c.o === m).map(c => c.d)).sort() : [];
+  const filas = m && d ? COMPAT.filter(c => c.o === m && c.d === d) : [];
+  const anios = uniq(filas.filter(c => c.a > 0).flatMap(c => Array.from({ length: Math.min(c.b, anioMax) - c.a + 1 }, (_, i) => Math.min(c.b, anioMax) - i))).sort((a, b) => b - a);
+  $('#vd').innerHTML = '<option value="">—</option>' + modelos.map(v => `<option ${v === d ? 'selected' : ''}>${esc(v)}</option>`).join(''); $('#vd').disabled = !m;
+  $('#va').innerHTML = '<option value="">Cualquier año</option>' + anios.map(v => `<option ${String(v) === $('#va').value ? 'selected' : ''}>${v}</option>`).join(''); $('#va').disabled = !anios.length;
+}
+for (const id of ['vm', 'vd']) $('#' + id).addEventListener('change', () => refinarVeh(id));
+
+// ---- buscador: 1.º la ciudad, 2.º la sección; el panel de cauchos solo aparece al elegir "Cauchos"
+function seccion(s) {
+  for (const b of document.querySelectorAll('#ftabs2 button')) b.setAttribute('aria-pressed', b.dataset.s === s);
+  $('#pCauchos').hidden = s !== 'cauchos'; $('#pBaterias').hidden = s !== 'baterias'; $('#pAceites').hidden = s !== 'aceites'; $('#pBicis').hidden = s !== 'bicicletas';
+}
+$('#ftabs2').addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (!b || pedirCiudad()) return; seccion(b.dataset.s); });
+const medDisp = () => {                                           // medidas con existencia en la ciudad elegida: { '175/65R13': { n: opciones, r: rin } }
+  const m = {};
+  if (CIUDAD) for (const p of cau) if (MED.test(p.z) && stockEn(p) > 0) { const e = (m[p.z] = m[p.z] || { n: 0, r: String(p.r) }); e.n++; }
+  return m;
+};
+function pintarCauchos() {                                        // 1.º el rin, 2.º las medidas disponibles en ese rin
+  const md = medDisp(), rines = uniq(Object.values(md).map(e => e.r)).sort(asc), rin = rines.includes($('#frin').value) ? $('#frin').value : '';
+  $('#frin').innerHTML = '<option value="">Elige el rin…</option>' + rines.map(r => `<option ${r === rin ? 'selected' : ''}>${esc(r)}</option>`).join('');
+  const meds = Object.keys(md).filter(z => md[z].r === rin).sort(num), cur = meds.includes($('#fmed').value) ? $('#fmed').value : '';
+  $('#fmed').innerHTML = `<option value="">${rin ? 'Todas las medidas…' : 'Primero el rin'}</option>` + meds.map(z => `<option value="${esc(z)}" ${z === cur ? 'selected' : ''}>${esc(z)} (${md[z].n})</option>`).join('');
+  $('#fmed').disabled = !rin;
+  const sinInventario = CIUDAD === 'caracas' && ![...cau, ...bat, ...ace, ...bic].some(p => p.c != null);
+  $('#notaMed').textContent = sinInventario ? 'Estamos cargando el inventario de Caracas: muy pronto verás aquí sus medidas.' : CIUDAD && !rines.length ? `Todavía no tenemos medidas con existencia en ${NOMBRES[CIUDAD]}.` : '';
+}
+$('#frin').addEventListener('change', () => { $('#fmed').value = ''; pintarCauchos(); });
+$('#goCauchos').addEventListener('click', () => { if (pedirCiudad()) return; const o = { cat: 'cauchos' }; if ($('#frin').value) o.rin = $('#frin').value; if ($('#fmed').value) o.medida = $('#fmed').value; location.href = link(o); });
+$('#goBaterias').addEventListener('click', () => { if (pedirCiudad()) return; const o = { cat: 'baterias' }; if ($('#vm').value && $('#vd').value) { o.vm = $('#vm').value; o.vd = $('#vd').value; if ($('#va').value) o.va = $('#va').value; } location.href = link(o); });
+function pintarBicis() {                                           // rines de bicicleta con existencia en la ciudad elegida
+  const rines = CIUDAD ? uniq(bic.filter(p => stockEn(p) > 0).map(p => String(p.r))).sort(asc) : [], cur = rines.includes($('#brin').value) ? $('#brin').value : '';
+  $('#brin').innerHTML = '<option value="">Todos los rines</option>' + rines.map(r => `<option ${r === cur ? 'selected' : ''}>${esc(r)}</option>`).join('');
+  $('#notaBici').textContent = CIUDAD && !rines.length ? (CIUDAD === 'caracas' ? 'Estamos cargando el inventario de Caracas.' : 'Todavía no tenemos bicicletas con existencia en ' + NOMBRES[CIUDAD] + '.') : '';
+}
+$('#goBicis').addEventListener('click', () => { if (pedirCiudad()) return; const o = { cat: 'bicicletas' }; if ($('#brin').value) o.rin = $('#brin').value; location.href = link(o); });
+$('#goAceites').addEventListener('click', () => { if (pedirCiudad()) return; location.href = link({ cat: 'aceites' }); });
+
+// al escribir se sugieren solo las medidas que existen: así nadie busca combinaciones que no vendemos
+const irMedida = (z, md) => { location.href = link({ cat: 'cauchos', rin: md[z].r, medida: z }); };
+function sugerir(forzar) {
+  const box = $('#sug'), t = norm($('#fq').value), md = medDisp();
+  if (!CIUDAD || t.length < 2 || !/\d/.test(t)) { box.hidden = true; return []; }
+  const lista = Object.keys(md).filter(z => norm(z).includes(t)).sort((a, b) => norm(b).startsWith(t) - norm(a).startsWith(t) || num(a, b)).slice(0, 8);
+  box.innerHTML = lista.length ? lista.map(z => `<button type="button" data-med="${esc(z)}">${esc(z)}<small>${md[z].n} ${md[z].n === 1 ? 'opción' : 'opciones'}</small></button>`).join('') : `<div class="none">No tenemos esa medida con existencia en ${NOMBRES[CIUDAD]}. Prueba con otra o elige el rin arriba.</div>`;
+  box.hidden = false; return lista;
+}
+function buscarEscrita() {
+  if (pedirCiudad()) return;
+  const t = norm($('#fq').value), md = medDisp(), exacta = Object.keys(md).find(z => norm(z) === t);
+  if (exacta) return irMedida(exacta, md);
+  const lista = sugerir(true);
+  if (lista.length === 1) irMedida(lista[0], md);                 // una sola coincidencia: se va directo
+}
+$('#fq').addEventListener('input', () => sugerir());
+$('#fq').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); buscarEscrita(); } });
+$('#fqb').addEventListener('click', buscarEscrita);
+document.addEventListener('click', e => {
+  const m = e.target.closest('[data-med]'); if (m) return irMedida(m.dataset.med, medDisp());
+  if (!e.target.closest('.q')) $('#sug').hidden = true;
+});
+
+let cau = [], bat = [], ace = [], bic = [];
+const agrupa = (arr, f) => arr.reduce((m, p) => { const k = f(p); if (k) (m[k] = m[k] || []).push(p); return m; }, {});
+const stockEn = p => CIUDAD === 'caracas' ? (p.c ?? 0) : CIUDAD === 'maracay' ? Math.max(p.t1, p.t2) : Math.max(p.t1, p.t2, p.c ?? 0);   // sin ciudad elegida se cuenta todo
+const hay = p => p.u > 0 && stockEn(p) > 0;                          // solo opciones con precio y existencia en la ciudad
+const NOMBRES = { maracay: 'Maracay', caracas: 'Caracas' };
+function ciudadElegida(c) {                                           // se llama al elegir la ciudad en cualquier buscador y al cargar la página
+  CIUDAD = NOMBRES[c] ? c : '';
+  try { localStorage.setItem('cm_ciudad', CIUDAD); } catch (_) {}
+  document.querySelectorAll('select.ciudad').forEach(x => { x.value = CIUDAD; });
+  document.querySelectorAll('.finder').forEach(f => { f.classList.toggle('bloq', !CIUDAD); f.querySelector('.cityhint').classList.remove('on'); });
+  document.querySelectorAll('a[href^="catalogo.html"]').forEach(a => { const u = new URL(a.getAttribute('href'), location.href); CIUDAD ? u.searchParams.set('ciudad', CIUDAD) : u.searchParams.delete('ciudad'); a.setAttribute('href', 'catalogo.html' + u.search); });
+  pintar();
+}
+document.addEventListener('change', e => { if (e.target.classList.contains('ciudad')) ciudadElegida(e.target.value); });
+
+function pintar() {
+  pintarCauchos(); pintarBicis();
+  const fmt = n => n.toLocaleString('es-VE');
+  const sinDatos = CIUDAD === 'caracas' && ![...cau, ...bat, ...ace, ...bic].some(p => p.c != null);   // el inventario de Caracas todavía no está cargado
+  document.querySelectorAll('[data-n]').forEach(e => {
+    const lista = { cauchos: cau, baterias: bat, aceites: ace, bicicletas: bic }[e.dataset.n];
+    e.textContent = sinDatos ? 'Próximamente' : CIUDAD ? fmt(lista.filter(p => stockEn(p) > 0).length) + ' disponibles' : fmt(lista.length) + ' productos';
+  });
+  $('#avisoAtajos').hidden = !sinDatos;
+  $('#avisoAtajos').textContent = sinDatos ? 'Estamos cargando el inventario de Caracas. Muy pronto verás aquí las medidas, marcas y aceites con existencia en Caracas.' : '';
+  for (const id of ['#medidasTop', '#rines', '#marcas', '#aceites']) $(id).parentElement.hidden = false;
+  $('#atajosSub').textContent = CIUDAD ? `Las medidas, marcas y aceites con más opciones disponibles en ${NOMBRES[CIUDAD]}.` : 'Las medidas, marcas y aceites con más opciones disponibles en tienda.';
+  document.querySelectorAll('#atajos .sub2, #atajos .rinbar, #atajos .sizes, #atajos .brands, #atajos .oils').forEach(x => { x.hidden = sinDatos; });
+  if (sinDatos) return;
+  const desde = ps => Math.min(...ps.map(p => p.u));
+  const usd = n => '$' + n.toLocaleString('es-VE', { maximumFractionDigits: 0 });
+  const bs = agrupa(cau.filter(hay), p => p.z);
+  const top = Object.entries(bs).filter(([z]) => MED.test(z)).sort((a, b) => b[1].length - a[1].length).slice(0, 6);
+  $('#medidasTop').innerHTML = top.map(([z, ps]) => `<a class="size" href="${link({ cat: 'cauchos', rin: String(ps[0].r), medida: z })}"><b>${esc(z)}</b><small>${ps.length} ${ps.length === 1 ? 'opción' : 'opciones'}</small><em>desde ${usd(desde(ps))}</em></a>`).join('');
+  const rines = agrupa(cau.filter(p => p.r != null), p => String(p.r));
+  $('#rines').innerHTML = Object.keys(rines).sort(asc).filter(r => ['13', '14', '15', '16', '17', '18', '20', '22.5'].includes(r)).map(r => `<a href="${link({ cat: 'cauchos', rin: r })}">Rin ${r}</a>`).join('');
+  const marcas = Object.entries(agrupa(cau.filter(hay), p => p.m.split(' ')[0])).sort((a, b) => b[1].length - a[1].length).slice(0, 8);
+  $('#marcas').innerHTML = marcas.map(([m, ps]) => `<a class="brand2" href="${link({ cat: 'cauchos', q: m })}"><i>${esc(m[0])}</i><b>${esc(m)}</b><small>${ps.length} ${ps.length === 1 ? 'caucho' : 'cauchos'} en ${CIUDAD ? NOMBRES[CIUDAD] : 'tienda'}</small></a>`).join('');
+  const familia = t => { const u = t.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /SEMISINT/.test(u) ? 'semi' : /SINT/.test(u) ? 'sint' : /MINERAL/.test(u) ? 'min' : 'otros'; };
+  const FAM = { min: 'Mineral', semi: 'Semisintético', sint: 'Sintético', otros: 'Otros aceites' };
+  const ac = agrupa(ace.filter(hay), p => familia(p.t));
+  $('#aceites').innerHTML = ['min', 'semi', 'sint', 'otros'].filter(f => ac[f]).map(f => {
+    const tipos = Object.entries(agrupa(ac[f], p => p.t.toUpperCase())).sort((a, b) => b[1].length - a[1].length).slice(0, 6);
+    const etiqueta = t => (f === 'otros' ? t : t.replace(/\s*(SEMISINTETICO|SINTETICO|MINERAL)\s*$/i, ''));
+    return `<div class="oil ${f}"><h3>${FAM[f]}<small>${ac[f].length} opciones</small></h3><div class="chips2">${tipos.map(([t]) => `<a href="${link({ cat: 'aceites', tipo: t })}">${esc(etiqueta(t))}</a>`).join('')}</div></div>`;
+  }).join('');
+}
+
+(async () => {
+  const j = await fetch(CATALOGO_URL, { cache: 'no-cache' }).then(r => r.json()).catch(() => fetch('catalogo.json').then(r => r.json()));
+  cau = j.cauchos || j.items || []; bat = j.baterias || []; ace = j.aceites || []; bic = j.bicicletas || [];
+  COMPAT = j.compatibilidad || [];
+  if (COMPAT.length) { llenar('#vm', uniq(COMPAT.map(c => c.o)).sort()); $('#vehiculoBox').hidden = false; }
+  ciudadElegida(CIUDAD);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+services:
+  bot:
+    build: .
+    container_name: nexochatpro-bot
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    networks: [default, chatwoot]
+networks:
+  chatwoot:
+    external: true
+    name: chatwoot_default

@@ -1,0 +1,37 @@
+{
+  "maracay": {
+    "nombre": "Maracay",
+    "moneda_bs": "EUR",
+    "etiqueta_tasa": "tasa euro",
+    "descuento_usd": 0.08,
+    "cashea": false,
+    "sedes": {
+      "tienda_1": "CM Maracay",
+      "tienda_2": "Master Cauchos"
+    },
+    "direcciones": {
+      "tienda_1": "Av. Bolívar, diagonal al C.C. Global La Barraca, Maracay, Edo. Aragua",
+      "tienda_2": "La Pirelli de Parque Aragua, Av. Bolívar Este #150, diagonal al C.C. Parque Aragua, Maracay, Edo. Aragua"
+    },
+    "horarios": {
+      "tienda_1": "lunes a sábado de 8:00 a 17:30",
+      "tienda_2": "lunes a sábado de 8:00 a 17:30"
+    }
+  },
+  "caracas": {
+    "nombre": "Caracas",
+    "moneda_bs": "USD",
+    "etiqueta_tasa": "tasa BCV",
+    "descuento_usd": 0.08,
+    "cashea": true,
+    "sedes": {
+      "caracas": "CM Caracas"
+    },
+    "direcciones": {
+      "caracas": "Av. Rómulo Gallegos con calle El Carmen, diagonal a la iglesia Claret y Banesco, Dos Caminos, Caracas"
+    },
+    "horarios": {
+      "caracas": "lunes a sábado de 8:00 a 17:00"
+    }
+  }
+}

@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Catálogo de cauchos, baterías, aceites y bicicletas · CM Venezuela</title>
+<meta name="description" content="Cauchos, baterías, aceites y bicicletas en Maracay y Caracas con precio en dólares y bolívares a la tasa del día, y existencia por ciudad. Consulta por WhatsApp.">
+<link rel="icon" href="assets/favicon.ico" sizes="32x32 48x48">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap">
+<style>
+
+/* Diseño: catálogo móvil primero, negro y amarillo de CM Venezuela. Portada con 4 categorías; cada categoría con su filtro propio. */
+:root{
+  --bg:#F2F2EF; --surface:#FFFFFF; --surface2:#F7F7F4; --ink:#121212; --muted:#5E5E5A; --line:#E2E2DC;
+  --y:#F5D90A; --y-ink:#121212; --dark:#141414; --dark2:#1F1F1F; --ok:#0B7A4B; --ok-bg:#DDF3E8; --warn:#8A5A00; --warn-bg:#FFF0CC; --bad:#A12A2A; --bad-bg:#F9E0E0;
+  --shadow:0 8px 28px rgba(0,0,0,.10);
+  --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif; --font:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C0C0C; --surface:#171717; --surface2:#1E1E1E; --ink:#F2F2EE; --muted:#A5A59E; --line:#2B2B28;
+  --ok:#5EDB9C; --ok-bg:#12301F; --warn:#F5C45E; --warn-bg:#33270B; --bad:#FF8F8F; --bad-bg:#3A1717; --shadow:0 8px 28px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C0C0C; --surface:#171717; --surface2:#1E1E1E; --ink:#F2F2EE; --muted:#A5A59E; --line:#2B2B28;
+  --ok:#5EDB9C; --ok-bg:#12301F; --warn:#F5C45E; --warn-bg:#33270B; --bad:#FF8F8F; --bad-bg:#3A1717; --shadow:0 8px 28px rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* barra superior */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--dark);color:#fff;border-bottom:3px solid var(--y)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--dark)}
+.bar{display:flex;align-items:center;gap:12px;padding-block:10px}
+.bar .logo{height:34px;width:auto;display:block}
+.bar .sp{flex:1}
+.store{display:flex;align-items:center;gap:8px;background:var(--dark2);border:1px solid #3A3A3A;border-radius:10px;padding:6px 10px;font-size:14px;font-weight:600;max-width:52vw}
+.store select{background:transparent;border:0;color:#fff;font-weight:600;max-width:100%;text-overflow:ellipsis}
+.store select option{color:#000}
+.wa{display:inline-flex;align-items:center;gap:8px;background:var(--y);color:var(--y-ink);font-weight:700;border:0;border-radius:10px;padding:9px 12px;font-size:14px;text-decoration:none}
+.wa svg{width:18px;height:18px}
+.wa span{display:none}
+@media(min-width:640px){.wa span{display:inline}}
+.rate{background:var(--dark2);color:#CFCFC8;font-size:13px;padding-block:6px;border-top:1px solid #2B2B2B}
+.rate b{color:var(--y)}
+
+/* aviso de maqueta */
+.demo{background:var(--warn-bg);color:var(--warn);font-size:13px;font-weight:600;padding-block:7px;text-align:center}
+
+/* portada */
+.hero{padding-block:28px 8px}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(38px,9vw,68px);line-height:.95;text-transform:uppercase;margin:0;letter-spacing:.01em;text-wrap:balance}
+.hero h1 em{font-style:normal;background:var(--y);color:var(--y-ink);padding:0 .15em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hero p{margin:12px 0 0;color:var(--muted);font-size:17px;max-width:560px}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-block:20px 28px}
+@media(min-width:900px){.cats{grid-template-columns:repeat(4,1fr);gap:16px}}
+.cat{position:relative;overflow:hidden;text-align:left;border:0;border-radius:18px;background:var(--dark);color:#fff;padding:18px 16px 16px;min-height:170px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--shadow);transition:transform .15s ease}
+.cat:hover{transform:translateY(-3px)}
+.cat svg{width:64px;height:64px;color:var(--y)}
+.cat b{font-family:var(--display);font-size:30px;line-height:1;text-transform:uppercase;font-weight:800;letter-spacing:.02em}
+.cat small{display:block;color:#B9B9B2;font-size:14px;margin-top:4px}
+.cat::after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(closest-side,rgba(245,217,10,.28),transparent)}
+.cat .go{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:50%;background:var(--y);color:var(--y-ink);display:grid;place-items:center}
+.cat .go svg{width:18px;height:18px;color:inherit}
+.strip{display:grid;gap:10px;grid-template-columns:1fr;padding-bottom:36px}
+@media(min-width:760px){.strip{grid-template-columns:repeat(3,1fr)}}
+.strip div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-weight:600}
+.strip small{display:block;font-weight:400;color:var(--muted);margin-top:2px}
+
+/* categoría */
+.head{display:flex;align-items:center;gap:12px;padding-block:18px 8px}
+.back{border:1px solid var(--line);background:var(--surface);border-radius:12px;width:44px;height:44px;display:grid;place-items:center;flex:none}
+.back svg{width:20px;height:20px}
+.head h2{font-family:var(--display);font-weight:800;font-size:clamp(34px,8vw,52px);text-transform:uppercase;line-height:1;margin:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-block:8px 16px}
+.panel h3{margin:0 0 10px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.grp{margin-bottom:14px}.grp:last-child{margin-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips.sc{flex-wrap:nowrap;overflow-x:auto;margin-inline:-2px;padding:2px 2px 8px;scrollbar-width:thin}
+@media(min-width:760px){.chips.sc{flex-wrap:wrap;overflow:visible}}
+.chips.sc .chip{flex:none}
+.chip{border:1.5px solid var(--line);background:var(--surface2);border-radius:99px;padding:9px 15px;font-weight:700;font-size:15px;min-height:44px;min-width:48px}
+.chip[aria-pressed="true"]{background:var(--y);border-color:var(--y);color:var(--y-ink)}
+.row{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:640px){.row.three{grid-template-columns:repeat(3,1fr)}}
+.sel{display:block}.sel span{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.sel select,.q input{width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 12px;font-weight:600}
+.q{display:flex;gap:8px}
+.q input{flex:1}
+.btn{border:0;border-radius:12px;background:var(--y);color:var(--y-ink);font-weight:800;padding:0 18px;min-height:48px;font-size:16px}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);font-weight:700}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-block:4px 10px;color:var(--muted);font-weight:600}
+.reco{background:var(--dark);color:#fff;border-radius:16px;padding:14px 16px;margin-bottom:14px;border-left:6px solid var(--y)}
+.reco b{color:var(--y)}
+.grid{display:grid;grid-template-columns:1fr;gap:12px;padding-bottom:40px}
+@media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
+@media(min-width:980px){.grid{grid-template-columns:repeat(3,1fr);gap:16px}}
+@media(min-width:1180px){.grid{grid-template-columns:repeat(4,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card .ph{height:96px;border-radius:12px;background:var(--surface2);display:grid;place-items:center;color:var(--muted)}
+.card .ph svg{width:56px;height:56px}
+.brand{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.card h4{margin:0;font-family:var(--display);font-size:24px;line-height:1.05;text-transform:uppercase;font-weight:800}
+.tag{display:inline-block;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:13px;font-weight:700}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.price{margin-top:auto}
+.price .usd{font-family:var(--display);font-size:38px;font-weight:800;line-height:1}
+.price .usd small{font-family:var(--font);font-size:13px;font-weight:600;color:var(--muted);margin-left:4px}
+.price .bs{color:var(--muted);font-weight:600;font-size:15px}
+.stk{font-size:13px;font-weight:700;border-radius:8px;padding:4px 9px;display:inline-block;width:fit-content}
+.stk.ok{background:var(--ok-bg);color:var(--ok)}.stk.alt{background:var(--warn-bg);color:var(--warn)}.stk.no{background:var(--bad-bg);color:var(--bad)}
+.ask{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--dark);color:#fff;border:0;border-radius:12px;min-height:46px;font-weight:700;width:100%}
+.ask svg{width:18px;height:18px;color:var(--y)}
+.empty{grid-column:1/-1;text-align:center;padding:36px 12px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:18px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(30px);opacity:0;background:var(--dark);color:#fff;border-left:5px solid var(--y);border-radius:12px;padding:12px 16px;max-width:min(92vw,480px);font-weight:600;box-shadow:var(--shadow);transition:.25s;z-index:40;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+footer{background:var(--dark);color:#CFCFC8;border-top:3px solid var(--y);padding-block:22px;font-size:14px}
+footer b{color:#fff}
+@media(prefers-reduced-motion:reduce){.cat,.toast{transition:none}}
+
+.more{display:block;margin:0 auto 40px;min-width:220px}
+.price .bs b{color:var(--ink)}
+.sub{color:var(--muted);font-size:13px;font-weight:600}
+select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 12px;font-weight:600}
+.card .ph.foto{height:150px;padding:0;overflow:hidden}.card .ph.foto img{width:100%;height:100%;object-fit:cover}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.tabs .chip{flex:none}
+.price .usd.consulta{font-size:26px;line-height:1.1}
+.inicio{color:#CFCFC8;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap}.inicio:hover{color:var(--y)}
+.note{color:var(--muted);font-size:13px;padding-bottom:28px}
+.ciudad select{width:100%;min-height:52px;border-radius:12px;border:2px solid var(--y);background:var(--surface2);padding:0 12px;font-weight:800;font-size:17px}
+.panel.bloq .grp:not(.ciudad),.panel.bloq #filtros,.panel.bloq #vehiculo{opacity:.4;pointer-events:none}
+.hint{color:var(--muted);font-size:13px;font-weight:600;margin-top:6px}
+.q{position:relative}
+.sug{position:absolute;left:0;right:0;top:100%;margin-top:6px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:30;max-height:280px;overflow:auto;padding:4px}
+.sug button{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 12px;border:0;background:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;text-align:left;color:var(--ink)}
+.sug button:hover,.sug button:focus{background:var(--y);color:var(--y-ink)}
+.sug small{color:var(--muted);font-weight:600;font-size:13px}.sug .none{padding:12px;color:var(--muted);font-weight:600}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two label span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em}
+.two select{width:100%;min-height:50px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 10px;font-weight:700;font-size:16px}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="gut"><div class="wrap bar">
+    <a href="./" aria-label="Ir al inicio"><img class="logo" src="assets/logo.png" alt="CM Venezuela"></a>
+    <a class="inicio" href="./">← Inicio</a>
+    <div class="sp"></div>
+    <a class="wa" id="wa" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.2 13.9c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.5-4-4.7-4.2-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.2c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg><span>Escríbenos</span></a>
+  </div></div>
+  <div class="rate gut"><div class="wrap" id="rate">Elige tu ciudad para ver los precios.</div></div>
+</header>
+
+<main class="gut"><div class="wrap">
+  <div class="hero"><h1>Todo para tu <em>vehículo</em></h1><p>Busca tu caucho, batería, aceite o bicicleta, mira el precio en dólares y en bolívares y consulta por WhatsApp si hay en la tienda.</p></div>
+  <div class="tabs" id="tabs" role="tablist"></div>
+  <div class="panel" id="panel">
+    <div class="grp ciudad"><h3>1. ¿En qué ciudad compras?</h3><select id="ciudad" aria-label="Ciudad"><option value="">Elige tu ciudad…</option><option value="maracay">Maracay</option><option value="caracas">Caracas</option></select><div class="hint" id="ciudadHint">Elígela primero: te mostramos precios y existencia de esa ciudad.</div></div>
+    <div class="grp"><h3 id="qtit">Escribe la medida o la marca</h3><div class="q"><input id="q" inputmode="text" autocomplete="off" aria-label="Buscar"><button class="btn" id="qb">Buscar</button><div class="sug" id="sug" hidden></div></div></div>
+    <div id="vehiculo"></div>
+    <div id="filtros"></div>
+    <div class="grp"><h3>Marca</h3><select class="marca" id="marca" aria-label="Marca"><option value="">Todas las marcas</option></select></div>
+    <div class="grp"><button class="chip" id="todos" aria-pressed="false">Mostrar también los agotados</button> <button class="btn ghost" id="clr" style="min-height:44px">Limpiar</button></div>
+  </div>
+  <div class="meta"><span id="count"></span><span class="sub" id="fecha"></span></div>
+  <div class="grid" id="grid"></div>
+  <button class="btn ghost more" id="more" hidden>Ver más</button>
+  <p class="note" id="nota">Los precios y la existencia pueden cambiar durante el día. Confirma por WhatsApp antes de venir a la tienda.</p>
+</div></main>
+
+<footer class="gut"><div class="wrap"><b>CM Maracay</b> · Av. Bolívar, diagonal al C.C. Global La Barraca, Maracay · Lunes a sábado, 8:00 a. m. a 5:30 p. m.<br><b>Master Cauchos</b> · Av. Bolívar Este #150, diagonal al C.C. Parque Aragua, Maracay · Lunes a sábado, 8:00 a. m. a 5:30 p. m.<br><b>CM Caracas</b> · Av. Rómulo Gallegos con calle El Carmen, diagonal a la iglesia Claret y Banesco, Dos Caminos, Caracas · Lunes a sábado, 8:00 a. m. a 5:00 p. m.</div></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const TIENDAS = {   // número de WhatsApp de cada tienda (formato internacional, sin +)
+  t1: { nombre: 'CM Maracay', wa: '584144540116' },
+  t2: { nombre: 'Master Cauchos', wa: '584144885724' },
+  c: { nombre: 'CM Caracas', wa: '' },     // falta el número de WhatsApp de Caracas y su inventario (campo "c" de cada producto en el catálogo)
+};
+const CIUDADES = {   // qué tiendas tiene cada ciudad y con qué tasa se calcula el precio en bolívares
+  maracay: { nombre: 'Maracay', tiendas: ['t1', 't2'], tasa: 'euro', etiqueta: 'tasa euro' },
+  caracas: { nombre: 'Caracas', tiendas: ['c'], tasa: 'dolar', etiqueta: 'tasa BCV' },
+};
+const PAGINA = 48;
+const CATALOGO_URL = 'https://crm.nexochatpro.cloud/catalogo.json';   // lo actualiza el cliente desde el panel de administración; catalogo.json local queda de respaldo
+const $ = s => document.querySelector(s);
+const bs = n => Math.ceil(n - 1e-6).toLocaleString('es-VE');
+const usd = n => '$' + Number(n).toLocaleString('es-VE', { maximumFractionDigits: 2 });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const uniq = a => [...new Set(a)];
+const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z.]/g, '');
+const num = (a, b) => String(a).localeCompare(String(b), 'es', { numeric: true });
+let DATA = {}, COMPAT = [], TASAS = {}, CAT = 'cauchos', F = {}, mostrar = PAGINA;
+
+const MED = /^(\d+)\/(\d+)R(\d+(?:\.\d)?)$/;
+const ICONOS = {
+  cauchos: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5"><circle cx="32" cy="32" r="26"/><circle cx="32" cy="32" r="14"/><circle cx="32" cy="32" r="3" fill="currentColor"/><path d="M32 6v8M32 50v8M6 32h8M50 32h8M13.6 13.6l5.7 5.7M44.7 44.7l5.7 5.7M13.6 50.4l5.7-5.7M44.7 19.3l5.7-5.7"/></svg>',
+  baterias: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="6" y="18" width="52" height="34" rx="4"/><path d="M16 18v-6h8v6M40 18v-6h8v6"/><path d="M33 25l-7 10h8l-3 11 9-13h-8z" fill="currentColor"/></svg>',
+  bicicletas: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="42" r="11"/><circle cx="49" cy="42" r="11"/><path d="M15 42l12-20h16l6 20M27 22l8 20 8-20M24 18h8M40 16h8"/></svg>',
+  aceites: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M10 40h28l12-14h8M18 40V28h12v12M14 28h20"/><path d="M10 40v10a4 4 0 004 4h22a4 4 0 004-4V40"/><path d="M54 30c3 4 5 7 5 10a5 5 0 01-10 0c0-3 2-6 5-10z"/></svg>',
+};
+const CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.6A8 8 0 1121 12z"/></svg>';
+
+// Cada categoría: cómo se busca, qué filtros tiene y cómo se dibuja la tarjeta
+const CATS = {
+  cauchos: {
+    nombre: 'Cauchos', pista: 'Ej. 265/60R18 o Haida', titulo: 'Escribe la medida o la marca',
+    texto: p => p.z + p.m,
+    filtros: () => [],                                  // los cauchos se filtran con las casillas Rin → Medida (ver filtrosCauchos)
+    titulo_p: p => p.z, tags: p => (p.r != null ? ['Rin ' + p.r] : []),
+    msg: p => `el caucho ${p.m} ${p.z}${p.x ? ' (' + p.x + ')' : ''}`,
+  },
+  baterias: {
+    nombre: 'Baterías', pista: 'Ej. grupo 24, 1000 AMP o PGT', titulo: 'Escribe el grupo, el amperaje o la marca',
+    texto: p => p.m + p.d + p.g,
+    filtros: d => [['grupo', 'Grupo', uniq(d.map(p => p.g)).sort(num), p => p.g]],
+    titulo_p: p => p.d, tags: p => [p.g].concat(p.a ? [p.a + ' AMP'] : [], p.w ? ['Garantía ' + p.w + ' meses'] : []),
+    msg: p => `la batería ${p.m} ${p.d} (${p.g})`,
+  },
+  aceites: {
+    nombre: 'Aceites', pista: 'Ej. 20W-50 o Gonher', titulo: 'Escribe la viscosidad o la marca',
+    texto: p => p.m + p.t + p.p,
+    filtros: d => [['tipo', 'Tipo', uniq(d.map(p => p.t.toUpperCase())).sort(num), p => p.t.toUpperCase()], ['presentacion', 'Presentación', uniq(d.map(p => p.p)).sort(num), p => p.p]],
+    titulo_p: p => p.t, tags: p => [p.p],
+    msg: p => `el aceite ${p.m} ${p.t} (${p.p})`,
+  },
+  bicicletas: {
+    nombre: 'Bicicletas', pista: 'Ej. rin 20 o modelo 130', titulo: 'Escribe el rin o el modelo', sinMarca: true,
+    texto: p => 'rin' + p.r + 'modelo' + p.d + (p.p || '') + (p.co || ''),
+    filtros: d => [['rin', 'Rin', uniq(d.map(p => String(p.r))).sort((a, b) => a - b), p => String(p.r)]],
+    titulo_p: p => 'Rin ' + p.r + ' · Modelo ' + p.d, tags: p => (p.p ? [p.p] : []), sub: p => (p.co ? 'Colores: ' + p.co : ''),
+    msg: p => `la bicicleta rin ${p.r} modelo ${p.d}`,
+  },
+};
+const ciudad = () => $('#ciudad').value;
+const nivel = p => Math.max(0, ...CIUDADES[ciudad()].tiendas.map(k => p[k] ?? 0));
+const medDisp = () => {                                     // medidas con existencia en la ciudad elegida: { '175/65R13': { n: opciones, r: rin } }
+  const m = {}; const ks = (CIUDADES[ciudad()] || { tiendas: [] }).tiendas;
+  for (const p of DATA.cauchos || []) if (MED.test(p.z) && (F.todos || ks.some(k => (p[k] ?? 0) > 0))) { const e = (m[p.z] = m[p.z] || { n: 0, r: String(p.r) }); e.n++; }
+  return m;
+};
+const rinesDisp = md => uniq(Object.values(md).map(e => e.r)).sort((a, b) => a - b);
+function filtrosCauchos() {                                 // 1.º el rin, 2.º una lista con las medidas que hay en ese rin
+  const md = medDisp(), meds = Object.keys(md).filter(z => !F.rin || md[z].r === F.rin).sort(num);
+  return `<div class="grp"><h3>Busca por medida</h3><div class="two">
+    <label><span>1. Rin</span><select id="frin" aria-label="Rin"><option value="">Elige el rin…</option>${rinesDisp(md).map(r => `<option ${F.rin === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></label>
+    <label><span>2. Medida disponible</span><select id="fmed" aria-label="Medida" ${F.rin ? '' : 'disabled'}><option value="">${F.rin ? 'Todas las medidas…' : 'Primero el rin'}</option>${meds.map(z => `<option value="${esc(z)}" ${F.medida === z ? 'selected' : ''}>${esc(z)} (${md[z].n})</option>`).join('')}</select></label></div></div>`;
+}
+const conDatos = c => c === 'maracay' || Object.values(DATA).some(a => a.some(p => p.c != null));   // Caracas solo tiene datos cuando el catálogo trae el campo "c"
+
+function estado(p) {                                    // existencia en las tiendas de la ciudad elegida
+  const c = CIUDADES[ciudad()], con = c.tiendas.filter(k => (p[k] ?? 0) > 0);
+  if (!con.length) return ['no', 'Agotado en ' + c.nombre];
+  return ['ok', (con.every(k => p[k] === 1) ? 'Pocas unidades en ' : 'Disponible en ') + con.map(k => TIENDAS[k].nombre).join(' y ')];
+}
+const tiendaWa = p => { const ks = CIUDADES[ciudad()].tiendas; return ks.slice().sort((a, b) => (p[b] ?? 0) - (p[a] ?? 0))[0]; };   // la tienda que tiene el producto (o la de más existencia)
+const wa = (msg, k) => `https://wa.me/${TIENDAS[k].wa}?text=${encodeURIComponent(msg)}`;
+
+function card(p) {
+  const c = CATS[CAT], [k, t] = estado(p), tasa = TASAS[CIUDADES[ciudad()].tasa], ci = CIUDADES[ciudad()], tk = tiendaWa(p);
+  const precioBs = tasa ? `<div class="bs"><b>Bs ${bs(p.b * tasa)}</b> pagando en bolívares<br><span class="sub">(${usd(p.b)} a ${ci.etiqueta})</span></div>` : '';
+  const tags = c.tags(p).concat(p.x ? [p.x] : []);
+  return `<article class="card"><div class="ph${p.i ? ' foto' : ''}">${p.i ? `<img src="${esc(p.i)}" alt="${esc(p.m + ' ' + c.titulo_p(p))}" loading="lazy">` : ICONOS[CAT]}</div><div><div class="brand">${esc(p.m)}</div><h4>${esc(c.titulo_p(p))}</h4></div>
+    <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}<span class="stk ${k}">${t}</span>
+    <div class="price">${p.u > 0 ? `<div class="usd">${usd(p.u)}<small>pagando en dólares</small></div>${precioBs}` : '<div class="usd consulta">Consultar precio</div><div class="bs">Te lo confirmamos por WhatsApp</div>'}</div>
+    ${TIENDAS[tk].wa ? `<a class="ask" href="${wa(`Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} Consultar por WhatsApp</a>` : ''}</article>`;
+}
+
+const gruposVeh = () => {                                                // grupos de batería que sirven al vehículo elegido, según la tabla de compatibilidad
+  const n = F.va ? Number(F.va) : null
+  return new Set(COMPAT.filter(c => c.o === F.vm && c.d === F.vd && (n == null || (n >= c.a && n <= c.b))).flatMap(c => c.g));
+};
+function filtrar() {
+  const c = CATS[CAT], tok = (F.q || '').split(/\s+/).map(norm).filter(Boolean);
+  const defs = c.filtros(DATA[CAT]);
+  return DATA[CAT].filter(p => {
+    if (F.marca && p.m !== F.marca) return false;
+    if (CAT === 'cauchos') { if (F.rin && String(p.r) !== F.rin) return false; if (F.medida && p.z !== F.medida) return false; }
+    for (const [key, , , get] of defs) if (F[key] && get(p) !== (key === 'tipo' ? F[key].toUpperCase() : F[key])) return false;
+    if (CAT === 'baterias' && F.vm && F.vd) { const t = gruposVeh(); if (!(p.k || []).some(x => t.has(x))) return false; }
+    if (!F.todos && nivel(p) === 0) return false;     // por defecto solo lo que hay en la ciudad elegida
+    const t = norm(c.texto(p));
+    return tok.every(x => t.includes(x));
+  });
+}
+function paint() {
+  const c = CATS[CAT], d = DATA[CAT] || [];
+  $('#tabs').innerHTML = Object.entries(CATS).map(([k, v]) => `<button class="chip" role="tab" data-cat="${k}" aria-pressed="${k === CAT}">${v.nombre}</button>`).join('');
+  $('#qtit').textContent = c.titulo; $('#q').placeholder = c.pista;
+  $('#vehiculo').innerHTML = CAT === 'baterias' && COMPAT.length ? buscadorVehiculo() : '';
+  $('#filtros').innerHTML = CAT === 'cauchos' ? (ciudad() && conDatos(ciudad()) ? filtrosCauchos() : '') : c.filtros(d).map(([key, nombre, vals]) => `<div class="grp"><h3>${nombre}</h3><div class="chips sc">${vals.map(v => `<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${F[key] === v}">${esc(v)}</button>`).join('')}</div></div>`).join('');
+  const marcas = uniq(d.map(p => p.m)).sort();
+  $('#marca').innerHTML = '<option value="">Todas las marcas</option>' + marcas.map(m => `<option ${m === F.marca ? 'selected' : ''}>${esc(m)}</option>`).join('');
+  $('#todos').setAttribute('aria-pressed', !!F.todos);
+  $('#marca').closest('.grp').hidden = !!c.sinMarca;
+  const cid = ciudad(), ci = CIUDADES[cid];
+  $('#panel').classList.toggle('bloq', !cid);
+  $('#ciudadHint').hidden = !!cid;
+  $('#nota').textContent = 'Los precios y la existencia pueden cambiar durante el día. Confirma por WhatsApp antes de venir a la tienda.' + (ci ? ` El precio en bolívares usa la ${ci.etiqueta === 'tasa euro' ? 'tasa euro del BCV' : 'tasa del dólar BCV'}.` : '');
+  const tasa = ci && TASAS[ci.tasa];
+  $('#rate').innerHTML = !ci ? 'Elige tu ciudad para ver los precios.' : tasa ? `${ci.etiqueta === 'tasa euro' ? 'Tasa euro BCV' : 'Tasa dólar BCV'} de hoy: <b>${tasa.toLocaleString('es-VE', { maximumFractionDigits: 2 })}</b> Bs · precio en dólares de contado y en bolívares` : 'Precios en dólares de contado. Pregúntanos el monto en bolívares por WhatsApp.';
+  const wk = ci && ci.tiendas.find(k => TIENDAS[k].wa);
+  $('#wa').hidden = !!ci && !wk; $('#wa').href = wa('Hola, quiero consultar un producto', wk || 't1');
+  let orden = [];
+  if (!cid) { $('#count').textContent = ''; $('#grid').innerHTML = '<div class="empty"><b>Elige tu ciudad para empezar.</b><br>Así te mostramos los precios y la existencia de Maracay o de Caracas.</div>'; $('#more').hidden = true; return; }
+  if (!conDatos(cid)) { $('#count').textContent = ''; $('#grid').innerHTML = `<div class="empty"><b>Estamos cargando el inventario de ${ci.nombre}.</b><br>Muy pronto verás aquí la existencia y los precios de ${ci.nombre}.</div>`; $('#more').hidden = true; return; }
+  const r = filtrar(); orden = r.slice().sort((a, b) => (nivel(b) > 0) - (nivel(a) > 0) || (a.u <= 0) - (b.u <= 0) || a.u - b.u);
+  $('#count').textContent = `${r.length} resultado${r.length === 1 ? '' : 's'} en ${ci.nombre}`;
+  $('#grid').innerHTML = orden.length ? orden.slice(0, mostrar).map(card).join('') : `<div class="empty"><b>No encontramos ese producto con existencia en ${ci.nombre}.</b><br>Prueba con otra medida o marca, o activa «Mostrar también los agotados». También puedes escribirnos por WhatsApp.</div>`;
+  $('#more').hidden = orden.length <= mostrar;
+}
+const opt = (vals, cur, vacio) => `<option value="">${vacio}</option>` + vals.map(v => `<option ${String(v) === String(cur) ? 'selected' : ''}>${esc(v)}</option>`).join('');
+function buscadorVehiculo() {
+  const marcas = uniq(COMPAT.map(c => c.o)).sort();
+  const modelos = F.vm ? uniq(COMPAT.filter(c => c.o === F.vm).map(c => c.d)).sort(num) : [];
+  const filas = F.vm && F.vd ? COMPAT.filter(c => c.o === F.vm && c.d === F.vd) : [];
+  const anios = uniq(filas.filter(c => c.a > 0).flatMap(c => Array.from({ length: Math.min(c.b, new Date().getFullYear() + 1) - c.a + 1 }, (_, i) => Math.min(c.b, new Date().getFullYear() + 1) - i))).sort((a, b) => b - a);
+  let aviso = '';
+  if (F.vm && F.vd) {
+    const g = [...new Set(filas.filter(c => !F.va || (Number(F.va) >= c.a && Number(F.va) <= c.b)).map(c => c.gr))];
+    aviso = g.length ? `<div class="reco">Para tu <b>${esc(F.vm)} ${esc(F.vd)}${F.va ? ' ' + esc(F.va) : ''}</b> sirven las baterías de grupo <b>${esc(g.join(' o '))}</b>. Confirma el grupo y la polaridad con tu batería actual antes de comprar.</div>` : `<div class="reco">No tenemos datos de ese año. Escríbenos por WhatsApp y te ayudamos.</div>`;
+  }
+  return `<div class="grp"><h3>Busca por tu vehículo</h3><div class="row three">
+    <label class="sel"><span>Marca</span><select id="vm">${opt(marcas, F.vm, 'Elegir…')}</select></label>
+    <label class="sel"><span>Modelo</span><select id="vd" ${F.vm ? '' : 'disabled'}>${opt(modelos, F.vd, 'Elegir…')}</select></label>
+    <label class="sel"><span>Año</span><select id="va" ${anios.length ? '' : 'disabled'}>${opt(anios, F.va, 'Cualquier año')}</select></label></div>${aviso}</div>`;
+}
+function reset() { F = {}; $('#q').value = ''; mostrar = PAGINA; paint(); }
+
+document.addEventListener('change', e => {
+  if (e.target.id === 'frin') { F.rin = e.target.value; F.medida = ''; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'fmed') { F.medida = e.target.value; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'vm') { F.vm = e.target.value; F.vd = ''; F.va = ''; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'vd') { F.vd = e.target.value; F.va = ''; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'va') { F.va = e.target.value; mostrar = PAGINA; paint(); }
+});
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-cat]'); if (t) { CAT = t.dataset.cat; F = {}; $('#q').value = ''; mostrar = PAGINA; return paint(); }
+  const c = e.target.closest('[data-k]'); if (c) { const k = c.dataset.k; F[k] = F[k] === c.dataset.v ? '' : c.dataset.v; mostrar = PAGINA; return paint(); }
+  if (e.target.id === 'qb') { F.q = $('#q').value; mostrar = PAGINA; return paint(); }
+  if (e.target.id === 'clr') return reset();
+  if (e.target.id === 'more') { mostrar += PAGINA; return paint(); }
+  if (e.target.id === 'todos') { F.todos = !F.todos; mostrar = PAGINA; return paint(); }
+});
+$('#q').addEventListener('keydown', e => { if (e.key === 'Enter') { F.q = e.target.value; mostrar = PAGINA; paint(); } });
+$('#q').addEventListener('input', e => { F.q = e.target.value; mostrar = PAGINA; paint(); sugerir(); });
+function sugerir() {                                      // al escribir en cauchos se ofrecen solo las medidas que existen en la ciudad
+  const box = $('#sug'); if (!box) return;
+  const t = norm(F.q || ''), md = medDisp();
+  if (CAT !== 'cauchos' || !ciudad() || t.length < 2 || !/\d/.test(t)) { box.hidden = true; return; }
+  const lista = Object.keys(md).filter(z => norm(z).includes(t)).sort((a, b) => (norm(b).startsWith(t)) - (norm(a).startsWith(t)) || num(a, b)).slice(0, 8);
+  box.innerHTML = lista.length ? lista.map(z => `<button type="button" data-med="${esc(z)}">${esc(z)}<small>${md[z].n} ${md[z].n === 1 ? 'opción' : 'opciones'}</small></button>`).join('') : '<div class="none">No tenemos esa medida disponible en esta ciudad. Prueba con otra o elige el rin.</div>';
+  box.hidden = false;
+}
+document.addEventListener('click', e => {
+  const m = e.target.closest('[data-med]'); if (m) { const md = medDisp()[m.dataset.med]; F.medida = m.dataset.med; F.rin = md ? md.r : F.rin; F.q = ''; $('#q').value = ''; $('#sug').hidden = true; mostrar = PAGINA; paint(); return; }
+  if (!e.target.closest('.q')) { const b = $('#sug'); if (b) b.hidden = true; }
+});
+$('#marca').addEventListener('change', e => { F.marca = e.target.value; mostrar = PAGINA; paint(); });
+$('#ciudad').addEventListener('change', e => {
+  try { localStorage.setItem('cm_ciudad', e.target.value); } catch (_) {}
+  const u = new URL(location.href); e.target.value ? u.searchParams.set('ciudad', e.target.value) : u.searchParams.delete('ciudad'); history.replaceState(null, '', u);
+  mostrar = PAGINA; paint();
+});
+
+async function tasas() {                              // Maracay usa la tasa euro y Caracas la del dólar, ambas del BCV
+  const pide = async (ruta) => { try { const j = await (await fetch('https://ve.dolarapi.com/v1/' + ruta + '/oficial', { cache: 'no-store' })).json(); return j.promedio > 0 ? j.promedio : null; } catch (e) { return null; } };
+  [TASAS.euro, TASAS.dolar] = await Promise.all([pide('euros'), pide('dolares')]);
+}
+(async () => {
+  const [j] = await Promise.all([fetch(CATALOGO_URL, { cache: 'no-cache' }).then(r => r.json()).catch(() => fetch('catalogo.json').then(r => r.json())), tasas()]);
+  DATA = { cauchos: j.cauchos || j.items || [], baterias: j.baterias || [], aceites: j.aceites || [], bicicletas: j.bicicletas || [] };
+  COMPAT = (j.compatibilidad || []).map(c => ({ ...c, gr: c.r || c.g.join(' / ') }));
+  const hash = location.hash.slice(1); if (CATS[hash]) CAT = hash;
+  const P = new URLSearchParams(location.search);
+  let guardada = ''; try { guardada = localStorage.getItem('cm_ciudad') || ''; } catch (_) {}
+  const ci = P.get('ciudad') || guardada; if (CIUDADES[ci]) $('#ciudad').value = ci;       // la ciudad viene de la portada o de la última visita; la portada también enlaza con filtros: ?cat=cauchos&rin=18&medida=265/60R18
+  if (CATS[P.get('cat')]) CAT = P.get('cat');
+  for (const k of ['rin', 'medida', 'grupo', 'tipo', 'presentacion', 'marca', 'vm', 'vd', 'va']) if (P.get(k)) F[k] = P.get(k);
+  if (P.get('q')) { F.q = P.get('q'); $('#q').value = F.q; }
+  $('#fecha').textContent = 'Lista actualizada: ' + new Date(j.actualizado + 'T12:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
+  paint();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<title>Catálogo CM Venezuela</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700;800&display=swap">
+<style>
+/* Diseño: catálogo móvil primero, negro y amarillo de CM Venezuela. Portada con 4 categorías; cada categoría con su filtro propio. */
+:root{
+  --bg:#F2F2EF; --surface:#FFFFFF; --surface2:#F7F7F4; --ink:#121212; --muted:#5E5E5A; --line:#E2E2DC;
+  --y:#F5D90A; --y-ink:#121212; --dark:#141414; --dark2:#1F1F1F; --ok:#0B7A4B; --ok-bg:#DDF3E8; --warn:#8A5A00; --warn-bg:#FFF0CC; --bad:#A12A2A; --bad-bg:#F9E0E0;
+  --shadow:0 8px 28px rgba(0,0,0,.10);
+  --display:'Barlow Condensed','Arial Narrow',Arial,sans-serif; --font:'Barlow',system-ui,-apple-system,'Segoe UI',sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C0C0C; --surface:#171717; --surface2:#1E1E1E; --ink:#F2F2EE; --muted:#A5A59E; --line:#2B2B28;
+  --ok:#5EDB9C; --ok-bg:#12301F; --warn:#F5C45E; --warn-bg:#33270B; --bad:#FF8F8F; --bad-bg:#3A1717; --shadow:0 8px 28px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C0C0C; --surface:#171717; --surface2:#1E1E1E; --ink:#F2F2EE; --muted:#A5A59E; --line:#2B2B28;
+  --ok:#5EDB9C; --ok-bg:#12301F; --warn:#F5C45E; --warn-bg:#33270B; --bad:#FF8F8F; --bad-bg:#3A1717; --shadow:0 8px 28px rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:16px;line-height:1.4}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--y);outline-offset:2px}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto}
+
+/* barra superior */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--dark);color:#fff;border-bottom:3px solid var(--y)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--dark)}
+.bar{display:flex;align-items:center;gap:12px;padding-block:10px}
+.bar .logo{height:34px;width:auto;display:block}
+.bar .sp{flex:1}
+.store{display:flex;align-items:center;gap:8px;background:var(--dark2);border:1px solid #3A3A3A;border-radius:10px;padding:6px 10px;font-size:14px;font-weight:600;max-width:52vw}
+.store select{background:transparent;border:0;color:#fff;font-weight:600;max-width:100%;text-overflow:ellipsis}
+.store select option{color:#000}
+.wa{display:inline-flex;align-items:center;gap:8px;background:var(--y);color:var(--y-ink);font-weight:700;border:0;border-radius:10px;padding:9px 12px;font-size:14px;text-decoration:none}
+.wa svg{width:18px;height:18px}
+.wa span{display:none}
+@media(min-width:640px){.wa span{display:inline}}
+.rate{background:var(--dark2);color:#CFCFC8;font-size:13px;padding-block:6px;border-top:1px solid #2B2B2B}
+.rate b{color:var(--y)}
+
+/* aviso de maqueta */
+.demo{background:var(--warn-bg);color:var(--warn);font-size:13px;font-weight:600;padding-block:7px;text-align:center}
+
+/* portada */
+.hero{padding-block:28px 8px}
+.hero h1{font-family:var(--display);font-weight:800;font-size:clamp(38px,9vw,68px);line-height:.95;text-transform:uppercase;margin:0;letter-spacing:.01em;text-wrap:balance}
+.hero h1 em{font-style:normal;background:var(--y);color:var(--y-ink);padding:0 .15em;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.hero p{margin:12px 0 0;color:var(--muted);font-size:17px;max-width:560px}
+.cats{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding-block:20px 28px}
+@media(min-width:900px){.cats{grid-template-columns:repeat(4,1fr);gap:16px}}
+.cat{position:relative;overflow:hidden;text-align:left;border:0;border-radius:18px;background:var(--dark);color:#fff;padding:18px 16px 16px;min-height:170px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--shadow);transition:transform .15s ease}
+.cat:hover{transform:translateY(-3px)}
+.cat svg{width:64px;height:64px;color:var(--y)}
+.cat b{font-family:var(--display);font-size:30px;line-height:1;text-transform:uppercase;font-weight:800;letter-spacing:.02em}
+.cat small{display:block;color:#B9B9B2;font-size:14px;margin-top:4px}
+.cat::after{content:"";position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:radial-gradient(closest-side,rgba(245,217,10,.28),transparent)}
+.cat .go{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:50%;background:var(--y);color:var(--y-ink);display:grid;place-items:center}
+.cat .go svg{width:18px;height:18px;color:inherit}
+.strip{display:grid;gap:10px;grid-template-columns:1fr;padding-bottom:36px}
+@media(min-width:760px){.strip{grid-template-columns:repeat(3,1fr)}}
+.strip div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-weight:600}
+.strip small{display:block;font-weight:400;color:var(--muted);margin-top:2px}
+
+/* categoría */
+.head{display:flex;align-items:center;gap:12px;padding-block:18px 8px}
+.back{border:1px solid var(--line);background:var(--surface);border-radius:12px;width:44px;height:44px;display:grid;place-items:center;flex:none}
+.back svg{width:20px;height:20px}
+.head h2{font-family:var(--display);font-weight:800;font-size:clamp(34px,8vw,52px);text-transform:uppercase;line-height:1;margin:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;margin-block:8px 16px}
+.panel h3{margin:0 0 10px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.grp{margin-bottom:14px}.grp:last-child{margin-bottom:0}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips.sc{flex-wrap:nowrap;overflow-x:auto;margin-inline:-2px;padding:2px 2px 8px;scrollbar-width:thin}
+@media(min-width:760px){.chips.sc{flex-wrap:wrap;overflow:visible}}
+.chips.sc .chip{flex:none}
+.chip{border:1.5px solid var(--line);background:var(--surface2);border-radius:99px;padding:9px 15px;font-weight:700;font-size:15px;min-height:44px;min-width:48px}
+.chip[aria-pressed="true"]{background:var(--y);border-color:var(--y);color:var(--y-ink)}
+.row{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:640px){.row.three{grid-template-columns:repeat(3,1fr)}}
+.sel{display:block}.sel span{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.sel select,.q input{width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 12px;font-weight:600}
+.q{display:flex;gap:8px}
+.q input{flex:1}
+.btn{border:0;border-radius:12px;background:var(--y);color:var(--y-ink);font-weight:800;padding:0 18px;min-height:48px;font-size:16px}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink);font-weight:700}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;padding-block:4px 10px;color:var(--muted);font-weight:600}
+.reco{background:var(--dark);color:#fff;border-radius:16px;padding:14px 16px;margin-bottom:14px;border-left:6px solid var(--y)}
+.reco b{color:var(--y)}
+.grid{display:grid;grid-template-columns:1fr;gap:12px;padding-bottom:40px}
+@media(min-width:560px){.grid{grid-template-columns:1fr 1fr}}
+@media(min-width:980px){.grid{grid-template-columns:repeat(3,1fr);gap:16px}}
+@media(min-width:1180px){.grid{grid-template-columns:repeat(4,1fr)}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card .ph{height:96px;border-radius:12px;background:var(--surface2);display:grid;place-items:center;color:var(--muted)}
+.card .ph svg{width:56px;height:56px}
+.brand{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.card h4{margin:0;font-family:var(--display);font-size:24px;line-height:1.05;text-transform:uppercase;font-weight:800}
+.tag{display:inline-block;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:3px 8px;font-size:13px;font-weight:700}
+.tags{display:flex;gap:6px;flex-wrap:wrap}
+.price{margin-top:auto}
+.price .usd{font-family:var(--display);font-size:38px;font-weight:800;line-height:1}
+.price .usd small{font-family:var(--font);font-size:13px;font-weight:600;color:var(--muted);margin-left:4px}
+.price .bs{color:var(--muted);font-weight:600;font-size:15px}
+.stk{font-size:13px;font-weight:700;border-radius:8px;padding:4px 9px;display:inline-block;width:fit-content}
+.stk.ok{background:var(--ok-bg);color:var(--ok)}.stk.alt{background:var(--warn-bg);color:var(--warn)}.stk.no{background:var(--bad-bg);color:var(--bad)}
+.ask{display:flex;align-items:center;justify-content:center;gap:8px;background:var(--dark);color:#fff;border:0;border-radius:12px;min-height:46px;font-weight:700;width:100%}
+.ask svg{width:18px;height:18px;color:var(--y)}
+.empty{grid-column:1/-1;text-align:center;padding:36px 12px;color:var(--muted);background:var(--surface);border:1px dashed var(--line);border-radius:18px}
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:thin}
+.toast{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom,0px));transform:translateX(-50%) translateY(30px);opacity:0;background:var(--dark);color:#fff;border-left:5px solid var(--y);border-radius:12px;padding:12px 16px;max-width:min(92vw,480px);font-weight:600;box-shadow:var(--shadow);transition:.25s;z-index:40;pointer-events:none}
+.toast.on{opacity:1;transform:translateX(-50%)}
+footer{background:var(--dark);color:#CFCFC8;border-top:3px solid var(--y);padding-block:22px;font-size:14px}
+footer b{color:#fff}
+@media(prefers-reduced-motion:reduce){.cat,.toast{transition:none}}
+</style>
+
+<header class="top">
+  <div class="gut"><div class="wrap bar">
+    <img class="logo" src="__CM__" alt="CM Venezuela">
+    <div class="sp"></div>
+    <label class="store" title="Tienda"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F5D90A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11a7 7 0 0114 0c0 4.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+      <select id="store" aria-label="Elegir tienda"><option value="t1">Maracay · Tienda 1</option><option value="t2">Maracay · Tienda 2</option></select></label>
+    <a class="wa" href="#" data-ask="Hola, quiero consultar un producto"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.2 13.9c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.5-4-4.7-4.2-.1-.2-1.1-1.5-1.1-2.8 0-1.4.7-2 1-2.3.2-.3.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.4 0 .5l-.4.6c-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.3z"/></svg><span>WhatsApp</span></a>
+  </div></div>
+  <div class="rate gut"><div class="wrap">Tasa euro de hoy: <b id="rate"></b> Bs por USD · precios en dólares con descuento</div></div>
+</header>
+<div class="demo gut">Maqueta con datos de ejemplo: productos, precios y existencias son ilustrativos</div>
+
+<main id="main"></main>
+
+<footer class="gut"><div class="wrap"><b>CM Venezuela</b> · Av. Bolívar, diagonal al C.C. Global La Barraca, Maracay, Estado Aragua<br>Lunes a sábado, de 8:00 a. m. a 5:00 p. m.</div></footer>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+const TASA = 1040, DESC = 0.92;                           // tasa euro de ejemplo (Bs por USD) y descuento por pagar en dólares
+const bs = n => Math.round(n).toLocaleString('es-VE');
+const $ = s => document.querySelector(s);
+const ICON = {
+  caucho: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5"><circle cx="32" cy="32" r="26"/><circle cx="32" cy="32" r="14"/><circle cx="32" cy="32" r="3" fill="currentColor"/><path d="M32 6v8M32 50v8M6 32h8M50 32h8M13.6 13.6l5.7 5.7M44.7 44.7l5.7 5.7M13.6 50.4l5.7-5.7M44.7 19.3l5.7-5.7"/></svg>',
+  bateria: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"><rect x="6" y="18" width="52" height="34" rx="4"/><path d="M16 18v-6h8v6M40 18v-6h8v6"/><path d="M33 25l-7 10h8l-3 11 9-13h-8z" fill="currentColor"/></svg>',
+  aceite: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M10 40h28l12-14h8M18 40V28h12v12M14 28h20"/><path d="M10 40v10a4 4 0 004 4h22a4 4 0 004-4V40"/><path d="M54 30c3 4 4 7 4 9a4 4 0 11-8 0c0-2 1-5 4-9z" fill="currentColor"/></svg>',
+  otros: '<svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M44 8a12 12 0 00-10 16L10 48a5 5 0 007 7l24-24a12 12 0 0016-10l-8 7-6-2-2-6z"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>',
+  chat: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.6A8 8 0 1121 12z"/></svg>',
+};
+
+/* ---------- datos de ejemplo (stock por tienda: [t1, t2]) ---------- */
+const CAUCHOS = [
+  ['Hankook','Kinergy Eco','195/65R15',68,[8,12]],['Michelin','Energy XM2+','195/65R15',98,[5,7]],['Bridgestone','Turanza T005','195/65R15',92,[0,8]],
+  ['Hankook','Optimo H426','185/70R14',55,[10,12]],['Goodyear','Assurance','185/70R14',62,[16,0]],['Hankook','Kinergy Eco','175/70R13',52,[6,4]],
+  ['Michelin','Primacy 4','205/55R16',125,[3,3]],['Goodyear','EfficientGrip','205/55R16',110,[6,4]],['Hankook','Ventus Prime3','205/55R16',89,[9,5]],
+  ['Bridgestone','Turanza','205/60R16',104,[4,0]],['Hankook','Dynapro HT','235/75R15',118,[0,0]],['Hankook','Dynapro HT','235/75R16',120,[5,4]],
+  ['Goodyear','Wrangler AT','265/70R17',178,[2,1]],['Bridgestone','Dueler H/T','265/70R17',165,[3,2]],['Michelin','LTX Force','265/65R18',210,[2,2]],
+  ['Pirelli','Cinturato P1','195/65R15',85,[0,0]],['Hankook','Dynapro AT2','245/70R16',148,[4,3]],['Goodyear','Assurance','225/65R17',134,[3,5]],
+].map(([brand, model, size, usd, st]) => { const m = size.match(/(\d+)\/(\d+)R(\d+)/); return { brand, model, size, w: m[1], p: m[2], r: m[3], usd, st }; });
+
+const VEH = {   // marca -> modelo -> [desde, hasta, grupos de batería compatibles]
+  Toyota: { Corolla: [2009, 2019, ['24F', '35']], Hilux: [2005, 2020, ['27F', '34']], Yaris: [2007, 2018, ['51R', '35']] },
+  Chevrolet: { Aveo: [2007, 2014, ['51R', '35']], Spark: [2008, 2017, ['51R']], Optra: [2006, 2012, ['35', '24F']] },
+  Ford: { Fiesta: [2005, 2016, ['51R', '35']], Explorer: [2006, 2018, ['27F', '34']] },
+  Kia: { Rio: [2009, 2022, ['51R', '35']], Sportage: [2011, 2022, ['24F', '35']] },
+  Hyundai: { Accent: [2006, 2019, ['51R', '35']], Tucson: [2010, 2021, ['24F', '35']] },
+};
+const BATERIAS = [
+  ['Willard','Titanio 24F-1000','24F',118,'18 meses',[6,5]],['ACDelco','24F-950','24F',95,'12 meses',[7,9]],['Bosch','S5 24F-1100','24F',149,'24 meses',[3,2]],
+  ['Willard','Titanio 35-800','35',104,'18 meses',[5,4]],['Duncan','Premium 35','35',99,'12 meses',[0,6]],
+  ['Willard','Titanio 51R-600','51R',92,'18 meses',[8,6]],['ACDelco','51R-550','51R',78,'12 meses',[10,0]],['Bosch','S4 51R','51R',96,'24 meses',[4,3]],
+  ['Willard','Titanio 27F-1100','27F',138,'18 meses',[2,3]],['Duncan','Premium 27F','27F',129,'12 meses',[3,0]],['ACDelco','34-900','34',121,'12 meses',[0,0]],['Bosch','S5 34','34',158,'24 meses',[2,1]],
+].map(([brand, model, group, usd, war, st]) => ({ brand, model, group, usd, war, st }));
+const ACEITES = [
+  ['Mobil','Super 3000','5W-30','Sintético','4 L',46,[12,10]],['Castrol','Magnatec','5W-30','Sintético','4 L',49,[8,6]],['Valvoline','MaxLife','10W-40','Semi-sintético','4 L',38,[14,9]],
+  ['Mobil','Super 2000','10W-40','Semi-sintético','1 L',11,[24,30]],['Pennzoil','Platinum','5W-20','Sintético','4 L',52,[5,0]],['Castrol','GTX','20W-50','Mineral','1 L',9,[30,22]],
+  ['Mobil','Delvac','15W-40','Mineral','4 L',34,[9,12]],['Valvoline','All Climate','10W-30','Semi-sintético','4 L',37,[0,7]],['Castrol','Edge','5W-40','Sintético','4 L',58,[4,3]],
+  ['Mobil','Super 1000','20W-50','Mineral','4 L',28,[18,15]],
+].map(([brand, name, visc, type, size, usd, st]) => ({ brand, name, visc, type, size, usd, st }));
+const OTROS = {
+  Bujías:  [['NGK','Iridium IX','Compatible con 4 cilindros',9,[30,24]],['Denso','Iridium TT','Compatible con 4 cilindros',10,[20,0]],['NGK','Estándar BKR6E','Uso general',4,[48,40]],['Bosch','Platinum+4','Uso general',6,[16,12]]],
+  Rines:   [['Rin deportivo','Aleación 15"','4x100 · 15 pulgadas',165,[4,2]],['Rin deportivo','Aleación 16"','5x114.3 · 16 pulgadas',190,[2,0]],['Rin de acero','Acero 14"','4x100 · 14 pulgadas',55,[8,6]],['Rin deportivo','Aleación 17"','5x114.3 · 17 pulgadas',230,[0,3]]],
+  Tuercas: [['Juego de 20','Tuercas cromadas','12x1.5 · Cónica',14,[22,10]],['Juego de 20','Tuercas de seguridad','12x1.25 · Cónica',18,[9,6]],['Juego de 16','Tuercas negras','14x1.5 · Cónica',16,[0,8]]],
+  Seguros: [['Seguro de rueda','Antirrobo 4 piezas','12x1.5',19,[12,7]],['Seguro de rueda','Antirrobo 4 piezas','14x1.5',21,[5,0]],['Seguro de rueda','Antirrobo universal','Llave única',24,[3,4]]],
+};
+
+/* ---------- utilidades ---------- */
+const stock = st => { const i = $('#store').value === 't1' ? 0 : 1; const mine = st[i], other = st[1 - i];
+  return mine > 0 ? ['ok', mine <= 3 ? 'Últimas unidades en esta tienda' : 'Disponible en esta tienda'] : other > 0 ? ['alt', 'Disponible en la otra tienda de Maracay'] : ['no', 'Agotado por ahora']; };
+const money = usd => `<div class="price"><div class="usd">$${Math.round(usd * DESC)}<small>pagando en dólares</small></div><div class="bs">Bs ${bs(usd * TASA)} · tasa euro</div></div>`;
+const card = ({ brand, title, tags, usd, st, ico, ask }) => { const [k, t] = stock(st);
+  return `<article class="card"><div class="ph">${ICON[ico]}</div><div><div class="brand">${brand}</div><h4>${title}</h4></div><div class="tags">${tags.map(x => `<span class="tag">${x}</span>`).join('')}</div>
+  <span class="stk ${k}">${t}</span>${money(usd)}<button class="ask" data-ask="${ask}">${ICON.chat} Consultar por WhatsApp</button></article>`; };
+const chips = (name, opts, cur, sc) => `<div class="chips${sc ? ' sc' : ''}" role="group" aria-label="${name}">${opts.map(o => `<button class="chip" data-f="${name}" data-v="${o}" aria-pressed="${cur === o}">${o}</button>`).join('')}</div>`;
+const uniq = a => [...new Set(a)];
+let view = 'inicio', F = {}, VF = { marca: '', modelo: '', anio: '' }, otrosTab = 'Bujías';
+
+/* ---------- vistas ---------- */
+function inicio() {
+  const c = (k, ico, t, s) => `<button class="cat" data-go="${k}"><span>${ICON[ico]}</span><span><b>${t}</b><small>${s}</small></span><span class="go">${ICON.arrow}</span></button>`;
+  return `<section class="gut"><div class="wrap">
+    <div class="hero"><h1>Todo para tu <em>vehículo</em></h1><p>Busca por medida, por modelo o por viscosidad, y consulta en el momento por WhatsApp.</p></div>
+    <div class="cats">${c('cauchos', 'caucho', 'Cauchos', 'Busca por medida')}${c('baterias', 'bateria', 'Baterías', 'Marca, modelo y año')}${c('aceites', 'aceite', 'Aceites', 'Por viscosidad')}${c('otros', 'otros', 'Otros', 'Bujías, rines, tuercas y seguros')}</div>
+    <div class="strip"><div>Precio en dólares con descuento<small>y en bolívares a la tasa del día</small></div><div>Dos tiendas en Maracay<small>te decimos en cuál hay existencia</small></div><div>Atención por WhatsApp<small>Nexo responde al instante</small></div></div>
+  </div></section>`;
+}
+const head = t => `<div class="head"><button class="back" data-go="inicio" aria-label="Volver">${ICON.back}</button><h2>${t}</h2></div>`;
+
+function cauchos() {
+  const all = CAUCHOS, q = (F.q || '').toUpperCase().replace(/[^0-9R]/g, '');
+  let r = all.filter(p => (!F.ancho || p.w === F.ancho) && (!F.perfil || p.p === F.perfil) && (!F.rin || p.r === F.rin) && (!F.marca || p.brand === F.marca) && (!q || (p.w + p.p + 'R' + p.r).includes(q)));
+  if (F.soloStock) r = r.filter(p => p.st.some(x => x > 0));
+  return `<section class="gut"><div class="wrap">${head('Cauchos')}
+   <div class="panel">
+    <div class="grp"><h3>Escribe la medida</h3><div class="q"><input id="q" inputmode="text" placeholder="Ej. 195/65R15" value="${F.q || ''}" aria-label="Medida del caucho"><button class="btn" id="qb">Buscar</button></div></div>
+    <div class="grp"><h3>Ancho</h3>${chips('ancho', uniq(all.map(p => p.w)).sort(), F.ancho, 1)}</div>
+    <div class="grp"><h3>Perfil</h3>${chips('perfil', uniq(all.map(p => p.p)).sort(), F.perfil, 1)}</div>
+    <div class="grp"><h3>Rin</h3>${chips('rin', uniq(all.map(p => p.r)).sort(), F.rin, 1)}</div>
+    <div class="grp"><h3>Marca</h3>${chips('marca', uniq(all.map(p => p.brand)).sort(), F.marca, 1)}</div>
+    <div class="grp"><button class="chip" data-f="soloStock" data-v="1" aria-pressed="${!!F.soloStock}">Solo con existencia</button> <button class="btn ghost" id="clr" style="min-height:44px">Limpiar</button></div>
+   </div>
+   <div class="meta"><span>${r.length} resultado${r.length === 1 ? '' : 's'}</span></div>
+   <div class="grid">${r.length ? r.map(p => card({ brand: p.brand, title: p.model, tags: [p.size, 'Rin ' + p.r], usd: p.usd, st: p.st, ico: 'caucho', ask: `Hola, me interesa el caucho ${p.brand} ${p.model} ${p.size}` })).join('') : `<div class="empty"><b>No hay cauchos con esa medida.</b><br>Escríbenos y te ayudamos a encontrar uno equivalente.</div>`}</div>
+  </div></section>`;
+}
+function baterias() {
+  const marcas = Object.keys(VEH), modelos = VF.marca ? Object.keys(VEH[VF.marca]) : [];
+  const rango = VF.marca && VF.modelo ? VEH[VF.marca][VF.modelo] : null;
+  const anios = rango ? Array.from({ length: rango[1] - rango[0] + 1 }, (_, i) => rango[1] - i) : [];
+  const listo = rango && VF.anio, grupos = listo ? rango[2] : null;
+  let r = BATERIAS.filter(b => !grupos || grupos.includes(b.group)).filter(b => !F.bmarca || b.brand === F.bmarca);
+  const sel = (id, lbl, opts, cur, dis) => `<label class="sel"><span>${lbl}</span><select id="${id}" ${dis ? 'disabled' : ''}><option value="">Elegir…</option>${opts.map(o => `<option ${String(o) === String(cur) ? 'selected' : ''}>${o}</option>`).join('')}</select></label>`;
+  return `<section class="gut"><div class="wrap">${head('Baterías')}
+   <div class="panel"><h3>Busca por tu vehículo</h3>
+    <div class="row three">${sel('vm', 'Marca', marcas, VF.marca)}${sel('vd', 'Modelo', modelos, VF.modelo, !VF.marca)}${sel('va', 'Año', anios, VF.anio, !rango)}</div>
+    <div class="grp" style="margin-top:14px"><h3>Marca de batería</h3>${chips('bmarca', uniq(BATERIAS.map(b => b.brand)).sort(), F.bmarca)} <button class="btn ghost" id="clr" style="min-height:44px">Limpiar</button></div>
+   </div>
+   ${listo ? `<div class="reco">Para tu <b>${VF.marca} ${VF.modelo} ${VF.anio}</b> sirven las baterías de grupo <b>${grupos.join(' o ')}</b>.</div>` : '<div class="meta"><span>Elige marca, modelo y año para ver solo las compatibles.</span></div>'}
+   <div class="meta"><span>${r.length} resultado${r.length === 1 ? '' : 's'}</span></div>
+   <div class="grid">${r.length ? r.map(b => card({ brand: b.brand, title: b.model, tags: ['Grupo ' + b.group, 'Garantía ' + b.war], usd: b.usd, st: b.st, ico: 'bateria', ask: `Hola, me interesa la batería ${b.brand} ${b.model}` + (listo ? ` para mi ${VF.marca} ${VF.modelo} ${VF.anio}` : '') })).join('') : '<div class="empty">No hay baterías con ese filtro.</div>'}</div>
+  </div></section>`;
+}
+function aceites() {
+  let r = ACEITES.filter(a => (!F.visc || a.visc === F.visc) && (!F.tipo || a.type === F.tipo) && (!F.amarca || a.brand === F.amarca));
+  return `<section class="gut"><div class="wrap">${head('Aceites')}
+   <div class="panel">
+    <div class="grp"><h3>Viscosidad</h3>${chips('visc', uniq(ACEITES.map(a => a.visc)).sort(), F.visc, 1)}</div>
+    <div class="grp"><h3>Tipo</h3>${chips('tipo', ['Mineral', 'Semi-sintético', 'Sintético'], F.tipo)}</div>
+    <div class="grp"><h3>Marca</h3>${chips('amarca', uniq(ACEITES.map(a => a.brand)).sort(), F.amarca)} <button class="btn ghost" id="clr" style="min-height:44px">Limpiar</button></div>
+   </div>
+   <div class="meta"><span>${r.length} resultado${r.length === 1 ? '' : 's'}</span></div>
+   <div class="grid">${r.length ? r.map(a => card({ brand: a.brand, title: a.name, tags: [a.visc, a.type, a.size], usd: a.usd, st: a.st, ico: 'aceite', ask: `Hola, me interesa el aceite ${a.brand} ${a.name} ${a.visc}` })).join('') : '<div class="empty">No hay aceites con ese filtro.</div>'}</div>
+  </div></section>`;
+}
+function otros() {
+  const r = OTROS[otrosTab];
+  return `<section class="gut"><div class="wrap">${head('Otros')}
+   <div class="panel"><h3>Tipo de producto</h3><div class="tabs">${Object.keys(OTROS).map(t => `<button class="chip" data-tab="${t}" aria-pressed="${t === otrosTab}">${t}</button>`).join('')}</div></div>
+   <div class="meta"><span>${r.length} productos</span></div>
+   <div class="grid">${r.map(p => card({ brand: p[0], title: p[1], tags: [p[2]], usd: p[3], st: p[4], ico: 'otros', ask: `Hola, me interesa ${p[1]} (${p[2]})` })).join('')}</div>
+  </div></section>`;
+}
+
+/* ---------- control ---------- */
+const VIEWS = { inicio, cauchos, baterias, aceites, otros };
+function paint() { $('#main').innerHTML = VIEWS[view](); }
+function go(v) { view = v; F = {}; VF = { marca: '', modelo: '', anio: '' }; try { history.replaceState(null, '', v === 'inicio' ? location.pathname : '#' + v); } catch (e) {} paint(); window.scrollTo(0, 0); }
+function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 3800); }
+document.addEventListener('click', e => {
+  const g = e.target.closest('[data-go]'); if (g) return go(g.dataset.go);
+  const a = e.target.closest('[data-ask]'); if (a) { e.preventDefault(); return toast('En la página real, esto abre WhatsApp con Nexo y el mensaje: «' + a.dataset.ask + '»'); }
+  const f = e.target.closest('[data-f]'); if (f) { const k = f.dataset.f, v = f.dataset.v; F[k] = F[k] === v ? '' : v; if (k === 'ancho' || k === 'perfil' || k === 'rin') F.q = ''; return paint(); }
+  const t = e.target.closest('[data-tab]'); if (t) { otrosTab = t.dataset.tab; return paint(); }
+  if (e.target.id === 'clr') { F = {}; VF = { marca: '', modelo: '', anio: '' }; return paint(); }
+  if (e.target.id === 'qb') { F = { q: $('#q').value }; return paint(); }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'vm') { VF = { marca: e.target.value, modelo: '', anio: '' }; paint(); }
+  if (e.target.id === 'vd') { VF.modelo = e.target.value; VF.anio = ''; paint(); }
+  if (e.target.id === 'va') { VF.anio = e.target.value; paint(); }
+  if (e.target.id === 'store') paint();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.id === 'q') { F = { q: e.target.value }; paint(); } });
+$('#rate').textContent = bs(TASA);
+const h = (location.hash || '').slice(1); go(VIEWS[h] ? h : 'inicio');
+</script>

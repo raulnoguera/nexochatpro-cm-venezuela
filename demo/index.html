@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cauchera Demo</title>
+<style>
+:root{--r:#E11D2E;--k:#111}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;color:var(--k)}
+header{background:var(--k);color:#fff;padding:18px 6vw;display:flex;justify-content:space-between;align-items:center}
+header b{font-size:22px}header b span{color:var(--r)}
+.hero{padding:70px 6vw;background:linear-gradient(135deg,#1b1b1b,#3a0b10);color:#fff}
+.hero h1{font-size:clamp(30px,5vw,52px);margin:0 0 12px;max-width:640px}
+.hero p{max-width:520px;opacity:.85;font-size:18px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;padding:40px 6vw}
+.card{border:1px solid #e5e5e5;border-radius:12px;padding:20px}.card h3{margin:0 0 6px}
+.tasa{background:#fafafa;padding:14px 6vw;font-size:14px;border-bottom:1px solid #eee}
+</style></head><body>
+<header><b>CAUCHERA <span>DEMO</span></b><small>Lun–Sáb 8:00–17:00</small></header>
+<div class="hero"><h1>Cauchos y servicios para tu vehículo</h1><p>Consulta medidas, precios y agenda tu cita por chat, las 24 horas. Pruébalo con el botón rojo ↘</p></div>
+<div class="tasa" id="tasa">Tasa BCV…</div>
+<div class="grid" id="serv"></div>
+<script>
+fetch('/api/estado').then(r=>r.json()).then(e=>{
+  tasa.textContent='Tasa BCV: Bs. '+e.tasa.rate.toLocaleString('es-VE')+' por USD'
+  serv.innerHTML=e.servicios.map(s=>'<div class="card"><h3>'+s.nombre+'</h3><b>$'+s.usd+'</b> · Bs. '+(s.usd*e.tasa.rate).toLocaleString('es-VE',{maximumFractionDigits:0})+'</div>').join('')
+})
+</script>
+<script>
+window.chatwootSettings={locale:'es',position:'right',type:'standard'};
+(function(d,t){var BASE_URL="http://localhost:3000";var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+g.src=BASE_URL+"/packs/js/sdk.js";g.async=true;s.parentNode.insertBefore(g,s);
+g.onload=function(){window.chatwootSDK.run({websiteToken:'nbbYPxwU9tcPvAvE9ExeoxFP',baseUrl:BASE_URL})}})(document,"script");
+</script></body></html>

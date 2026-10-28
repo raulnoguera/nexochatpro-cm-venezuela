@@ -1,0 +1,185 @@
+<div class="wrap">
+  <header class="top">
+    <div><img class="logo-light" src="__LOGO_LIGHT__" alt="NexoChatPro"><img class="logo-dark" src="__LOGO_DARK__" alt="NexoChatPro"></div>
+    <div class="who"><span>Redes sociales de</span><img src="__CM__" alt="CM Venezuela"><span class="tag">Datos de ejemplo</span></div>
+  </header>
+
+  <nav class="steps" id="steps" aria-label="Pasos del recorrido"></nav>
+
+  <section class="story" aria-live="polite">
+    <div class="card"><div class="k" id="k-step"></div><h2 id="s-title"></h2><div style="margin-top:10px" id="s-phase"></div>
+      <div class="nav"><button id="prev">Anterior</button><button id="next" class="primary">Siguiente</button></div></div>
+    <div class="card"><div class="k">Lo que ve el cliente</div><p id="s-chat"></p></div>
+    <div class="card"><div class="k">En el CRM del equipo</div><p id="s-crm"></p></div>
+  </section>
+
+  <section class="stage">
+    <div class="phone" aria-label="Pantalla del cliente"><div class="screen" id="phone"></div></div>
+    <div class="crm" aria-label="CRM del equipo">
+      <nav class="side" id="side"><img class="m" src="__MARK__" alt="NexoChatPro"></nav>
+      <div class="main" id="crm"></div>
+    </div>
+  </section>
+  <p class="foot">Nombres, cuentas, precios y cifras son ejemplos para ilustrar el flujo. Los precios en bolívares usan una tasa de ejemplo por tienda.</p>
+</div>
+
+<script>
+const BS = n => Math.round(n).toLocaleString('es-VE');
+const STEPS = [
+  { short: 'Comentario en Instagram', title: 'Comentarios de Instagram con respuesta automática', phase: ['ok', 'Incluido en la cotización'],
+    chat: 'Alguien comenta una publicación. Nexo responde en el mismo comentario y avisa que seguirá por mensaje directo.',
+    crm: 'La conversación aparece en la bandeja con el canal Instagram y el comentario original.' },
+  { short: 'Mensaje directo', title: 'La conversación sigue por mensaje directo', phase: ['ok', 'Incluido en la cotización'],
+    chat: 'Nexo da el precio en dólares y en bolívares según la sede, y agenda la cita cuando el cliente la pide.',
+    crm: 'La ficha se llena sola: vehículo, interés y próxima cita.' },
+  { short: 'Facebook', title: 'Facebook: comentario y Messenger', phase: ['ok', 'Incluido en la cotización'],
+    chat: 'Un comentario en una publicación de baterías recibe respuesta pública, y el detalle llega por Messenger.',
+    crm: 'La clienta queda registrada con su vehículo y su interés, igual que en WhatsApp.' },
+  { short: 'Marketplace', title: 'Mensajes de Marketplace', phase: ['opt', 'Incluido · comentarios según Meta'],
+    chat: 'Quien pregunta por un anuncio recibe respuesta al instante, y Nexo pide el vehículo para recomendar.',
+    crm: 'Los mensajes de Marketplace llegan a la misma bandeja. Los comentarios dentro de Marketplace dependen del acceso que Meta habilite.' },
+  { short: 'Una sola bandeja', title: 'Todos los canales en una sola bandeja', phase: ['ok', 'Incluido en la cotización'],
+    chat: 'El cliente sigue escribiendo por el canal de siempre.',
+    crm: 'WhatsApp, Instagram, Facebook y Marketplace se filtran y se atienden desde un solo lugar. El asesor responde y el mensaje sale por el canal del cliente.' },
+];
+const N = [3, 4, 3, 4, 1];                       // momentos por paso (k = 0..N-1 mensajes mostrados)
+
+let step = 0, k = 99, crmView = 'inbox';
+const $ = s => document.querySelector(s);
+const chip = (c, t) => `<span class="chip ${c}">${t}</span>`;
+const CH = { ig: ['Instagram', 'ig'], fb: ['Facebook', 'fb'], mk: ['Marketplace', 'mk'], wa: ['WhatsApp', 'wa'] };
+const chCh = c => `<span class="chan ${CH[c][1]}">${CH[c][0]}</span>`;
+const reached = (s, kk) => step > s || (step === s && k >= kk);
+
+/* ---------- celular ---------- */
+const head = (n, sub) => `<div class="p-head"><div class="av"><img src="__CM__" alt=""></div><div><strong>${n}</strong><small>${sub}</small></div></div>`;
+const bub = (f, who, x, t, extra = '') => `<div class="msg ${f}">${who ? `<span class="who">${who}</span>` : ''}${x}${extra}<time>${t}</time></div>`;
+const comment = (u, x, re) => `<div class="ig-c${re ? ' re' : ''}">${re ? `<span class="by">${u}</span><br>` : `<b>${u}</b> `}${x}</div>`;
+
+function phoneHtml() {
+  if (step === 0) {
+    return head('cmvenezuela', 'Instagram · publicación') + `<div class="p-body">
+      <div class="ig-post"><div class="im"><small>CM VENEZUELA</small><span>Alineación 3D computarizada</span><strong>Desde $11,99</strong></div>
+      ${k >= 1 ? comment('jose.m', '¿Cuánto cuesta para una Hilux?') : '<div class="ig-c" style="color:var(--muted)">Aún no hay comentarios</div>'}
+      ${k >= 2 ? comment('cmvenezuela · Nexo', '¡Hola José! Te escribimos por mensaje directo con el precio para tu Hilux 📩', true) : ''}</div></div>`
+      + `<div class="p-foot"><div>Añade un comentario…</div></div>`;
+  }
+  if (step === 1) {
+    return head('cmvenezuela', 'Instagram · mensaje directo') + `<div class="p-body">
+      ${k >= 1 ? bub('n', 'Nexo · asistente virtual', '¡Hola José! Para tu Hilux la alineación 3D sale en $24 (Bs ' + BS(24 * 1040) + ' en Maracay, tasa euro). ¿Quieres que te agende una cita?', '10:03') : '<div class="msg n"><span class="who">Nexo · asistente virtual</span>Te escribo por aquí con el precio…<time>10:03</time></div>'}
+      ${k >= 2 ? bub('c', '', '¿Hay para mañana?', '10:04') : ''}
+      ${k >= 3 ? bub('n', 'Nexo · asistente virtual', 'Sí, mañana sábado a las 10:00 a. m. en Maracay. Cita confirmada ✅ Te escribo un día antes para recordártela.', '10:04') : ''}</div>`
+      + `<div class="p-foot"><div>Mensaje…</div></div>`;
+  }
+  if (step === 2) {
+    return head('CM Venezuela', 'Facebook · publicación') + `<div class="p-body">
+      <div class="ig-post"><div class="im" style="background:linear-gradient(#0B1220 0 62%,#19D3A2 62%)"><small>CM VENEZUELA</small><span>Baterías con 24 meses de garantía</span><strong>Instalación incluida</strong></div>
+      ${k >= 1 ? comment('María P.', '¿Cuánto cuesta la 24F para un Aveo?') : '<div class="ig-c" style="color:var(--muted)">Aún no hay comentarios</div>'}
+      ${k >= 2 ? comment('CM Venezuela · Nexo', '¡Hola María! Te enviamos el precio por mensaje privado 📩', true) : ''}</div>
+      ${k >= 2 ? bub('n', 'Messenger · Nexo', 'Hola María, para tu Aveo la Willard Titanio 24F-1000 está en $109 pagando en dólares, o Bs ' + BS(118 * 1040) + ' (tasa euro). ¿Te la apartamos?', '11:20') : ''}</div>`
+      + `<div class="p-foot"><div>Escribe un comentario…</div></div>`;
+  }
+  // Marketplace y vista general
+  return head('Marketplace', 'CM Venezuela · Maracay') + `<div class="p-body">
+    <div class="opt-card" style="margin:0"><b>Batería Willard Titanio 24F-1000</b><span>Garantía 18 meses · Maracay</span><div class="pr"><em style="font-style:normal;font-weight:800;color:var(--blue)">$109</em> · Disponible</div></div>
+    ${reached(3, 1) ? bub('c', '', '¿Sigue disponible?', '2:10') : ''}
+    ${reached(3, 2) ? bub('n', 'Nexo · asistente virtual', '¡Hola! Sí, está disponible en Maracay 👋 ¿Para qué vehículo la necesitas?', '2:10') : ''}
+    ${reached(3, 3) ? bub('c', '', 'Para un Aveo 2012', '2:11') + bub('n', 'Nexo · asistente virtual', 'Esa te sirve. Puedes pasar hoy hasta las 5:00 p. m., o te la apartamos.', '2:11') : ''}</div>`
+    + `<div class="p-foot"><div>Escribe un mensaje…</div></div>`;
+}
+
+/* ---------- CRM ---------- */
+const CONV = {
+  ig: { id: 'ig', n: 'jose.m', ch: 'ig', s: 0 },
+  fb: { id: 'fb', n: 'María P.', ch: 'fb', s: 2 },
+  mk: { id: 'mk', n: 'Luis G.', ch: 'mk', s: 3 },
+};
+const FILLERS = [
+  { n: 'Raúl Méndez', ch: 'wa', p: 'Hola Raúl, soy Carla de CM Venezuela…', t: '9:52' },
+  { n: 'Andrea Pérez', ch: 'wa', p: 'Gracias, ya voy para allá', t: '9:15' },
+];
+function preview(c) {
+  if (c.ch === 'ig') return step >= 1 && reached(1, 3) ? 'Cita confirmada ✅' : step >= 1 ? 'Para tu Hilux la alineación…' : (k >= 2 ? '¡Hola José! Te escribimos por…' : '¿Cuánto cuesta para una Hilux?');
+  if (c.ch === 'fb') return reached(2, 2) ? 'Hola María, para tu Aveo la Willard…' : '¿Cuánto cuesta la 24F para un Aveo?';
+  return reached(3, 3) ? 'Esa te sirve. Puedes pasar hoy…' : reached(3, 2) ? '¡Hola! Sí, está disponible…' : '¿Sigue disponible?';
+}
+function selected() { return step <= 1 ? 'ig' : step === 2 ? 'fb' : 'mk'; }
+
+function threadHtml(id) {
+  const m = (f, who, x, t) => bub(f, who, x, t);
+  if (id === 'ig') {
+    let h = `<div class="note">Comentario en publicación «Alineación 3D» · respondido por Nexo</div>`;
+    if (reached(0, 1)) h += m('c', '<span style="color:var(--muted)">jose.m</span>', '¿Cuánto cuesta para una Hilux?', '10:02');
+    if (reached(0, 2)) h += m('n', 'Nexo · comentario público', '¡Hola José! Te escribimos por mensaje directo con el precio para tu Hilux 📩', '10:02');
+    if (reached(1, 1)) h += m('n', 'Nexo · mensaje directo', '¡Hola José! Para tu Hilux la alineación 3D sale en $24 (Bs ' + BS(24 * 1040) + ' en Maracay, tasa euro). ¿Quieres que te agende una cita?', '10:03');
+    if (reached(1, 2)) h += m('c', '<span style="color:var(--muted)">jose.m</span>', '¿Hay para mañana?', '10:04');
+    if (reached(1, 3)) h += m('n', 'Nexo · mensaje directo', 'Sí, mañana sábado a las 10:00 a. m. en Maracay. Cita confirmada ✅', '10:04') + `<div class="note">📅 Cita #2 creada: jose.m · Alineación 3D · sáb 24 oct 10:00 · Maracay</div>`;
+    return h;
+  }
+  if (id === 'fb') {
+    let h = `<div class="note">Comentario en publicación «Baterías con 24 meses de garantía» · respondido por Nexo</div>`;
+    if (reached(2, 1)) h += m('c', '<span style="color:var(--muted)">María P.</span>', '¿Cuánto cuesta la 24F para un Aveo?', '11:19');
+    if (reached(2, 2)) h += m('n', 'Nexo · comentario público', '¡Hola María! Te enviamos el precio por mensaje privado 📩', '11:19') + m('n', 'Nexo · Messenger', 'Hola María, para tu Aveo la Willard Titanio 24F-1000 está en $109 pagando en dólares, o Bs ' + BS(118 * 1040) + ' (tasa euro). ¿Te la apartamos?', '11:20');
+    return h;
+  }
+  let h = `<div class="note">Mensaje desde el anuncio «Batería Willard Titanio 24F-1000»</div>`;
+  if (reached(3, 1)) h += m('c', '<span style="color:var(--muted)">Luis G.</span>', '¿Sigue disponible?', '2:10');
+  if (reached(3, 2)) h += m('n', 'Nexo · Marketplace', '¡Hola! Sí, está disponible en Maracay 👋 ¿Para qué vehículo la necesitas?', '2:10');
+  if (reached(3, 3)) h += m('c', '<span style="color:var(--muted)">Luis G.</span>', 'Para un Aveo 2012', '2:11') + m('n', 'Nexo · Marketplace', 'Esa te sirve. Puedes pasar hoy hasta las 5:00 p. m., o te la apartamos.', '2:11');
+  if (step === 4) h += `<div class="note">🙋 Un asesor puede tomar la conversación y su respuesta sale por Marketplace</div>`;
+  return h;
+}
+function infoHtml(id) {
+  const dl = rows => `<dl>${rows.map(([a, b]) => `<div><dt>${a}</dt><dd>${b}</dd></div>`).join('')}</dl>`;
+  if (id === 'ig') return `<h4>Contacto</h4>` + dl([['Usuario', '@jose.m'], ['Canal', 'Instagram'], ['Vehículo', reached(0, 1) ? 'Toyota Hilux' : '—'], ['Interés', reached(0, 1) ? 'Alineación 3D' : '—'], ['Próxima cita', reached(1, 3) ? 'Sáb 24 oct · 10:00' : '—']])
+    + `<h4>Etiquetas</h4><div style="display:flex;gap:4px;flex-wrap:wrap">${chip('blue', 'instagram')}${reached(0, 1) ? chip('mint', 'alineación') : ''}${reached(1, 3) ? chip('blue', 'cita agendada') : ''}</div>`;
+  if (id === 'fb') return `<h4>Contacto</h4>` + dl([['Nombre', 'María P.'], ['Canal', 'Facebook'], ['Vehículo', reached(2, 1) ? 'Chevrolet Aveo' : '—'], ['Interés', reached(2, 1) ? 'Batería 24F' : '—'], ['Último mensaje', reached(2, 2) ? 'Precio enviado' : '—']])
+    + `<h4>Etiquetas</h4><div style="display:flex;gap:4px;flex-wrap:wrap">${chip('blue', 'facebook')}${reached(2, 1) ? chip('mint', 'batería') : ''}</div>`;
+  return `<h4>Contacto</h4>` + dl([['Nombre', 'Luis G.'], ['Canal', 'Marketplace'], ['Vehículo', reached(3, 3) ? 'Chevrolet Aveo 2012' : '—'], ['Producto', 'Willard 24F-1000'], ['Estado', reached(3, 3) ? 'Por retirar hoy' : 'Consultando']])
+    + `<h4>Etiquetas</h4><div style="display:flex;gap:4px;flex-wrap:wrap">${chip('mint', 'marketplace')}${chip('mint', 'batería')}</div>`;
+}
+
+function viewInbox() {
+  const sel = selected();
+  const live = Object.values(CONV).filter(c => step > c.s || (step === c.s && k >= 1)).reverse();
+  const conv = c => `<button class="conv" ${c.id === sel ? 'aria-current="true"' : ''}><b>${c.n} <time>${c.id === 'ig' ? '10:03' : c.id === 'fb' ? '11:20' : '2:11'}</time></b><p>${preview(c)}</p><div class="chips">${chCh(c.ch)}</div></button>`;
+  const list = live.map(conv).join('') + FILLERS.map(f => `<button class="conv"><b>${f.n} <time>${f.t}</time></b><p>${f.p}</p><div class="chips">${chCh(f.ch)}</div></button>`).join('');
+  const c = CONV[sel];
+  const comp = `<div class="composer ${step === 4 ? 'live' : ''}"><div class="box">${step === 4 ? 'Carla escribe una respuesta… saldrá por ' + CH[c.ch][0] : 'Nexo está respondiendo. Puedes tomar la conversación cuando quieras.'}</div><button class="send">${step === 4 ? 'Enviar' : 'Tomar'}</button></div>`;
+  const filt = ['Todas', 'WhatsApp', 'Instagram', 'Facebook', 'Marketplace'].map((x, i) => chip(i === 0 ? 'on' : '', x)).join('');
+  return `<div class="bar"><h3>Bandeja</h3><div class="sel">${filt}</div></div>
+    <div class="inbox"><div class="list">${list}</div>
+      <div class="thread"><div class="t-head"><strong>${c.n}</strong><span style="display:flex;gap:6px;flex-wrap:wrap">${chCh(c.ch)}${chip('mint', 'Nexo atendiendo')}</span></div>
+        <div class="t-body" id="tb">${threadHtml(sel)}</div>${comp}</div>
+      <aside class="info">${infoHtml(sel)}</aside></div>`;
+}
+const ICONS = {
+  inbox: '<path d="M4 13l2-8h12l2 8M4 13v6h16v-6M4 13h5l1 2h4l1-2h5"/>',
+  contacts: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c.5-3.6 3-5.4 6-5.4s5.5 1.8 6 5.4M16 5.2a3 3 0 010 5.6M18 14.8c1.8.7 2.8 2.4 3 5.2"/>',
+  agenda: '<rect x="4" y="5" width="16" height="15" rx="2.5"/><path d="M4 10h16M9 3v4M15 3v4"/>',
+  summary: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+};
+function renderCrm() {
+  $('#crm').innerHTML = viewInbox();
+  $('#side').innerHTML = `<img class="m" src="__MARK__" alt="NexoChatPro">` + Object.keys(ICONS).map(v => `<button title="${v}" ${v === 'inbox' ? 'aria-current="page"' : ''}><svg viewBox="0 0 24 24">${ICONS[v]}</svg></button>`).join('');
+  const tb = $('#tb'); if (tb) tb.scrollTop = tb.scrollHeight;
+}
+function renderPhone() { $('#phone').innerHTML = phoneHtml(); const pb = document.querySelector('.p-body'); if (pb) pb.scrollTop = pb.scrollHeight; }
+function renderStory() {
+  const s = STEPS[step];
+  $('#k-step').textContent = `Paso ${step + 1} de ${STEPS.length}`;
+  $('#s-title').textContent = s.title;
+  $('#s-phase').innerHTML = `<span class="tag ${s.phase[0]}">${s.phase[1]}</span>`;
+  $('#s-chat').textContent = s.chat; $('#s-crm').textContent = s.crm;
+  $('#prev').disabled = step === 0; $('#next').disabled = step === STEPS.length - 1;
+  $('#steps').innerHTML = STEPS.map((x, i) => `<button data-i="${i}" class="${i < step ? 'done' : ''}" ${i === step ? 'aria-current="step"' : ''}><b>${i + 1}</b>${x.short}</button>`).join('');
+  document.querySelectorAll('#steps button').forEach(b => b.onclick = () => go(+b.dataset.i));
+}
+function paint() { renderStory(); renderPhone(); renderCrm(); }
+function go(i) { step = Math.max(0, Math.min(STEPS.length - 1, i)); k = 99; paint(); }
+$('#prev').onclick = () => go(step - 1); $('#next').onclick = () => go(step + 1);
+document.addEventListener('keydown', e => { if (e.key === 'ArrowRight') go(step + 1); if (e.key === 'ArrowLeft') go(step - 1); });
+window.setBeat = (s, kk) => { step = s; k = kk; paint(); };
+window.beats = () => N.flatMap((n, s) => Array.from({ length: n }, (_, kk) => ({ s, k: kk, n })).filter(b => !(b.s === 0 && b.k === 0)));
+go(0);
+</script>

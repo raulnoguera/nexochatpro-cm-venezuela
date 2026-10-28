@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="256" height="256" role="img" aria-label="Nexo, asistente de NexoChatPro">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2F5BFF"/><stop offset="1" stop-color="#5B3DF5"/></linearGradient></defs>
+<circle cx="64" cy="64" r="64" fill="url(#g)"/>
+<path d="M42 84 V44 L86 84 V44" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="42" cy="84" r="8.5" fill="#19D3A2" stroke="#fff" stroke-width="3.5"/>
+<circle cx="86" cy="44" r="8.5" fill="#19D3A2" stroke="#fff" stroke-width="3.5"/>
+</svg>

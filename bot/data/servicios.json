@@ -1,0 +1,7 @@
+[
+ {"id":"montaje","nombre":"Montaje y desmontaje","usd":4,"min":30},
+ {"id":"balanceo","nombre":"Balanceo (4 ruedas)","usd":10,"min":30},
+ {"id":"alineacion","nombre":"Alineación computarizada","usd":25,"min":45},
+ {"id":"reparacion","nombre":"Reparación de caucho (parche)","usd":5,"min":20},
+ {"id":"rotacion","nombre":"Rotación de cauchos","usd":6,"min":25}
+]

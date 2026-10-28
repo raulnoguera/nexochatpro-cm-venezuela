@@ -1,0 +1,38 @@
+# Generado: reemplaza los iconos del navegador de Chatwoot por los de NexoChatPro
+services:
+  rails:
+    volumes:
+      - storage:/app/storage
+      - ./branding/icons/android-icon-144x144.png:/app/public/android-icon-144x144.png:ro
+      - ./branding/icons/android-icon-192x192.png:/app/public/android-icon-192x192.png:ro
+      - ./branding/icons/android-icon-36x36.png:/app/public/android-icon-36x36.png:ro
+      - ./branding/icons/android-icon-48x48.png:/app/public/android-icon-48x48.png:ro
+      - ./branding/icons/android-icon-72x72.png:/app/public/android-icon-72x72.png:ro
+      - ./branding/icons/android-icon-96x96.png:/app/public/android-icon-96x96.png:ro
+      - ./branding/icons/apple-icon-114x114.png:/app/public/apple-icon-114x114.png:ro
+      - ./branding/icons/apple-icon-120x120.png:/app/public/apple-icon-120x120.png:ro
+      - ./branding/icons/apple-icon-144x144.png:/app/public/apple-icon-144x144.png:ro
+      - ./branding/icons/apple-icon-152x152.png:/app/public/apple-icon-152x152.png:ro
+      - ./branding/icons/apple-icon-180x180.png:/app/public/apple-icon-180x180.png:ro
+      - ./branding/icons/apple-icon-57x57.png:/app/public/apple-icon-57x57.png:ro
+      - ./branding/icons/apple-icon-60x60.png:/app/public/apple-icon-60x60.png:ro
+      - ./branding/icons/apple-icon-72x72.png:/app/public/apple-icon-72x72.png:ro
+      - ./branding/icons/apple-icon-76x76.png:/app/public/apple-icon-76x76.png:ro
+      - ./branding/icons/apple-icon-precomposed.png:/app/public/apple-icon-precomposed.png:ro
+      - ./branding/icons/apple-icon.png:/app/public/apple-icon.png:ro
+      - ./branding/icons/apple-touch-icon-precomposed.png:/app/public/apple-touch-icon-precomposed.png:ro
+      - ./branding/icons/apple-touch-icon.png:/app/public/apple-touch-icon.png:ro
+      - ./branding/icons/favicon-16x16.png:/app/public/favicon-16x16.png:ro
+      - ./branding/icons/favicon-32x32.png:/app/public/favicon-32x32.png:ro
+      - ./branding/icons/favicon-512x512.png:/app/public/favicon-512x512.png:ro
+      - ./branding/icons/favicon-96x96.png:/app/public/favicon-96x96.png:ro
+      - ./branding/icons/favicon-badge-16x16.png:/app/public/favicon-badge-16x16.png:ro
+      - ./branding/icons/favicon-badge-32x32.png:/app/public/favicon-badge-32x32.png:ro
+      - ./branding/icons/favicon-badge-96x96.png:/app/public/favicon-badge-96x96.png:ro
+      - ./branding/icons/ms-icon-144x144.png:/app/public/ms-icon-144x144.png:ro
+      - ./branding/icons/ms-icon-150x150.png:/app/public/ms-icon-150x150.png:ro
+      - ./branding/icons/ms-icon-310x310.png:/app/public/ms-icon-310x310.png:ro
+      - ./branding/icons/ms-icon-70x70.png:/app/public/ms-icon-70x70.png:ro
+      - ./branding/logo.svg:/app/public/brand-assets/logo.svg:ro
+      - ./branding/logo_dark.svg:/app/public/brand-assets/logo_dark.svg:ro
+      - ./branding/logo_thumbnail.svg:/app/public/brand-assets/logo_thumbnail.svg:ro

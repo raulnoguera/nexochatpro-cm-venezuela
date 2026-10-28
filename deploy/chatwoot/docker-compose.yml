@@ -1,0 +1,66 @@
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports: ['80:80','443:443']
+    volumes: ['./Caddyfile:/etc/caddy/Caddyfile:ro','./brand:/srv/brand:ro','caddy_data:/data','caddy_config:/config']
+    depends_on: [rails]
+  rails:
+    image: chatwoot/chatwoot:latest
+    env_file: .env
+    depends_on: [postgres, redis]
+    entrypoint: docker/entrypoints/rails.sh
+    command: ['bundle','exec','rails','s','-p','3000','-b','0.0.0.0']
+    restart: unless-stopped
+    volumes:
+      - storage:/app/storage
+      - ./icons/android-icon-144x144.png:/app/public/android-icon-144x144.png:ro
+      - ./icons/android-icon-192x192.png:/app/public/android-icon-192x192.png:ro
+      - ./icons/android-icon-36x36.png:/app/public/android-icon-36x36.png:ro
+      - ./icons/android-icon-48x48.png:/app/public/android-icon-48x48.png:ro
+      - ./icons/android-icon-72x72.png:/app/public/android-icon-72x72.png:ro
+      - ./icons/android-icon-96x96.png:/app/public/android-icon-96x96.png:ro
+      - ./icons/apple-icon-114x114.png:/app/public/apple-icon-114x114.png:ro
+      - ./icons/apple-icon-120x120.png:/app/public/apple-icon-120x120.png:ro
+      - ./icons/apple-icon-144x144.png:/app/public/apple-icon-144x144.png:ro
+      - ./icons/apple-icon-152x152.png:/app/public/apple-icon-152x152.png:ro
+      - ./icons/apple-icon-180x180.png:/app/public/apple-icon-180x180.png:ro
+      - ./icons/apple-icon-57x57.png:/app/public/apple-icon-57x57.png:ro
+      - ./icons/apple-icon-60x60.png:/app/public/apple-icon-60x60.png:ro
+      - ./icons/apple-icon-72x72.png:/app/public/apple-icon-72x72.png:ro
+      - ./icons/apple-icon-76x76.png:/app/public/apple-icon-76x76.png:ro
+      - ./icons/apple-icon-precomposed.png:/app/public/apple-icon-precomposed.png:ro
+      - ./icons/apple-icon.png:/app/public/apple-icon.png:ro
+      - ./icons/apple-touch-icon-precomposed.png:/app/public/apple-touch-icon-precomposed.png:ro
+      - ./icons/apple-touch-icon.png:/app/public/apple-touch-icon.png:ro
+      - ./icons/favicon-16x16.png:/app/public/favicon-16x16.png:ro
+      - ./icons/favicon-32x32.png:/app/public/favicon-32x32.png:ro
+      - ./icons/favicon-512x512.png:/app/public/favicon-512x512.png:ro
+      - ./icons/favicon-96x96.png:/app/public/favicon-96x96.png:ro
+      - ./icons/favicon-badge-16x16.png:/app/public/favicon-badge-16x16.png:ro
+      - ./icons/favicon-badge-32x32.png:/app/public/favicon-badge-32x32.png:ro
+      - ./icons/favicon-badge-96x96.png:/app/public/favicon-badge-96x96.png:ro
+      - ./icons/ms-icon-144x144.png:/app/public/ms-icon-144x144.png:ro
+      - ./icons/ms-icon-150x150.png:/app/public/ms-icon-150x150.png:ro
+      - ./icons/ms-icon-310x310.png:/app/public/ms-icon-310x310.png:ro
+      - ./icons/ms-icon-70x70.png:/app/public/ms-icon-70x70.png:ro
+      - ./brand/logo.svg:/app/public/brand-assets/logo.svg:ro
+      - ./brand/logo-white.svg:/app/public/brand-assets/logo_dark.svg:ro
+      - ./brand/logo-mark.svg:/app/public/brand-assets/logo_thumbnail.svg:ro
+  sidekiq:
+    image: chatwoot/chatwoot:latest
+    env_file: .env
+    depends_on: [postgres, redis]
+    command: ['bundle','exec','sidekiq','-C','config/sidekiq.yml']
+    restart: unless-stopped
+    volumes: ['storage:/app/storage']
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment: {POSTGRES_DB: chatwoot, POSTGRES_USER: postgres, POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}}
+    volumes: ['pgdata:/var/lib/postgresql/data']
+  redis:
+    image: redis:alpine
+    restart: unless-stopped
+    volumes: ['redisdata:/data']
+volumes: {storage: {}, pgdata: {}, redisdata: {}, caddy_data: {}, caddy_config: {}}
