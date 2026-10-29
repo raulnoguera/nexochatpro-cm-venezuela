@@ -141,6 +141,11 @@ section.blk{scroll-margin-top:72px;padding-block:48px 8px}
 .ftabs2 button[aria-pressed="true"]{background:var(--y);border-color:var(--y);color:var(--y-ink)}
 .finder.bloq .sect,.finder.bloq .pane{opacity:.4;pointer-events:none}
 .pane{margin-top:12px}.pane .two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pane .mbar{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.pane .mbar>span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.pane .mbar .chips2{margin-top:0;gap:6px}
+.pane .mbar .chips2 a{padding:6px 13px;min-height:40px;font-size:14px;background:var(--surface2)}
+.pane .mbar .chips2 a:hover{background:var(--y);border-color:var(--y);color:var(--y-ink)}
 .pane .nota{margin:8px 0 0;color:var(--muted);font-size:13px;font-weight:600}
 .finder .q{position:relative}
 .sug{position:absolute;left:0;right:0;top:100%;margin-top:6px;background:var(--surface);border:1.5px solid var(--line);border-radius:12px;box-shadow:var(--shadow);z-index:30;max-height:260px;overflow:auto;padding:4px}
@@ -182,6 +187,7 @@ section.blk{scroll-margin-top:72px;padding-block:48px 8px}
       <div class="or">o escríbela</div>
       <div class="q"><input id="fq" placeholder="Ej. 175/65R13" inputmode="text" autocomplete="off" aria-label="Medida del caucho"><button type="button" id="fqb">Buscar</button><div class="sug" id="sug" hidden></div></div>
       <p class="nota" id="notaMed"></p>
+      <div class="mbar" id="mCauchos" hidden><span>Cauchos por marca</span><div class="chips2"></div></div>
     </div>
 
     <div class="pane" id="pBaterias" hidden>
@@ -191,6 +197,7 @@ section.blk{scroll-margin-top:72px;padding-block:48px 8px}
         <label><span>Año</span><select id="va" aria-label="Año" disabled><option value="">Cualquier año</option></select></label>
       </div>
       <button class="go" type="button" id="goBaterias">Ver baterías</button>
+      <div class="mbar" id="mBaterias" hidden><span>Baterías por marca</span><div class="chips2"></div></div>
     </div>
 
     <div class="pane" id="pBicis" hidden>
@@ -200,7 +207,15 @@ section.blk{scroll-margin-top:72px;padding-block:48px 8px}
     </div>
 
     <div class="pane" id="pAceites" hidden>
-      <button class="go" type="button" id="goAceites" style="margin-top:0">Ver aceites</button>
+      <div class="two">
+        <label><span>Tipo de aceite</span><select id="atipo" aria-label="Tipo de aceite"><option value="">Elige el tipo…</option></select></label>
+        <label><span>Viscosidad</span><select id="avis" aria-label="Viscosidad" disabled><option value="">Primero el tipo</option></select></label>
+      </div>
+      <label id="apresBox" hidden style="display:block;margin-top:8px"><span>Presentación</span><select id="apres" aria-label="Presentación"></select></label>
+      <button class="go" type="button" id="goAceites">Ver aceites</button>
+      <p class="nota" id="notaAce"></p>
+      <div class="mbar" id="mCombos" hidden><span>Combos para cambio de aceite</span><p class="nota" style="margin:0 0 6px">Incluye filtro + servicio GRATIS</p><div class="chips2"></div></div>
+      <div class="mbar" id="mAceites" hidden><span>Aceites por marca</span><div class="chips2"></div></div>
     </div>
   </form>
   </div>
@@ -215,21 +230,6 @@ section.blk{scroll-margin-top:72px;padding-block:48px 8px}
     <a class="tile" href="catalogo.html?cat=bicicletas"><svg class="ic" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="42" r="11"/><circle cx="49" cy="42" r="11"/><path d="M15 42l12-20h16l6 20M27 22l8 20 8-20M24 18h8M40 16h8"/></svg><span class="n" data-n="bicicletas"></span><b>Bicicletas</b><small>Por rin y modelo</small></a>
     <a class="tile srv" id="servicios" href="#" target="_blank" rel="noopener"><svg class="ic" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><path d="M44 8a12 12 0 00-10 16L10 48a5 5 0 007 7l24-24a12 12 0 0016-10l-8 7-6-2-2-6z"/></svg><b>Servicios</b><small>Montura, balanceo, rotación y alineación. Pregúntanos por WhatsApp.</small></a>
   </div>
-</div></section>
-
-<section class="blk gut" id="atajos"><div class="wrap">
-  <div class="sec-h"><div><h2>Atajos rápidos</h2><p id="atajosSub">Las medidas, marcas y aceites con más opciones disponibles en tienda.</p></div></div>
-  <div class="avisoCiudad" id="avisoAtajos" hidden></div>
-
-  <div class="sub2">Medidas con más opciones</div>
-  <div class="sizes" id="medidasTop"></div>
-  <div class="rinbar"><span>Todos los cauchos por rin</span><div class="chips2" id="rines"></div></div>
-
-  <div class="sub2">Marcas de cauchos</div>
-  <div class="brands" id="marcas"></div>
-
-  <div class="sub2">Aceites por tipo y viscosidad</div>
-  <div class="oils" id="aceites"></div>
 </div></section>
 
 <section class="blk gut"><div class="wrap">
@@ -316,7 +316,42 @@ function pintarBicis() {                                           // rines de b
   $('#notaBici').textContent = CIUDAD && !rines.length ? (CIUDAD === 'caracas' ? 'Estamos cargando el inventario de Caracas.' : 'Todavía no tenemos bicicletas con existencia en ' + NOMBRES[CIUDAD] + '.') : '';
 }
 $('#goBicis').addEventListener('click', () => { if (pedirCiudad()) return; const o = { cat: 'bicicletas' }; if ($('#brin').value) o.rin = $('#brin').value; location.href = link(o); });
-$('#goAceites').addEventListener('click', () => { if (pedirCiudad()) return; location.href = link({ cat: 'aceites' }); });
+// aceites: 1.º el tipo, 2.º la viscosidad; si solo se vende por litro se va directo, y si hay combos (4 a 8 litros) se elige la presentación
+const NO_ACEITE = /REFRIGERANTE|LIGAS|BUJIA|TUERCA|BORNE|ADITIVO|AMBIENTADOR|ELEVADOR|BASE DE|LIMPIA/i;
+const TIPOS_ACE = { min: 'Mineral', semi: 'Semisintético', sint: 'Sintético', otros: 'Otros (transmisión, 2 tiempos, paila…)' };
+const tipoAce = t => { const u = t.toUpperCase(); return /SEMISINT/.test(u) ? 'semi' : /SINT/.test(u) ? 'sint' : /MINERAL/.test(u) ? 'min' : 'otros'; };
+const viscAce = t => t.toUpperCase().replace(/\s*(SEMISINTETICO|SINTETICO|MINERAL)\s*$/, '');
+const presAce = p => { const n = parseInt(p, 10); return n >= 4 && /Litros/i.test(p) ? `Combo ${n} litros` : /^Litro$/i.test(p) ? '1 litro' : p; };
+const aceDisp = () => ace.filter(p => hay(p) && !NO_ACEITE.test(p.t));
+function pintarAceites() {
+  const lista = aceDisp(), porTipo = agrupa(lista, p => tipoAce(p.t));
+  const tipo = porTipo[$('#atipo').value] ? $('#atipo').value : '';
+  $('#atipo').innerHTML = '<option value="">Elige el tipo…</option>' + Object.keys(TIPOS_ACE).filter(k => porTipo[k]).map(k => `<option value="${k}" ${k === tipo ? 'selected' : ''}>${TIPOS_ACE[k]}</option>`).join('');
+  const viscs = tipo ? uniq(porTipo[tipo].map(p => p.t.toUpperCase())).sort(num) : [], vis = viscs.includes($('#avis').value) ? $('#avis').value : '';
+  $('#avis').innerHTML = `<option value="">${tipo ? 'Elige la viscosidad…' : 'Primero el tipo'}</option>` + viscs.map(t => `<option value="${esc(t)}" ${t === vis ? 'selected' : ''}>${esc(viscAce(t))}</option>`).join('');
+  $('#avis').disabled = !tipo;
+  const pres = vis ? uniq(lista.filter(p => p.t.toUpperCase() === vis).map(p => p.p)).sort(num) : [];
+  $('#apresBox').hidden = pres.length < 2;
+  $('#apres').innerHTML = '<option value="">Todas las presentaciones</option>' + pres.map(p => `<option value="${esc(p)}">${esc(presAce(p))}</option>`).join('');
+  const sinInv = CIUDAD === 'caracas' && ![...cau, ...bat, ...ace, ...bic].some(p => p.c != null);
+  $('#notaAce').textContent = sinInv ? 'Estamos cargando el inventario de Caracas: muy pronto verás aquí sus aceites.' : CIUDAD && !lista.length ? `Todavía no tenemos aceites con existencia en ${NOMBRES[CIUDAD]}.` : '';
+  const combos = uniq(lista.map(p => p.p).filter(p => parseInt(p, 10) >= 4 && /Litros/i.test(p))).sort(num);
+  $('#mCombos').hidden = !combos.length;
+  $('#mCombos .chips2').innerHTML = combos.map(p => `<a href="${link({ cat: 'aceites', presentacion: p })}">${esc(presAce(p))}</a>`).join('');
+  return pres;
+}
+$('#atipo').addEventListener('change', () => { $('#avis').value = ''; pintarAceites(); });
+$('#avis').addEventListener('change', () => {
+  const pres = pintarAceites();
+  if ($('#avis').value && pres.length === 1) location.href = link({ cat: 'aceites', tipo: $('#avis').value, presentacion: pres[0] });   // solo se vende de una forma: se muestran de inmediato
+});
+$('#goAceites').addEventListener('click', () => {
+  if (pedirCiudad()) return;
+  const o = { cat: 'aceites' };
+  if ($('#avis').value) o.tipo = $('#avis').value;
+  if ($('#apres').value) o.presentacion = $('#apres').value;
+  location.href = link(o);
+});
 
 // al escribir se sugieren solo las medidas que existen: así nadie busca combinaciones que no vendemos
 const irMedida = (z, md) => { location.href = link({ cat: 'cauchos', rin: md[z].r, medida: z }); };
@@ -357,37 +392,32 @@ function ciudadElegida(c) {                                           // se llam
 }
 document.addEventListener('change', e => { if (e.target.classList.contains('ciudad')) ciudadElegida(e.target.value); });
 
+// accesos directos por marca: solo las que tienen existencia en la ciudad; primero las más conocidas (editar aquí el orden)
+const ORDEN = {
+  cauchos: ['Sportrak', 'Haida', 'Habilead', 'Duringon', 'Novamaxx', 'Milemax', 'Kumho', 'Pneus Pirelli', 'Rockblade', 'Cotechoo'],
+  baterias: ['Duncan', 'Fulgor', 'PGT', 'Moura', 'AC Delco', 'Marussi'],
+  aceites: ['Valvoline', 'Mobil', 'Shell', 'Motul', 'Castrol', 'Inca', 'Sky', 'Voltex', 'Chronus', 'Gonher']
+};
+const DOS_PALABRAS = ['AC', 'New', 'Pneus'];                           // marcas que se escriben con dos palabras (AC Delco, New Earth, Pneus Pirelli)
+const marcaDe = p => { const w = p.m.split(' '); return DOS_PALABRAS.includes(w[0]) && w[1] ? w[0] + ' ' + w[1] : w[0]; };
+function pintarMarcas(cat, lista, box, max) {
+  const g = agrupa(lista.filter(hay), marcaDe), orden = ORDEN[cat];
+  const rango = m => { const i = orden.findIndex(o => o.toLowerCase() === m.toLowerCase()); return i < 0 ? 99 : i; };
+  const ms = Object.keys(g).sort((a, b) => rango(a) - rango(b) || g[b].length - g[a].length).slice(0, max);
+  box.hidden = !ms.length;
+  box.querySelector('.chips2').innerHTML = ms.map(m => `<a href="${link({ cat, q: m })}">${esc(m)}</a>`).join('');
+}
+
 function pintar() {
-  pintarCauchos(); pintarBicis();
+  pintarCauchos(); pintarBicis(); pintarAceites();
   const fmt = n => n.toLocaleString('es-VE');
   const sinDatos = CIUDAD === 'caracas' && ![...cau, ...bat, ...ace, ...bic].some(p => p.c != null);   // el inventario de Caracas todavía no está cargado
   document.querySelectorAll('[data-n]').forEach(e => {
     const lista = { cauchos: cau, baterias: bat, aceites: ace, bicicletas: bic }[e.dataset.n];
     e.textContent = sinDatos ? 'Próximamente' : CIUDAD ? fmt(lista.filter(p => stockEn(p) > 0).length) + ' disponibles' : fmt(lista.length) + ' productos';
   });
-  $('#avisoAtajos').hidden = !sinDatos;
-  $('#avisoAtajos').textContent = sinDatos ? 'Estamos cargando el inventario de Caracas. Muy pronto verás aquí las medidas, marcas y aceites con existencia en Caracas.' : '';
-  for (const id of ['#medidasTop', '#rines', '#marcas', '#aceites']) $(id).parentElement.hidden = false;
-  $('#atajosSub').textContent = CIUDAD ? `Las medidas, marcas y aceites con más opciones disponibles en ${NOMBRES[CIUDAD]}.` : 'Las medidas, marcas y aceites con más opciones disponibles en tienda.';
-  document.querySelectorAll('#atajos .sub2, #atajos .rinbar, #atajos .sizes, #atajos .brands, #atajos .oils').forEach(x => { x.hidden = sinDatos; });
-  if (sinDatos) return;
-  const desde = ps => Math.min(...ps.map(p => p.u));
-  const usd = n => '$' + n.toLocaleString('es-VE', { maximumFractionDigits: 0 });
-  const bs = agrupa(cau.filter(hay), p => p.z);
-  const top = Object.entries(bs).filter(([z]) => MED.test(z)).sort((a, b) => b[1].length - a[1].length).slice(0, 6);
-  $('#medidasTop').innerHTML = top.map(([z, ps]) => `<a class="size" href="${link({ cat: 'cauchos', rin: String(ps[0].r), medida: z })}"><b>${esc(z)}</b><small>${ps.length} ${ps.length === 1 ? 'opción' : 'opciones'}</small><em>desde ${usd(desde(ps))}</em></a>`).join('');
-  const rines = agrupa(cau.filter(p => p.r != null), p => String(p.r));
-  $('#rines').innerHTML = Object.keys(rines).sort(asc).filter(r => ['13', '14', '15', '16', '17', '18', '20', '22.5'].includes(r)).map(r => `<a href="${link({ cat: 'cauchos', rin: r })}">Rin ${r}</a>`).join('');
-  const marcas = Object.entries(agrupa(cau.filter(hay), p => p.m.split(' ')[0])).sort((a, b) => b[1].length - a[1].length).slice(0, 8);
-  $('#marcas').innerHTML = marcas.map(([m, ps]) => `<a class="brand2" href="${link({ cat: 'cauchos', q: m })}"><i>${esc(m[0])}</i><b>${esc(m)}</b><small>${ps.length} ${ps.length === 1 ? 'caucho' : 'cauchos'} en ${CIUDAD ? NOMBRES[CIUDAD] : 'tienda'}</small></a>`).join('');
-  const familia = t => { const u = t.toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); return /SEMISINT/.test(u) ? 'semi' : /SINT/.test(u) ? 'sint' : /MINERAL/.test(u) ? 'min' : 'otros'; };
-  const FAM = { min: 'Mineral', semi: 'Semisintético', sint: 'Sintético', otros: 'Otros aceites' };
-  const ac = agrupa(ace.filter(hay), p => familia(p.t));
-  $('#aceites').innerHTML = ['min', 'semi', 'sint', 'otros'].filter(f => ac[f]).map(f => {
-    const tipos = Object.entries(agrupa(ac[f], p => p.t.toUpperCase())).sort((a, b) => b[1].length - a[1].length).slice(0, 6);
-    const etiqueta = t => (f === 'otros' ? t : t.replace(/\s*(SEMISINTETICO|SINTETICO|MINERAL)\s*$/i, ''));
-    return `<div class="oil ${f}"><h3>${FAM[f]}<small>${ac[f].length} opciones</small></h3><div class="chips2">${tipos.map(([t]) => `<a href="${link({ cat: 'aceites', tipo: t })}">${esc(etiqueta(t))}</a>`).join('')}</div></div>`;
-  }).join('');
+  const sin = sinDatos;
+  pintarMarcas('cauchos', sin ? [] : cau, $('#mCauchos'), 16); pintarMarcas('baterias', sin ? [] : bat, $('#mBaterias'), 12); pintarMarcas('aceites', sin ? [] : ace, $('#mAceites'), 16);
 }
 
 (async () => {

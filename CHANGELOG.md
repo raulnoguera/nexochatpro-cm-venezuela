@@ -24,6 +24,9 @@ Resumen de lo construido, en orden. El detalle técnico está en `docs/`.
 - Sección **Nuestras sedes** (dirección, horario, WhatsApp y Google Maps) y pie de página con las tres sedes.
 - **Bicicletas:** categoría completa (hoja del Excel, panel, web y Nexo).
 - Cabeceras `no-cache` en el servidor para que los clientes vean siempre la última versión.
+- **Atajos rápidos** retirados de la portada.
+- **Accesos por marca** debajo de cada panel (cauchos, baterías, aceites), en portada y catálogo; marcas agrupadas (Haida HT/AT → Haida) y las más conocidas primero (lista `ORDEN` en las plantillas).
+- **Buscador de aceites** Tipo → Viscosidad → Presentación (se va directo si solo hay litro; combos de 4 a 8 litros aparte, «incluye filtro + servicio gratis»), igual en el catálogo.
 
 ## Consumo de IA
 - Migración a la **API nativa de Gemini** (informa caché y razonamiento), caché explícita de instrucciones, razonamiento bajo, historial acotado, resultados de búsqueda más cortos y formato de precio corto.

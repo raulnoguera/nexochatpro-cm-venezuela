@@ -210,6 +210,22 @@ const ICONOS = {
 const CHAT = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 01-11.5 7.2L4 20l1-4.6A8 8 0 1121 12z"/></svg>';
 
 // Cada categoría: cómo se busca, qué filtros tiene y cómo se dibuja la tarjeta
+// marca base (Haida HT → Haida) y orden de las más conocidas primero; mismo criterio que la portada
+const ORDEN = {
+  cauchos: ['Sportrak', 'Haida', 'Habilead', 'Duringon', 'Novamaxx', 'Milemax', 'Kumho', 'Pneus Pirelli', 'Rockblade', 'Cotechoo'],
+  baterias: ['Duncan', 'Fulgor', 'PGT', 'Moura', 'AC Delco', 'Marussi'],
+  aceites: ['Valvoline', 'Mobil', 'Shell', 'Motul', 'Castrol', 'Inca', 'Sky', 'Voltex', 'Chronus', 'Gonher']
+};
+const DOS_PALABRAS = ['AC', 'New', 'Pneus'];
+const marcaDe = p => { const w = p.m.split(' '); return DOS_PALABRAS.includes(w[0]) && w[1] ? w[0] + ' ' + w[1] : w[0]; };
+const rangoMarca = (cat, m) => { const i = (ORDEN[cat] || []).findIndex(o => o.toLowerCase() === m.toLowerCase()); return i < 0 ? 99 : i; };
+// aceites: 1.º el tipo, 2.º la viscosidad, 3.º la presentación (litro o combos de 4 a 8 litros)
+const NO_ACEITE = /REFRIGERANTE|LIGAS|BUJIA|TUERCA|BORNE|ADITIVO|AMBIENTADOR|ELEVADOR|BASE DE|LIMPIA/i;
+const TIPOS_ACE = { min: 'Mineral', semi: 'Semisintético', sint: 'Sintético', otros: 'Otros (transmisión, 2 tiempos, paila…)' };
+const tipoAce = t => { const u = t.toUpperCase(); return /SEMISINT/.test(u) ? 'semi' : /SINT/.test(u) ? 'sint' : /MINERAL/.test(u) ? 'min' : 'otros'; };
+const viscAce = t => t.toUpperCase().replace(/\s*(SEMISINTETICO|SINTETICO|MINERAL)\s*$/, '');
+const esCombo = p => parseInt(p, 10) >= 4 && /Litros/i.test(p);
+const presAce = p => esCombo(p) ? `Combo ${parseInt(p, 10)} litros` : /^Litro$/i.test(p) ? '1 litro' : p;
 const CATS = {
   cauchos: {
     nombre: 'Cauchos', pista: 'Ej. 265/60R18 o Haida', titulo: 'Escribe la medida o la marca',
@@ -228,7 +244,7 @@ const CATS = {
   aceites: {
     nombre: 'Aceites', pista: 'Ej. 20W-50 o Gonher', titulo: 'Escribe la viscosidad o la marca',
     texto: p => p.m + p.t + p.p,
-    filtros: d => [['tipo', 'Tipo', uniq(d.map(p => p.t.toUpperCase())).sort(num), p => p.t.toUpperCase()], ['presentacion', 'Presentación', uniq(d.map(p => p.p)).sort(num), p => p.p]],
+    filtros: () => [],                                  // los aceites se filtran con Tipo → Viscosidad → Presentación (ver filtrosAceites)
     titulo_p: p => p.t, tags: p => [p.p],
     msg: p => `el aceite ${p.m} ${p.t} (${p.p})`,
   },
@@ -253,6 +269,25 @@ function filtrosCauchos() {                                 // 1.º el rin, 2.º
   return `<div class="grp"><h3>Busca por medida</h3><div class="two">
     <label><span>1. Rin</span><select id="frin" aria-label="Rin"><option value="">Elige el rin…</option>${rinesDisp(md).map(r => `<option ${F.rin === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></label>
     <label><span>2. Medida disponible</span><select id="fmed" aria-label="Medida" ${F.rin ? '' : 'disabled'}><option value="">${F.rin ? 'Todas las medidas…' : 'Primero el rin'}</option>${meds.map(z => `<option value="${esc(z)}" ${F.medida === z ? 'selected' : ''}>${esc(z)} (${md[z].n})</option>`).join('')}</select></label></div></div>`;
+}
+function filtrosAceites() {
+  const ks = (CIUDADES[ciudad()] || { tiendas: [] }).tiendas;
+  const lista = (DATA.aceites || []).filter(p => !NO_ACEITE.test(p.t) && (F.todos || ks.some(k => (p[k] ?? 0) > 0)));
+  const porTipo = {}; for (const p of lista) (porTipo[tipoAce(p.t)] = porTipo[tipoAce(p.t)] || []).push(p);
+  const tipo = F.atipo || (F.tipo ? tipoAce(F.tipo) : ''), viscs = porTipo[tipo] ? uniq(porTipo[tipo].map(p => p.t.toUpperCase())).sort(num) : [];
+  const pres = F.tipo ? uniq(lista.filter(p => p.t.toUpperCase() === F.tipo.toUpperCase()).map(p => p.p)).sort(num) : [];
+  const combos = uniq(lista.map(p => p.p).filter(esCombo)).sort(num);
+  return `<div class="grp"><h3>Busca por tipo y viscosidad</h3><div class="two">
+    <label><span>1. Tipo de aceite</span><select id="atipo" aria-label="Tipo de aceite"><option value="">Elige el tipo…</option>${Object.keys(TIPOS_ACE).filter(k => porTipo[k]).map(k => `<option value="${k}" ${tipo === k ? 'selected' : ''}>${TIPOS_ACE[k]}</option>`).join('')}</select></label>
+    <label><span>2. Viscosidad</span><select id="avis" aria-label="Viscosidad" ${tipo ? '' : 'disabled'}><option value="">${tipo ? 'Todas las viscosidades…' : 'Primero el tipo'}</option>${viscs.map(t => `<option value="${esc(t)}" ${F.tipo && F.tipo.toUpperCase() === t ? 'selected' : ''}>${esc(viscAce(t))}</option>`).join('')}</select></label></div>
+    ${pres.length > 1 ? `<label style="display:block;margin-top:8px"><span>3. Presentación</span><select id="apres" aria-label="Presentación"><option value="">Todas las presentaciones</option>${pres.map(p => `<option value="${esc(p)}" ${F.presentacion === p ? 'selected' : ''}>${esc(presAce(p))}</option>`).join('')}</select></label>` : ''}</div>
+  ${combos.length ? `<div class="grp"><h3>Combos para cambio de aceite</h3><p class="sub" style="margin:0 0 6px">Incluye filtro + servicio GRATIS</p><div class="chips">${combos.map(p => `<button class="chip" data-combo="${esc(p)}" aria-pressed="${F.presentacion === p && !F.tipo && !F.atipo}">${esc(presAce(p))}</button>`).join('')}</div></div>` : ''}`;
+}
+function marcasRapidas() {                                 // accesos directos por marca: las que tienen existencia en la ciudad, las más conocidas primero
+  const ks = (CIUDADES[ciudad()] || { tiendas: [] }).tiendas, orden = ORDEN[CAT]; if (!orden) return '';
+  const g = {}; for (const p of DATA[CAT] || []) if ((F.todos || ks.some(k => (p[k] ?? 0) > 0)) && !(CAT === 'aceites' && NO_ACEITE.test(p.t))) g[marcaDe(p)] = (g[marcaDe(p)] || 0) + 1;
+  const ms = Object.keys(g).sort((a, b) => rangoMarca(CAT, a) - rangoMarca(CAT, b) || g[b] - g[a]).slice(0, 16);
+  return ms.length ? `<div class="grp"><h3>${CATS[CAT].nombre} por marca</h3><div class="chips">${ms.map(m => `<button class="chip" data-marca="${esc(m)}" aria-pressed="${F.marca === m}">${esc(m)}</button>`).join('')}</div></div>` : '';
 }
 const conDatos = c => c === 'maracay' || Object.values(DATA).some(a => a.some(p => p.c != null));   // Caracas solo tiene datos cuando el catálogo trae el campo "c"
 
@@ -282,7 +317,12 @@ function filtrar() {
   const c = CATS[CAT], tok = (F.q || '').split(/\s+/).map(norm).filter(Boolean);
   const defs = c.filtros(DATA[CAT]);
   return DATA[CAT].filter(p => {
-    if (F.marca && p.m !== F.marca) return false;
+    if (F.marca && marcaDe(p) !== F.marca) return false;
+    if (CAT === 'aceites') {
+      if (F.tipo && p.t.toUpperCase() !== F.tipo.toUpperCase()) return false;
+      if (!F.tipo && F.atipo && (NO_ACEITE.test(p.t) || tipoAce(p.t) !== F.atipo)) return false;
+      if (F.presentacion && p.p !== F.presentacion) return false;
+    }
     if (CAT === 'cauchos') { if (F.rin && String(p.r) !== F.rin) return false; if (F.medida && p.z !== F.medida) return false; }
     for (const [key, , , get] of defs) if (F[key] && get(p) !== (key === 'tipo' ? F[key].toUpperCase() : F[key])) return false;
     if (CAT === 'baterias' && F.vm && F.vd) { const t = gruposVeh(); if (!(p.k || []).some(x => t.has(x))) return false; }
@@ -296,8 +336,8 @@ function paint() {
   $('#tabs').innerHTML = Object.entries(CATS).map(([k, v]) => `<button class="chip" role="tab" data-cat="${k}" aria-pressed="${k === CAT}">${v.nombre}</button>`).join('');
   $('#qtit').textContent = c.titulo; $('#q').placeholder = c.pista;
   $('#vehiculo').innerHTML = CAT === 'baterias' && COMPAT.length ? buscadorVehiculo() : '';
-  $('#filtros').innerHTML = CAT === 'cauchos' ? (ciudad() && conDatos(ciudad()) ? filtrosCauchos() : '') : c.filtros(d).map(([key, nombre, vals]) => `<div class="grp"><h3>${nombre}</h3><div class="chips sc">${vals.map(v => `<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${F[key] === v}">${esc(v)}</button>`).join('')}</div></div>`).join('');
-  const marcas = uniq(d.map(p => p.m)).sort();
+  $('#filtros').innerHTML = (CAT === 'cauchos' ? (ciudad() && conDatos(ciudad()) ? filtrosCauchos() : '') : CAT === 'aceites' ? (ciudad() && conDatos(ciudad()) ? filtrosAceites() : '') : c.filtros(d).map(([key, nombre, vals]) => `<div class="grp"><h3>${nombre}</h3><div class="chips sc">${vals.map(v => `<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${F[key] === v}">${esc(v)}</button>`).join('')}</div></div>`).join('')) + (ciudad() && conDatos(ciudad()) ? marcasRapidas() : '');
+  const marcas = uniq(d.map(marcaDe)).sort((a, b) => rangoMarca(CAT, a) - rangoMarca(CAT, b) || a.localeCompare(b));
   $('#marca').innerHTML = '<option value="">Todas las marcas</option>' + marcas.map(m => `<option ${m === F.marca ? 'selected' : ''}>${esc(m)}</option>`).join('');
   $('#todos').setAttribute('aria-pressed', !!F.todos);
   $('#marca').closest('.grp').hidden = !!c.sinMarca;
@@ -337,6 +377,9 @@ function reset() { F = {}; $('#q').value = ''; mostrar = PAGINA; paint(); }
 
 document.addEventListener('change', e => {
   if (e.target.id === 'frin') { F.rin = e.target.value; F.medida = ''; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'atipo') { F.atipo = e.target.value; F.tipo = ''; F.presentacion = ''; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'avis') { F.tipo = e.target.value; F.presentacion = ''; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'apres') { F.presentacion = e.target.value; mostrar = PAGINA; paint(); }
   if (e.target.id === 'fmed') { F.medida = e.target.value; mostrar = PAGINA; paint(); }
   if (e.target.id === 'vm') { F.vm = e.target.value; F.vd = ''; F.va = ''; mostrar = PAGINA; paint(); }
   if (e.target.id === 'vd') { F.vd = e.target.value; F.va = ''; mostrar = PAGINA; paint(); }
@@ -344,6 +387,8 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-cat]'); if (t) { CAT = t.dataset.cat; F = {}; $('#q').value = ''; mostrar = PAGINA; return paint(); }
+  const mb = e.target.closest('[data-marca]'); if (mb) { F.marca = F.marca === mb.dataset.marca ? '' : mb.dataset.marca; mostrar = PAGINA; return paint(); }
+  const cb = e.target.closest('[data-combo]'); if (cb) { const v = cb.dataset.combo, activo = F.presentacion === v && !F.tipo && !F.atipo; F.atipo = ''; F.tipo = ''; F.presentacion = activo ? '' : v; mostrar = PAGINA; return paint(); }
   const c = e.target.closest('[data-k]'); if (c) { const k = c.dataset.k; F[k] = F[k] === c.dataset.v ? '' : c.dataset.v; mostrar = PAGINA; return paint(); }
   if (e.target.id === 'qb') { F.q = $('#q').value; mostrar = PAGINA; return paint(); }
   if (e.target.id === 'clr') return reset();
