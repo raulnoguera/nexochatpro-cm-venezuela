@@ -27,6 +27,7 @@ Resumen de lo construido, en orden. El detalle técnico está en `docs/`.
 - **Atajos rápidos** retirados de la portada.
 - **Accesos por marca** debajo de cada panel (cauchos, baterías, aceites), en portada y catálogo; marcas agrupadas (Haida HT/AT → Haida) y las más conocidas primero (lista `ORDEN` en las plantillas).
 - **Buscador de aceites** Tipo → Viscosidad → Presentación (se va directo si solo hay litro; combos de 4 a 8 litros aparte, «incluye filtro + servicio gratis»), igual en el catálogo.
+- **Protocolo de respuesta de Nexo** (documento del cliente): bienvenida oficial sin modelo, preguntas por rubro (caucho, batería, aceite, alineación, balanceo), precios de cauchos en dos mensajes con el bloque INCLUYE, enlace a la web con esos productos tras los precios y cierre con dirección/horario por sede (`cierres` en `tiendas.json`). Precios: siempre los del Excel cargado.
 
 ## Consumo de IA
 - Migración a la **API nativa de Gemini** (informa caché y razonamiento), caché explícita de instrucciones, razonamiento bajo, historial acotado, resultados de búsqueda más cortos y formato de precio corto.

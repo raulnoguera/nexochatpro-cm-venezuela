@@ -16,6 +16,10 @@
     "horarios": {
       "tienda_1": "lunes a sábado de 8:00 a 17:30",
       "tienda_2": "lunes a sábado de 8:00 a 17:30"
+    },
+    "cierres": {
+      "tienda_1": "Estamos a la orden 🙌\n\nVisitanos de lunes a Sábado\n🕖8:00 am - 5:30 pm\n\nAv. Bolívar, diagonal al C.C. Global\nLa Barraca Maracay Edo. Aragua.\n\n📍 maps.app.goo.gl/MWg9NVBA6bVGjwvy8",
+      "tienda_2": "Estamos a la orden 🙌\n\nVisitanos de lunes a Sábado\n🕖8:00 am - 5:30 pm\n\nLa Pirelli de Parque Aragua. Av. Bolívar Este #150,\ndiagonal al C.C. Parque Aragua, Maracay Edo. Aragua.\n\n📍 maps.app.goo.gl/R27ovfXRWT6QmL5W7"
     }
   },
   "caracas": {
@@ -32,6 +36,9 @@
     },
     "horarios": {
       "caracas": "lunes a sábado de 8:00 a 17:00"
+    },
+    "cierres": {
+      "caracas": "Estamos a la orden 🙌\n\nVisitanos de lunes a Sábado\n🕖8:00 am - 5:00 pm\n\nAv. Rómulo Gallegos con calle El Carmen,\ndiagonal a la iglesia Claret y Banesco, Dos Caminos, Caracas.\n\n📍 maps.app.goo.gl/YWjdgnTpCAevL9Ve8"
     }
   }
 }

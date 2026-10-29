@@ -12,6 +12,11 @@
 | Aclarar si **reservan** existencias al cotizar | Nexo dice «ya guardé la reserva», pero solo guarda datos y cita |
 | Hojas SERVICIOS, ALINEACION (449 vehículos) y CONSUMIBLES | Importar y mostrar en la web y en Nexo |
 | Confirmar el RIF y la dirección completa de cada sede | Documentos y mensajes |
+| **Protocolo de respuesta, punto 7:** formato de mensaje de precios para **baterías, aceites (combos de 4 a 8 litros + filtro) y bicicletas**, como el de cauchos | Hoy usan una línea corta por opción |
+| Confirmar si el **segundo mensaje de cauchos** debe llevar también el monto en Bs, y si «Oferta válida por 12 horas» se mantiene (Nexo no la puede hacer caducar) | Formato final de precios |
+| Aclarar el **punto 9** del protocolo: si preguntan la dirección al inicio, ¿se envía solo «Estamos a la orden 🙌» y la dirección al final? | Hoy Nexo envía el cierre completo si solo preguntan eso |
+| Si agregan a la bienvenida que atiende **Nexo, asistente virtual** | Hoy solo lo aclara si le preguntan |
+| Textos de cierre de **Master Cauchos y CM Caracas** (hoy usan el mismo formato de CM Maracay) | Despedida con dirección, horario y mapa |
 
 ## Técnicos
 

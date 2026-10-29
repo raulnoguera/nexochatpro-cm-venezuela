@@ -96,7 +96,8 @@ async function atender(c) {
   if (payload.some(m => m.message_type === 1 && !m.private && m.sender?.type === 'user' && !m.content_attributes?.bot)) return // ya lo atiende un humano
   const texto = await responder(payload, ctx)
   if (!texto) throw new Error('respuesta vacía del modelo')   // se reintenta; nunca dejamos al cliente sin respuesta
-  await cw.sendMessage(c.id, texto)
+  const partes = texto.split(/\n\s*-{3,}\s*\n/).map(x => x.trim()).filter(Boolean)     // «---» separa mensajes distintos (precios en divisa, precios en bolívares, enlace)
+  for (const [n, parte] of partes.entries()) { if (n) await new Promise(r => setTimeout(r, 800)); await cw.sendMessage(c.id, parte) }
 }
 
 setInterval(() => revisar().catch(e => console.error('Poll:', e.message)), 2000)

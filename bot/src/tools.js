@@ -4,6 +4,11 @@ import * as cw from './chatwoot.js'
 import { gruposDe } from './lista.js'
 
 const MAX_RESULTADOS = 6
+const MAX_CAUCHOS = 14        // el protocolo de la tienda lista TODAS las opciones de una medida
+const WEB = (process.env.WEB_URL || 'https://cmvenezuela.com').replace(/\/$/, '')
+// Enlace a la web con esos mismos productos: se agrega después del mensaje con precios (ver agent.js)
+const enlaceWeb = (cat, params, tienda) => `${WEB}/catalogo.html?${new URLSearchParams({ ciudad: tienda, cat, ...params })}`
+const unico = (rs, campo) => { const v = [...new Set(rs.map(r => r[campo]).filter(Boolean))]; return v.length === 1 ? v[0] : null }
 const norm = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '')
 const TIENDA = { type: 'string', enum: ['maracay', 'caracas'], description: 'Ciudad donde el cliente comprará. Si no la sabes, pregúntala antes.' }
 
@@ -134,9 +139,10 @@ export async function ejecutar(nombre, input, ctx) {
     const resultados = []
     const orden = { disponible: 0, pocas_unidades: 0, por_confirmar: 1, agotado: 2 }
     const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x) - sinPrecio(b.x) || a.x.usd - b.x.usd)
-    for (const { x, d } of todos.slice(0, MAX_RESULTADOS)) resultados.push({ marca: [x.marca, x.modelo].filter(Boolean).join(' '), medida: x.medida, ...(x.detalle && { presentacion: x.detalle }), ...(x.nota && { nota: x.nota }), ...(await precioONada(x, tienda)), disponibilidad: d })
+    for (const { x, d } of todos.slice(0, MAX_CAUCHOS)) resultados.push({ marca: [x.marca, x.modelo].filter(Boolean).join(' '), medida: x.medida, ...(x.detalle && { presentacion: x.detalle }), ...(x.nota && { nota: x.nota }), ...(await precioONada(x, tienda)), disponibilidad: d })
     conTotales(resultados, input.cantidad)
-    return { tienda: nombreTienda(tienda), acepta_cashea: t.cashea, etiqueta_tasa: t.etiqueta_tasa, ...agrupaTasa(resultados), total_coincidencias: r.length, resultados, nota: !r.length ? 'Sin coincidencias en inventario' : r.length > MAX_RESULTADOS ? `Se muestran ${MAX_RESULTADOS} de ${r.length}; pide medida o marca para afinar` : undefined }
+    if (resultados.some(x => x.pagando_en_dolares_usd)) { const med = unico(r.map(x => ({ m: x.medida })), 'm'), rin = unico(r.map(x => ({ r: x.rin })), 'r'); ctx.enlace = enlaceWeb('cauchos', { ...(med && { medida: med }), ...(rin && { rin }) }, tienda) }
+    return { tienda: nombreTienda(tienda), acepta_cashea: t.cashea, etiqueta_tasa: t.etiqueta_tasa, ...agrupaTasa(resultados), total_coincidencias: r.length, resultados, nota: !r.length ? 'Sin coincidencias en inventario' : r.length > MAX_CAUCHOS ? `Se muestran ${MAX_CAUCHOS} de ${r.length}; pide medida o marca para afinar` : undefined }
   }
   if (nombre === 'buscar_baterias' || nombre === 'buscar_aceites') {
     if (!tienda) return FALTA_TIENDA
@@ -162,6 +168,10 @@ export async function ejecutar(nombre, input, ctx) {
       marca: x.marca, ...(bat ? { descripcion: x.descripcion, grupo: x.grupo, ...(x.garantia && { garantia_meses: x.garantia }) } : { tipo: x.tipo, presentacion: x.presentacion }),
       ...(x.nota && { nota: x.nota }), ...(await precioONada(x, tienda)), disponibilidad: d })
     conTotales(resultados, input.cantidad)
+    if (resultados.some(x => x.pagando_en_dolares_usd)) {
+      const g = bat ? unico(r.map(x => ({ g: x.grupo })), 'g') : null, ti = bat ? null : unico(r.map(x => ({ t: x.tipo })), 't'), pr = bat ? null : unico(r.map(x => ({ p: x.presentacion })), 'p')
+      ctx.enlace = enlaceWeb(bat ? 'baterias' : 'aceites', { ...(g && { grupo: g }), ...(ti && { tipo: ti }), ...(pr && { presentacion: pr }) }, tienda)
+    }
     return { tienda: nombreTienda(tienda), acepta_cashea: t.cashea, etiqueta_tasa: t.etiqueta_tasa, ...agrupaTasa(resultados), ...(compat && { compatibilidad: compat, aviso: 'Dile que confirme con la batería actual (grupo y polaridad) antes de comprar.' }), total_coincidencias: r.length, resultados, nota: !r.length ? 'Sin coincidencias en inventario' : r.length > MAX_RESULTADOS ? `Se muestran ${MAX_RESULTADOS} de ${r.length}; pide grupo, marca o presentación para afinar` : undefined }
   }
   if (nombre === 'buscar_bicicletas') {
@@ -174,6 +184,7 @@ export async function ejecutar(nombre, input, ctx) {
     const resultados = []
     for (const { x, d } of todos.slice(0, MAX_RESULTADOS)) resultados.push({ modelo: x.modelo, rin: x.rin, ...(x.para && { para: x.para }), ...(x.colores && { colores: x.colores }), ...(await precioONada(x, tienda)), disponibilidad: d })
     conTotales(resultados, input.cantidad)
+    if (resultados.some(x => x.pagando_en_dolares_usd)) { const rin = unico(r.map(x => ({ r: x.rin })), 'r'); ctx.enlace = enlaceWeb('bicicletas', rin ? { rin } : {}, tienda) }
     const t = (await import('./store.js')).tiendas()[tienda]
     return { tienda: nombreTienda(tienda), etiqueta_tasa: t.etiqueta_tasa, ...agrupaTasa(resultados), total_coincidencias: r.length, resultados, nota: !r.length ? 'Sin coincidencias en inventario' : r.length > MAX_RESULTADOS ? `Se muestran ${MAX_RESULTADOS} de ${r.length}; pide el rin para afinar` : undefined }
   }
