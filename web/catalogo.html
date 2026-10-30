@@ -197,9 +197,9 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
 .logo-m::after{content:"";position:absolute;right:-40px;bottom:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(closest-side,rgba(245,217,10,.25),transparent)}
 .logo-m:hover{transform:translateY(-3px);border-color:#3A3A35}
 .logo-m[aria-pressed="true"]{border-color:var(--y);box-shadow:0 0 0 2px var(--y)}
-.logo-m img{position:relative;z-index:1;max-width:100%;max-height:84px;object-fit:contain}
+.logo-m img{position:absolute;inset:18px 20px;z-index:1;width:calc(100% - 40px);height:calc(100% - 36px);object-fit:contain;opacity:0}
+.logo-m.con-logo img{opacity:1}.logo-m.con-logo b{visibility:hidden}
 .logo-m b{position:relative;z-index:1;font-family:var(--display);font-size:32px;line-height:1;font-weight:800;text-transform:uppercase;color:#fff;text-align:center}
-.logo-m img+b{display:none}
 .fbox{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fbox label{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px}
 .fbox label span{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
 .fbox select{width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);padding:0 10px;font-weight:700;font-size:16px}
@@ -363,7 +363,7 @@ function cintaMarcas() {                                     // cinta de logos q
   const box = $('#cinta'), ms = ciudad() && conDatos(ciudad()) ? marcasCinta() : [], k = CAT + ':' + ms.join('|');
   if (!ms.length) { box.innerHTML = ''; box.dataset.k = ''; return; }
   if (box.dataset.k !== k) {
-    const t = (m, oculto) => `<button class="logo-m" data-marca="${esc(m)}" aria-label="${esc(CATS[CAT].nombre)} ${esc(m)}"${oculto ? ' aria-hidden="true" tabindex="-1"' : ''}><img src="assets/marcas/${slug(m)}.png" alt="${esc(m)}" loading="lazy"><b>${esc(m)}</b></button>`;
+    const t = (m, oculto) => `<button class="logo-m" data-marca="${esc(m)}" aria-label="${esc(CATS[CAT].nombre)} ${esc(m)}"${oculto ? ' aria-hidden="true" tabindex="-1"' : ''}><img src="assets/marcas/${slug(m)}.png" alt=""><b>${esc(m)}</b></button>`;
     box.innerHTML = `<div class="cinta-box"><h3>Nuestras marcas de ${esc(CATS[CAT].nombre.toLowerCase())}</h3><div class="cinta-wrap"><button class="flecha izq" data-mover="-1" aria-label="Marcas anteriores">«</button><div class="cinta"><div class="pista">${ms.map(m => t(m)).join('')}${ms.map(m => t(m, true)).join('')}</div></div><button class="flecha der" data-mover="1" aria-label="Más marcas">»</button></div></div>`;
     box.dataset.k = k; box.querySelector('.cinta').scrollLeft = 0;
   }
@@ -385,6 +385,7 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('touchstart', e => { if (e.target.closest('#cinta')) cintaPausa = Date.now() + 4000; }, { passive: true });
 document.addEventListener('error', e => { if (e.target.matches && e.target.matches('.logo-m img')) e.target.remove(); }, true);   // sin logo: queda el nombre
+document.addEventListener('load', e => { if (e.target.matches && e.target.matches('.logo-m img')) e.target.parentNode.classList.add('con-logo'); }, true);   // con logo: se oculta el nombre
 function marcasRapidas() {                                 // accesos directos por marca: las que tienen existencia en la ciudad, las más conocidas primero
   const ks = (CIUDADES[ciudad()] || { tiendas: [] }).tiendas, orden = ORDEN[CAT]; if (!orden) return '';
   const g = {}; for (const p of DATA[CAT] || []) if ((F.todos || ks.some(k => (p[k] ?? 0) > 0)) && !(CAT === 'aceites' && NO_ACEITE.test(p.t))) g[marcaDe(p)] = (g[marcaDe(p)] || 0) + 1;
