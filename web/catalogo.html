@@ -126,6 +126,27 @@ footer{background:var(--dark);color:#CFCFC8;border-top:3px solid var(--y);paddin
 footer b{color:#fff}
 @media(prefers-reduced-motion:reduce){.cat,.toast{transition:none}}
 
+/* menú de WhatsApp (Maracay tiene dos tiendas) */
+.bar{position:relative}
+.wamenu{position:absolute;right:0;top:calc(100% + 6px);z-index:60;min-width:250px;background:var(--surface);color:var(--ink);border:1.5px solid var(--y);border-radius:14px;padding:6px;box-shadow:var(--shadow)}
+.wamenu p{margin:4px 10px 6px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.wamenu a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:800;font-size:15px}
+.wamenu a small{display:block;color:var(--muted);font-weight:600;font-size:12.5px}
+.wamenu a svg{width:20px;height:20px;flex:none;color:var(--ok)}
+.wamenu a:hover,.wamenu a:focus-visible{background:var(--y);color:var(--y-ink)}.wamenu a:hover small,.wamenu a:hover svg{color:var(--y-ink)}
+/* listas desplegables con los colores del sitio (sin el azul del sistema) */
+@supports (appearance:base-select){
+select,::picker(select){appearance:base-select}
+select{display:flex;align-items:center;justify-content:space-between;gap:8px}
+select::picker-icon{color:var(--y)}
+::picker(select){background:var(--surface);border:1.5px solid var(--y);border-radius:12px;padding:6px;margin-block:6px;box-shadow:var(--shadow)}
+select option{padding:10px 12px;border-radius:8px;font-weight:700;color:var(--ink);background:transparent}
+select option:hover,select option:focus-visible{background:var(--y);color:var(--y-ink)}
+select option:checked{background:var(--dark2);color:var(--y)}
+select option:checked:hover{background:var(--y);color:var(--y-ink)}
+select option::checkmark{display:none}
+}
+
 .more{display:block;margin:0 auto 40px;min-width:220px}
 .price .bs b{color:var(--ink)}
 .sub{color:var(--muted);font-size:13px;font-weight:600}
@@ -145,6 +166,44 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
 .sug small{color:var(--muted);font-weight:600;font-size:13px}.sug .none{padding:12px;color:var(--muted);font-weight:600}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .two label span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em}
+.veh{border:2px solid var(--y);border-radius:16px;padding:0 0 18px;background:var(--surface2);overflow:hidden}
+.veh h3{margin:0 0 16px!important;padding:14px 16px 12px;border-bottom:3px solid var(--y);text-align:center;font-family:var(--display);font-size:30px!important;letter-spacing:.02em!important;color:var(--ink)!important;font-weight:800!important}
+.veh .pasos{display:grid;gap:12px;max-width:620px;margin:0 auto;padding:0 16px}
+.veh .sel{display:grid;grid-template-columns:110px 1fr;align-items:center;gap:12px}
+.veh .sel span{margin:0;text-transform:uppercase;letter-spacing:.06em;font-size:14px;font-weight:800;color:var(--ink)}
+.veh .sel select{background:var(--dark2);color:var(--y);border-color:var(--dark2);font-weight:800;text-transform:uppercase}
+.veh select:disabled{opacity:.5}
+.veh .btn{justify-self:center;margin-top:10px;min-width:230px;min-height:54px;font-size:17px;letter-spacing:.12em;text-transform:uppercase;display:inline-flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 10px 22px rgba(0,0,0,.25)}
+.veh .btn svg{width:22px;height:22px}
+.veh .btn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed;box-shadow:none}
+.veh .pronto{margin:10px 0 0;color:var(--muted);font-size:13.5px;font-weight:600}
+.veh .reco{margin:12px 0 0}
+.veh .quitar{background:none;border:0;color:var(--y);font-weight:700;text-decoration:underline;cursor:pointer;padding:0;margin-left:6px}
+@media (max-width:560px){.veh .sel{grid-template-columns:1fr;gap:4px}.veh .btn{width:100%}.veh h3{font-size:26px!important}}
+.veh .pronto,.veh .reco{max-width:620px;margin-left:auto!important;margin-right:auto!important}.veh .pronto{padding:0 16px;text-align:center}
+.sepa{margin-top:18px;padding-top:16px;border-top:1px dashed var(--line)}
+.cinta-box{margin:6px 0 18px}.cinta-box h3{margin:0 0 10px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.cinta-box{margin:8px 0 26px;padding-top:18px;border-top:3px solid var(--y)}
+.cinta-wrap{position:relative}
+.cinta{overflow-x:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+.cinta::-webkit-scrollbar{display:none}
+.pista{display:flex;gap:14px;width:max-content;padding:6px 0}
+.cinta-wrap{padding:0 52px}
+.flecha{position:absolute;top:50%;transform:translateY(-50%);z-index:5;width:44px;height:44px;border-radius:50%;border:0;background:var(--dark);color:var(--y);font-family:var(--display);font-size:30px;font-weight:800;line-height:44px;text-align:center;cursor:pointer;padding:0;box-shadow:var(--shadow)}
+.flecha:hover{background:var(--y);color:var(--y-ink)}.flecha.izq{left:0}.flecha.der{right:0}
+@media (max-width:560px){.cinta-wrap{padding:0 40px}.flecha{width:36px;height:36px;line-height:36px;font-size:24px}.logo-m{width:170px;height:110px}}
+.more[hidden]{display:none}
+.logo-m{position:relative;overflow:hidden;flex:none;width:210px;height:132px;border-radius:20px;background:var(--dark);border:1.5px solid var(--dark2);display:grid;place-items:center;padding:18px 20px;cursor:pointer;transition:transform .18s,border-color .18s}
+.logo-m::after{content:"";position:absolute;right:-40px;bottom:-40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(closest-side,rgba(245,217,10,.25),transparent)}
+.logo-m:hover{transform:translateY(-3px);border-color:#3A3A35}
+.logo-m[aria-pressed="true"]{border-color:var(--y);box-shadow:0 0 0 2px var(--y)}
+.logo-m img{position:relative;z-index:1;max-width:100%;max-height:84px;object-fit:contain}
+.logo-m b{position:relative;z-index:1;font-family:var(--display);font-size:32px;line-height:1;font-weight:800;text-transform:uppercase;color:#fff;text-align:center}
+.logo-m img+b{display:none}
+.fbox{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fbox label{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px}
+.fbox label span{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.fbox select{width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);padding:0 10px;font-weight:700;font-size:16px}
+@media (max-width:560px){.fbox{grid-template-columns:1fr}}
 .two select{width:100%;min-height:50px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 10px;font-weight:700;font-size:16px}
 </style>
 </head>
@@ -155,6 +214,7 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
     <a class="inicio" href="./">← Inicio</a>
     <div class="sp"></div>
     <a class="wa" id="wa" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2zm5.2 13.9c-.2.6-1.3 1.2-1.8 1.2-.5.1-1 .2-3.3-.7-2.8-1.2-4.5-4-4.7-4.2-.1-.2-1.1-1.4-1.1-2.7s.7-1.9.9-2.2c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1l.9-1.1c.2-.3.4-.2.6-.1l1.9.9c.3.1.5.2.5.3.1.2.1.8-.1 1.4z"/></svg><span>Escríbenos</span></a>
+    <div class="wamenu" id="wamenu" hidden></div>
   </div></div>
   <div class="rate gut"><div class="wrap" id="rate">Elige tu ciudad para ver los precios.</div></div>
 </header>
@@ -164,15 +224,16 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
   <div class="tabs" id="tabs" role="tablist"></div>
   <div class="panel" id="panel">
     <div class="grp ciudad"><h3>1. ¿En qué ciudad compras?</h3><select id="ciudad" aria-label="Ciudad"><option value="">Elige tu ciudad…</option><option value="maracay">Maracay</option><option value="caracas">Caracas</option></select><div class="hint" id="ciudadHint">Elígela primero: te mostramos precios y existencia de esa ciudad.</div></div>
-    <div class="grp"><h3 id="qtit">Escribe la medida o la marca</h3><div class="q"><input id="q" inputmode="text" autocomplete="off" aria-label="Buscar"><button class="btn" id="qb">Buscar</button><div class="sug" id="sug" hidden></div></div></div>
     <div id="vehiculo"></div>
+    <div class="grp" id="qgrp"><h3 id="qtit">Escribe la medida o la marca</h3><div class="q"><input id="q" inputmode="text" autocomplete="off" aria-label="Buscar"><button class="btn" id="qb">Buscar</button><div class="sug" id="sug" hidden></div></div></div>
     <div id="filtros"></div>
-    <div class="grp"><h3>Marca</h3><select class="marca" id="marca" aria-label="Marca"><option value="">Todas las marcas</option></select></div>
+    <div class="grp" id="mgrp"><h3>Marca</h3><select class="marca" id="marca" aria-label="Marca"><option value="">Todas las marcas</option></select></div>
     <div class="grp"><button class="chip" id="todos" aria-pressed="false">Mostrar también los agotados</button> <button class="btn ghost" id="clr" style="min-height:44px">Limpiar</button></div>
   </div>
   <div class="meta"><span id="count"></span><span class="sub" id="fecha"></span></div>
   <div class="grid" id="grid"></div>
   <button class="btn ghost more" id="more" hidden>Ver más</button>
+  <div id="cinta"></div>
   <p class="note" id="nota">Los precios y la existencia pueden cambiar durante el día. Confirma por WhatsApp antes de venir a la tienda.</p>
 </div></main>
 
@@ -198,7 +259,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const uniq = a => [...new Set(a)];
 const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z.]/g, '');
 const num = (a, b) => String(a).localeCompare(String(b), 'es', { numeric: true });
-let DATA = {}, COMPAT = [], TASAS = {}, CAT = 'cauchos', F = {}, mostrar = PAGINA;
+let DATA = {}, COMPAT = [], TASAS = {}, CAT = 'cauchos', F = {}, V = {}, mostrar = PAGINA;   // V: vehículo que se está eligiendo; F.vm/vd/va: el que se buscó
 
 const MED = /^(\d+)\/(\d+)R(\d+(?:\.\d)?)$/;
 const ICONOS = {
@@ -229,13 +290,13 @@ const presAce = p => esCombo(p) ? `Combo ${parseInt(p, 10)} litros` : /^Litro$/i
 const CATS = {
   cauchos: {
     nombre: 'Cauchos', pista: 'Ej. 265/60R18 o Haida', titulo: 'Escribe la medida o la marca',
-    texto: p => p.z + p.m,
+    texto: p => p.z + p.m + (p.mo || '') + (p.ti || ''),
     filtros: () => [],                                  // los cauchos se filtran con las casillas Rin → Medida (ver filtrosCauchos)
-    titulo_p: p => p.z, tags: p => (p.r != null ? ['Rin ' + p.r] : []),
-    msg: p => `el caucho ${p.m} ${p.z}${p.x ? ' (' + p.x + ')' : ''}`,
+    titulo_p: p => p.z, tags: p => (p.r != null ? ['Rin ' + p.r] : []).concat(p.ti ? [p.ti] : []),
+    msg: p => `el caucho ${p.m}${p.mo ? ' ' + p.mo : ''} ${p.z}${p.ti ? ' ' + p.ti : ''}${p.x ? ' (' + p.x + ')' : ''}`,
   },
   baterias: {
-    nombre: 'Baterías', pista: 'Ej. grupo 24, 1000 AMP o PGT', titulo: 'Escribe el grupo, el amperaje o la marca',
+    nombre: 'Baterías', pista: 'Ej. grupo 24, 1000 AMP o PGT', titulo: '¿Ya conoces tu batería? Escribe el grupo, el amperaje o la marca',
     texto: p => p.m + p.d + p.g,
     filtros: d => [['grupo', 'Grupo', uniq(d.map(p => p.g)).sort(num), p => p.g]],
     titulo_p: p => p.d, tags: p => [p.g].concat(p.a ? [p.a + ' AMP'] : [], p.w ? ['Garantía ' + p.w + ' meses'] : []),
@@ -283,6 +344,47 @@ function filtrosAceites() {
     ${pres.length > 1 ? `<label style="display:block;margin-top:8px"><span>3. Presentación</span><select id="apres" aria-label="Presentación"><option value="">Todas las presentaciones</option>${pres.map(p => `<option value="${esc(p)}" ${F.presentacion === p ? 'selected' : ''}>${esc(presAce(p))}</option>`).join('')}</select></label>` : ''}</div>
   ${combos.length ? `<div class="grp"><h3>Combos para cambio de aceite</h3><p class="sub" style="margin:0 0 6px">Incluye filtro + servicio GRATIS</p><div class="chips">${combos.map(p => `<button class="chip" data-combo="${esc(p)}" aria-pressed="${F.presentacion === p && !F.tipo && !F.atipo}">${esc(presAce(p))}</button>`).join('')}</div></div>` : ''}`;
 }
+// Baterías: filtros para quien ya sabe qué batería usa (grupo y marca), aparte del buscador por vehículo
+const MARCA_SUELTA = /^(AC|New)$/i;                                         // nombres cortados en la lista («AC», «New»): no son una marca
+const marcasBat = () => { const n = {}; for (const p of DATA.baterias || []) { const m = marcaDe(p); if (!MARCA_SUELTA.test(m)) n[m] = (n[m] || 0) + 1; } return Object.keys(n).sort((a, b) => rangoMarca('baterias', a) - rangoMarca('baterias', b) || n[b] - n[a]); };
+function filtrosBaterias() {
+  const grupos = uniq((DATA.baterias || []).map(p => p.g).filter(g => g && g !== '-')).sort(num);
+  return `<div class="grp sepa"><h3>¿Ya sabes qué batería usa tu vehículo?</h3><div class="fbox">
+    <label><span>Grupo</span><select id="bgrupo" aria-label="Grupo de batería">${opt(grupos, F.grupo, 'Todos los grupos')}</select></label>
+    <label><span>Marca</span><select id="bmarca" aria-label="Marca de batería">${opt(marcasBat(), F.marca, 'Todas las marcas')}</select></label></div></div>`;
+}
+const slug = m => m.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function marcasCinta() {                                   // baterías: todas; cauchos y aceites: las marcas destacadas (ORDEN) que hay en la lista
+  if (CAT === 'baterias') return marcasBat();
+  const hay = new Set((DATA[CAT] || []).map(marcaDe).map(m => m.toLowerCase()));
+  return (ORDEN[CAT] || []).filter(m => hay.has(m.toLowerCase()));
+}
+function cintaMarcas() {                                     // cinta de logos que avanza sola de derecha a izquierda, con flechas; el logo va en assets/marcas/<marca>.png
+  const box = $('#cinta'), ms = ciudad() && conDatos(ciudad()) ? marcasCinta() : [], k = CAT + ':' + ms.join('|');
+  if (!ms.length) { box.innerHTML = ''; box.dataset.k = ''; return; }
+  if (box.dataset.k !== k) {
+    const t = (m, oculto) => `<button class="logo-m" data-marca="${esc(m)}" aria-label="${esc(CATS[CAT].nombre)} ${esc(m)}"${oculto ? ' aria-hidden="true" tabindex="-1"' : ''}><img src="assets/marcas/${slug(m)}.png" alt="${esc(m)}" loading="lazy"><b>${esc(m)}</b></button>`;
+    box.innerHTML = `<div class="cinta-box"><h3>Nuestras marcas de ${esc(CATS[CAT].nombre.toLowerCase())}</h3><div class="cinta-wrap"><button class="flecha izq" data-mover="-1" aria-label="Marcas anteriores">«</button><div class="cinta"><div class="pista">${ms.map(m => t(m)).join('')}${ms.map(m => t(m, true)).join('')}</div></div><button class="flecha der" data-mover="1" aria-label="Más marcas">»</button></div></div>`;
+    box.dataset.k = k; box.querySelector('.cinta').scrollLeft = 0;
+  }
+  box.querySelectorAll('[data-marca]').forEach(b => b.setAttribute('aria-pressed', F.marca === b.dataset.marca));
+}
+let cintaPausa = 0;
+const cintaQuieta = matchMedia('(prefers-reduced-motion: reduce)').matches;
+(function avanzar() {                                         // la pista está duplicada: al llegar a la mitad vuelve al inicio sin que se note
+  const c = document.querySelector('#cinta .cinta');
+  if (c && !cintaQuieta && Date.now() > cintaPausa && !c.matches(':hover')) { c.scrollLeft += 0.6; const mitad = c.scrollWidth / 2; if (c.scrollLeft >= mitad) c.scrollLeft -= mitad; }
+  requestAnimationFrame(avanzar);
+})();
+document.addEventListener('click', e => {
+  const f = e.target.closest('[data-mover]'); if (!f) return;
+  const c = document.querySelector('#cinta .cinta'), mitad = c.scrollWidth / 2;
+  if (f.dataset.mover < 0 && c.scrollLeft < 230) c.scrollLeft += mitad;
+  if (f.dataset.mover > 0 && c.scrollLeft > mitad - 230) c.scrollLeft -= mitad;
+  cintaPausa = Date.now() + 4000; c.scrollBy({ left: f.dataset.mover * 224, behavior: 'smooth' });
+});
+document.addEventListener('touchstart', e => { if (e.target.closest('#cinta')) cintaPausa = Date.now() + 4000; }, { passive: true });
+document.addEventListener('error', e => { if (e.target.matches && e.target.matches('.logo-m img')) e.target.remove(); }, true);   // sin logo: queda el nombre
 function marcasRapidas() {                                 // accesos directos por marca: las que tienen existencia en la ciudad, las más conocidas primero
   const ks = (CIUDADES[ciudad()] || { tiendas: [] }).tiendas, orden = ORDEN[CAT]; if (!orden) return '';
   const g = {}; for (const p of DATA[CAT] || []) if ((F.todos || ks.some(k => (p[k] ?? 0) > 0)) && !(CAT === 'aceites' && NO_ACEITE.test(p.t))) g[marcaDe(p)] = (g[marcaDe(p)] || 0) + 1;
@@ -294,7 +396,7 @@ const conDatos = c => c === 'maracay' || Object.values(DATA).some(a => a.some(p 
 function estado(p) {                                    // existencia en las tiendas de la ciudad elegida
   const c = CIUDADES[ciudad()], con = c.tiendas.filter(k => (p[k] ?? 0) > 0);
   if (!con.length) return ['no', 'Agotado en ' + c.nombre];
-  return ['ok', (con.every(k => p[k] === 1) ? 'Pocas unidades en ' : 'Disponible en ') + con.map(k => TIENDAS[k].nombre).join(' y ')];
+  return ['ok', 'Disponible en ' + c.nombre];                    // en Maracay da igual si es CM o Master Cauchos
 }
 const tiendaWa = p => { const ks = CIUDADES[ciudad()].tiendas; return ks.slice().sort((a, b) => (p[b] ?? 0) - (p[a] ?? 0))[0]; };   // la tienda que tiene el producto (o la de más existencia)
 const wa = (msg, k) => `https://wa.me/${TIENDAS[k].wa}?text=${encodeURIComponent(msg)}`;
@@ -303,7 +405,7 @@ function card(p) {
   const c = CATS[CAT], [k, t] = estado(p), tasa = TASAS[CIUDADES[ciudad()].tasa], ci = CIUDADES[ciudad()], tk = tiendaWa(p);
   const precioBs = tasa ? `<div class="bs"><b>Bs ${bs(p.b * tasa)}</b> pagando en bolívares<br><span class="sub">(${usd(p.b)} a ${ci.etiqueta})</span></div>` : '';
   const tags = c.tags(p).concat(p.x ? [p.x] : []);
-  return `<article class="card"><div class="ph${p.i ? ' foto' : ''}">${p.i ? `<img src="${esc(p.i)}" alt="${esc(p.m + ' ' + c.titulo_p(p))}" loading="lazy">` : ICONOS[CAT]}</div><div><div class="brand">${esc(p.m)}</div><h4>${esc(c.titulo_p(p))}</h4></div>
+  return `<article class="card"><div class="ph${p.i ? ' foto' : ''}">${p.i ? `<img src="${esc(p.i)}" alt="${esc(p.m + ' ' + c.titulo_p(p))}" loading="lazy">` : ICONOS[CAT]}</div><div><div class="brand">${esc(p.m)}${p.mo ? ' · ' + esc(p.mo) : ''}</div><h4>${esc(c.titulo_p(p))}</h4></div>
     <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}<span class="stk ${k}">${t}</span>
     <div class="price">${p.u > 0 ? `<div class="usd">${usd(p.u)}<small>pagando en dólares</small></div>${precioBs}` : '<div class="usd consulta">Consultar precio</div><div class="bs">Te lo confirmamos por WhatsApp</div>'}</div>
     ${TIENDAS[tk].wa ? `<a class="ask" href="${wa(`Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} Consultar por WhatsApp</a>` : ''}</article>`;
@@ -311,10 +413,10 @@ function card(p) {
 
 const gruposVeh = () => {                                                // grupos de batería que sirven al vehículo elegido, según la tabla de compatibilidad
   const n = F.va ? Number(F.va) : null
-  return new Set(COMPAT.filter(c => c.o === F.vm && c.d === F.vd && (n == null || (n >= c.a && n <= c.b))).flatMap(c => c.g));
+  return new Set(COMPAT.filter(c => c.o === F.vm && c.d === F.vd && (n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999)))).flatMap(c => c.g));
 };
 function filtrar() {
-  const c = CATS[CAT], tok = (F.q || '').split(/\s+/).map(norm).filter(Boolean);
+  const c = CATS[CAT], tok = CAT === 'baterias' ? [] : (F.q || '').split(/\s+/).map(norm).filter(Boolean);   // baterías: sin búsqueda escrita (el amperaje solo no indica si le sirve al vehículo)
   const defs = c.filtros(DATA[CAT]);
   return DATA[CAT].filter(p => {
     if (F.marca && marcaDe(p) !== F.marca) return false;
@@ -335,12 +437,14 @@ function paint() {
   const c = CATS[CAT], d = DATA[CAT] || [];
   $('#tabs').innerHTML = Object.entries(CATS).map(([k, v]) => `<button class="chip" role="tab" data-cat="${k}" aria-pressed="${k === CAT}">${v.nombre}</button>`).join('');
   $('#qtit').textContent = c.titulo; $('#q').placeholder = c.pista;
-  $('#vehiculo').innerHTML = CAT === 'baterias' && COMPAT.length ? buscadorVehiculo() : '';
-  $('#filtros').innerHTML = (CAT === 'cauchos' ? (ciudad() && conDatos(ciudad()) ? filtrosCauchos() : '') : CAT === 'aceites' ? (ciudad() && conDatos(ciudad()) ? filtrosAceites() : '') : c.filtros(d).map(([key, nombre, vals]) => `<div class="grp"><h3>${nombre}</h3><div class="chips sc">${vals.map(v => `<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${F[key] === v}">${esc(v)}</button>`).join('')}</div></div>`).join('')) + (ciudad() && conDatos(ciudad()) ? marcasRapidas() : '');
+  $('#vehiculo').innerHTML = CAT === 'baterias' ? buscadorVehiculo() : '';
+  $('#filtros').innerHTML = CAT === 'baterias' ? (ciudad() && conDatos(ciudad()) ? filtrosBaterias() : '') : (CAT === 'cauchos' ? (ciudad() && conDatos(ciudad()) ? filtrosCauchos() : '') : CAT === 'aceites' ? (ciudad() && conDatos(ciudad()) ? filtrosAceites() : '') : c.filtros(d).map(([key, nombre, vals]) => `<div class="grp"><h3>${nombre}</h3><div class="chips sc">${vals.map(v => `<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${F[key] === v}">${esc(v)}</button>`).join('')}</div></div>`).join(''));
+  cintaMarcas();
+  $('#qgrp').hidden = CAT === 'baterias';
   const marcas = uniq(d.map(marcaDe)).sort((a, b) => rangoMarca(CAT, a) - rangoMarca(CAT, b) || a.localeCompare(b));
   $('#marca').innerHTML = '<option value="">Todas las marcas</option>' + marcas.map(m => `<option ${m === F.marca ? 'selected' : ''}>${esc(m)}</option>`).join('');
   $('#todos').setAttribute('aria-pressed', !!F.todos);
-  $('#marca').closest('.grp').hidden = !!c.sinMarca;
+  $('#mgrp').hidden = !!c.sinMarca || CAT === 'baterias';
   const cid = ciudad(), ci = CIUDADES[cid];
   $('#panel').classList.toggle('bloq', !cid);
   $('#ciudadHint').hidden = !!cid;
@@ -348,7 +452,7 @@ function paint() {
   const tasa = ci && TASAS[ci.tasa];
   $('#rate').innerHTML = !ci ? 'Elige tu ciudad para ver los precios.' : tasa ? `${ci.etiqueta === 'tasa euro' ? 'Tasa euro BCV' : 'Tasa dólar BCV'} de hoy: <b>${tasa.toLocaleString('es-VE', { maximumFractionDigits: 2 })}</b> Bs · precio en dólares de contado y en bolívares` : 'Precios en dólares de contado. Pregúntanos el monto en bolívares por WhatsApp.';
   const wk = ci && ci.tiendas.find(k => TIENDAS[k].wa);
-  $('#wa').hidden = !!ci && !wk; $('#wa').href = wa('Hola, quiero consultar un producto', wk || 't1');
+  const wks = waTiendas(); $('#wa').hidden = !wks.length; $('#wa').href = wa('Hola, quiero consultar un producto', wks[0] || 't1'); $('#wamenu').hidden = true;
   let orden = [];
   if (!cid) { $('#count').textContent = ''; $('#grid').innerHTML = '<div class="empty"><b>Elige tu ciudad para empezar.</b><br>Así te mostramos los precios y la existencia de Maracay o de Caracas.</div>'; $('#more').hidden = true; return; }
   if (!conDatos(cid)) { $('#count').textContent = ''; $('#grid').innerHTML = `<div class="empty"><b>Estamos cargando el inventario de ${ci.nombre}.</b><br>Muy pronto verás aquí la existencia y los precios de ${ci.nombre}.</div>`; $('#more').hidden = true; return; }
@@ -358,38 +462,67 @@ function paint() {
   $('#more').hidden = orden.length <= mostrar;
 }
 const opt = (vals, cur, vacio) => `<option value="">${vacio}</option>` + vals.map(v => `<option ${String(v) === String(cur) ? 'selected' : ''}>${esc(v)}</option>`).join('');
+// Catálogo de aplicaciones (como el de Duncan): 1. marca del vehículo → 2. modelo → 3. año; el botón Buscar se activa al final
+const aniosDe = filas => { const tope = new Date().getFullYear() + 1; return uniq(filas.filter(c => c.a > 0).flatMap(c => { const fin = Math.min(c.b || tope, tope); return Array.from({ length: Math.max(0, fin - c.a + 1) }, (_, i) => fin - i); })).sort((a, b) => b - a); };
+const filasVeh = (m, d) => COMPAT.filter(c => c.o === m && c.d === d);
+const vehListo = () => { if (!V.vm || !V.vd) return false; return !!V.va || !aniosDe(filasVeh(V.vm, V.vd)).length; };   // sin años en la tabla, sirve para todos
 function buscadorVehiculo() {
-  const marcas = uniq(COMPAT.map(c => c.o)).sort();
-  const modelos = F.vm ? uniq(COMPAT.filter(c => c.o === F.vm).map(c => c.d)).sort(num) : [];
-  const filas = F.vm && F.vd ? COMPAT.filter(c => c.o === F.vm && c.d === F.vd) : [];
-  const anios = uniq(filas.filter(c => c.a > 0).flatMap(c => Array.from({ length: Math.min(c.b, new Date().getFullYear() + 1) - c.a + 1 }, (_, i) => Math.min(c.b, new Date().getFullYear() + 1) - i))).sort((a, b) => b - a);
+  const tit = '<h3>Encontrar batería</h3>', ico = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M6 7V4h3v3M15 7V4h3v3M6 13.5h4M16 11.5v4M14 13.5h4"/></svg>';
+  if (!COMPAT.length) return `<div class="grp veh">${tit}<div class="pasos">
+    <label class="sel"><span>Marca</span><select disabled><option>Elige una opción</option></select></label>
+    <label class="sel"><span>Modelo</span><select disabled><option>Elige una opción</option></select></label>
+    <label class="sel"><span>Año</span><select disabled><option>Elige una opción</option></select></label>
+    <button class="btn" disabled>Buscar ${ico}</button></div>
+    <p class="pronto">Muy pronto podrás buscar por la marca, el modelo y el año de tu vehículo. Mientras tanto, busca por grupo o escríbenos por WhatsApp y te decimos cuál te sirve.</p></div>`;
+  const marcas = uniq(COMPAT.map(c => c.o)).sort(num);
+  const modelos = V.vm ? uniq(COMPAT.filter(c => c.o === V.vm).map(c => c.d)).sort(num) : [];
+  const anios = V.vm && V.vd ? aniosDe(filasVeh(V.vm, V.vd)) : [];
+  const anioSel = !V.vd ? `<option value="">Elige una opción</option>` : anios.length ? opt(anios, V.va, 'Elige una opción') : `<option value="">Todos los años</option>`;
   let aviso = '';
   if (F.vm && F.vd) {
-    const g = [...new Set(filas.filter(c => !F.va || (Number(F.va) >= c.a && Number(F.va) <= c.b)).map(c => c.gr))];
-    aviso = g.length ? `<div class="reco">Para tu <b>${esc(F.vm)} ${esc(F.vd)}${F.va ? ' ' + esc(F.va) : ''}</b> sirven las baterías de grupo <b>${esc(g.join(' o '))}</b>. Confirma el grupo y la polaridad con tu batería actual antes de comprar.</div>` : `<div class="reco">No tenemos datos de ese año. Escríbenos por WhatsApp y te ayudamos.</div>`;
+    const n = F.va ? Number(F.va) : null;
+    const g = uniq(filasVeh(F.vm, F.vd).filter(c => n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999))).map(c => c.gr));
+    const que = `${esc(F.vm)} ${esc(F.vd)}${F.va ? ' ' + esc(F.va) : ''}`;
+    aviso = g.length ? `<div class="reco">Para tu <b>${que}</b> sirven las baterías <b>${esc(g.map(x => /^(GRUPO|PARA)\b/i.test(x) ? x : 'GRUPO ' + x).join(' o '))}</b>. Confirma el grupo y la polaridad con tu batería actual antes de comprar. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`
+      : `<div class="reco">No tenemos datos de tu <b>${que}</b>. Escríbenos por WhatsApp y te ayudamos. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`;
   }
-  return `<div class="grp"><h3>Busca por tu vehículo</h3><div class="row three">
-    <label class="sel"><span>Marca</span><select id="vm">${opt(marcas, F.vm, 'Elegir…')}</select></label>
-    <label class="sel"><span>Modelo</span><select id="vd" ${F.vm ? '' : 'disabled'}>${opt(modelos, F.vd, 'Elegir…')}</select></label>
-    <label class="sel"><span>Año</span><select id="va" ${anios.length ? '' : 'disabled'}>${opt(anios, F.va, 'Cualquier año')}</select></label></div>${aviso}</div>`;
+  return `<div class="grp veh">${tit}<div class="pasos">
+    <label class="sel"><span>Marca</span><select id="vm">${opt(marcas, V.vm, 'Elige una opción')}</select></label>
+    <label class="sel"><span>Modelo</span><select id="vd" ${V.vm ? '' : 'disabled'}>${opt(modelos, V.vd, 'Elige una opción')}</select></label>
+    <label class="sel"><span>Año</span><select id="va" ${anios.length ? '' : 'disabled'}>${anioSel}</select></label>
+    <button class="btn" id="vbus" ${vehListo() ? '' : 'disabled'}>Buscar ${ico}</button></div>${aviso}</div>`;
 }
-function reset() { F = {}; $('#q').value = ''; mostrar = PAGINA; paint(); }
+// WhatsApp de la barra: las tiendas de la ciudad elegida (Maracay tiene dos). Si la ciudad aún no tiene número, se ofrecen las que sí lo tienen.
+const waTiendas = () => { const ci = CIUDADES[ciudad()], todas = Object.keys(TIENDAS).filter(k => TIENDAS[k].wa), deCiudad = ci ? ci.tiendas.filter(k => TIENDAS[k].wa) : todas; return deCiudad.length ? deCiudad : todas; };
+const DIR = { t1: 'Av. Bolívar, diagonal al C.C. Global La Barraca', t2: 'Av. Bolívar Este, diagonal al C.C. Parque Aragua', c: 'Dos Caminos, Caracas' };
+document.addEventListener('click', e => {
+  const menu = $('#wamenu'), b = e.target.closest('#wa');
+  if (b) { const ks = waTiendas(); if (ks.length < 2) return; e.preventDefault();
+    menu.innerHTML = '<p>Escríbenos por WhatsApp</p>' + ks.map(k => `<a href="${wa('Hola, quiero consultar un producto', k)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg><span>${esc(TIENDAS[k].nombre)}<small>${esc(DIR[k] || '')}</small></span></a>`).join('');
+    menu.hidden = !menu.hidden; return; }
+  if (!e.target.closest('#wamenu')) menu.hidden = true;
+});
+function reset() { F = {}; V = {}; $('#q').value = ''; mostrar = PAGINA; paint(); }
 
 document.addEventListener('change', e => {
   if (e.target.id === 'frin') { F.rin = e.target.value; F.medida = ''; mostrar = PAGINA; paint(); }
   if (e.target.id === 'atipo') { F.atipo = e.target.value; F.tipo = ''; F.presentacion = ''; mostrar = PAGINA; paint(); }
   if (e.target.id === 'avis') { F.tipo = e.target.value; F.presentacion = ''; mostrar = PAGINA; paint(); }
   if (e.target.id === 'apres') { F.presentacion = e.target.value; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'bgrupo') { F.grupo = e.target.value; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'bmarca') { F.marca = e.target.value; mostrar = PAGINA; paint(); }
   if (e.target.id === 'fmed') { F.medida = e.target.value; mostrar = PAGINA; paint(); }
-  if (e.target.id === 'vm') { F.vm = e.target.value; F.vd = ''; F.va = ''; mostrar = PAGINA; paint(); }
-  if (e.target.id === 'vd') { F.vd = e.target.value; F.va = ''; mostrar = PAGINA; paint(); }
-  if (e.target.id === 'va') { F.va = e.target.value; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'vm') { V = { vm: e.target.value }; paint(); }
+  if (e.target.id === 'vd') { V.vd = e.target.value; V.va = ''; paint(); }
+  if (e.target.id === 'va') { V.va = e.target.value; paint(); }
 });
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-cat]'); if (t) { CAT = t.dataset.cat; F = {}; $('#q').value = ''; mostrar = PAGINA; return paint(); }
-  const mb = e.target.closest('[data-marca]'); if (mb) { F.marca = F.marca === mb.dataset.marca ? '' : mb.dataset.marca; mostrar = PAGINA; return paint(); }
+  const t = e.target.closest('[data-cat]'); if (t) { CAT = t.dataset.cat; F = {}; V = {}; $('#q').value = ''; mostrar = PAGINA; return paint(); }
+  const mb = e.target.closest('[data-marca]'); if (mb) { F.marca = F.marca === mb.dataset.marca ? '' : mb.dataset.marca; if (F.marca && mb.closest('#cinta') && !(DATA[CAT] || []).some(p => marcaDe(p).toLowerCase() === F.marca.toLowerCase() && nivel(p) > 0)) F.todos = true; mostrar = PAGINA; paint(); if (mb.closest('#cinta')) $('#count').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   const cb = e.target.closest('[data-combo]'); if (cb) { const v = cb.dataset.combo, activo = F.presentacion === v && !F.tipo && !F.atipo; F.atipo = ''; F.tipo = ''; F.presentacion = activo ? '' : v; mostrar = PAGINA; return paint(); }
   const c = e.target.closest('[data-k]'); if (c) { const k = c.dataset.k; F[k] = F[k] === c.dataset.v ? '' : c.dataset.v; mostrar = PAGINA; return paint(); }
+  if (e.target.id === 'vbus' && vehListo()) { F.vm = V.vm; F.vd = V.vd; F.va = V.va || ''; mostrar = PAGINA; paint(); document.getElementById('count').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (e.target.id === 'vquitar') { F.vm = F.vd = F.va = ''; V = {}; mostrar = PAGINA; return paint(); }
   if (e.target.id === 'qb') { F.q = $('#q').value; mostrar = PAGINA; return paint(); }
   if (e.target.id === 'clr') return reset();
   if (e.target.id === 'more') { mostrar += PAGINA; return paint(); }
@@ -430,6 +563,7 @@ async function tasas() {                              // Maracay usa la tasa eur
   const ci = P.get('ciudad') || guardada; if (CIUDADES[ci]) $('#ciudad').value = ci;       // la ciudad viene de la portada o de la última visita; la portada también enlaza con filtros: ?cat=cauchos&rin=18&medida=265/60R18
   if (CATS[P.get('cat')]) CAT = P.get('cat');
   for (const k of ['rin', 'medida', 'grupo', 'tipo', 'presentacion', 'marca', 'vm', 'vd', 'va']) if (P.get(k)) F[k] = P.get(k);
+  if (F.vm) V = { vm: F.vm, vd: F.vd, va: F.va };                   // un enlace con vm/vd/va llega con el vehículo ya buscado
   if (P.get('q')) { F.q = P.get('q'); $('#q').value = F.q; }
   $('#fecha').textContent = 'Lista actualizada: ' + new Date(j.actualizado + 'T12:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' });
   paint();

@@ -28,6 +28,19 @@ Sitio estático alojado en el Hostinger del cliente. No tiene servidor propio: l
 - En la portada, el panel de cauchos aparece **al elegir «Cauchos»**: primero el **rin**, luego una lista con **las medidas disponibles en ese rin y ciudad**, y una barra para escribir que **sugiere medidas reales** (ignora `/`, espacios y `R`; «175 65» ofrece 175/65R14). Si lo escrito no existe, lo dice.
 - En el catálogo las mismas dos casillas reemplazan a los botones de ancho/perfil/rin.
 
+### Baterías (catálogo de aplicaciones)
+Orden de la página (pedido del cliente, 30/10/2026):
+1. **Encontrar batería:** Marca → Modelo → Año del vehículo. Cada lista se activa al elegir la anterior y el botón **Buscar** solo se activa al final (como la página de Duncan). Si el vehículo no tiene años en la tabla, el año queda en «Todos los años». Sale de la tabla de compatibilidad (`compatibilidad` en `catalogo.json`); mientras esté vacía, el buscador se ve bloqueado con el aviso «Muy pronto».
+2. **¿Ya sabes qué batería usa tu vehículo?** Listas de **Grupo** y **Marca**. No hay búsqueda escrita en baterías: el cliente pidió quitarla para evitar que se elija solo por amperaje.
+3. Los **productos** consultados.
+4. **Cinta de marcas** al final: avanza sola de derecha a izquierda, con flechas « ». Baterías muestra todas las marcas; cauchos y aceites, las destacadas de `ORDEN` en `plantilla_catalogo.html`. Al tocar una marca sin existencia se muestran sus productos agotados.
+
+**Logos de la cinta:** `web/assets/marcas/<marca>.png` (minúsculas y guiones: `duncan.png`, `ac-delco.png`, `new-earth.png`, `pneus-pirelli.png`). Sin el archivo se ve el nombre en letras grandes. PNG con fondo transparente, que se lea sobre fondo oscuro, ~400 × 200 px.
+
+**WhatsApp de la barra:** en Maracay abre un menú con CM Maracay y Master Cauchos; en Caracas, su número cuando exista (`TIENDAS.c.wa` en el catálogo y `WA_T` en la portada); mientras falte, ofrece los de Maracay.
+
+**Listas desplegables:** en Chrome 135+ usan los colores del sitio (`appearance: base-select` en `demo-flujo/catalogo_plantilla.html`); los demás navegadores muestran su lista normal.
+
 ### Parámetros de la URL del catálogo
 `?ciudad=` `cat=` (`cauchos|baterias|aceites|bicicletas`) `q=` `rin=` `medida=` `grupo=` `tipo=` `presentacion=` `marca=` `vm=` `vd=` `va=` (vehículo para baterías).
 

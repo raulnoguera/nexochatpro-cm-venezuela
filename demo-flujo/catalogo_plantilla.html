@@ -118,6 +118,27 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 footer{background:var(--dark);color:#CFCFC8;border-top:3px solid var(--y);padding-block:22px;font-size:14px}
 footer b{color:#fff}
 @media(prefers-reduced-motion:reduce){.cat,.toast{transition:none}}
+
+/* menú de WhatsApp (Maracay tiene dos tiendas) */
+.bar{position:relative}
+.wamenu{position:absolute;right:0;top:calc(100% + 6px);z-index:60;min-width:250px;background:var(--surface);color:var(--ink);border:1.5px solid var(--y);border-radius:14px;padding:6px;box-shadow:var(--shadow)}
+.wamenu p{margin:4px 10px 6px;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.wamenu a{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--ink);text-decoration:none;font-weight:800;font-size:15px}
+.wamenu a small{display:block;color:var(--muted);font-weight:600;font-size:12.5px}
+.wamenu a svg{width:20px;height:20px;flex:none;color:var(--ok)}
+.wamenu a:hover,.wamenu a:focus-visible{background:var(--y);color:var(--y-ink)}.wamenu a:hover small,.wamenu a:hover svg{color:var(--y-ink)}
+/* listas desplegables con los colores del sitio (sin el azul del sistema) */
+@supports (appearance:base-select){
+select,::picker(select){appearance:base-select}
+select{display:flex;align-items:center;justify-content:space-between;gap:8px}
+select::picker-icon{color:var(--y)}
+::picker(select){background:var(--surface);border:1.5px solid var(--y);border-radius:12px;padding:6px;margin-block:6px;box-shadow:var(--shadow)}
+select option{padding:10px 12px;border-radius:8px;font-weight:700;color:var(--ink);background:transparent}
+select option:hover,select option:focus-visible{background:var(--y);color:var(--y-ink)}
+select option:checked{background:var(--dark2);color:var(--y)}
+select option:checked:hover{background:var(--y);color:var(--y-ink)}
+select option::checkmark{display:none}
+}
 </style>
 
 <header class="top">
