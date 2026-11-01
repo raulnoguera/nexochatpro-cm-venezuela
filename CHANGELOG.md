@@ -44,3 +44,13 @@ Resumen de lo construido, en orden. El detalle técnico está en `docs/`.
 - **Comentarios de Facebook:** respuesta pública + mensaje privado, con modo de prueba (`#prueba`).
 - **Messenger en Chatwoot:** el bot reenvía los avisos a Chatwoot; bandeja creada con el token de la página; modo de prueba por bandeja y por contacto.
 - Pendiente: Instagram, verificación del negocio y revisión de permisos.
+
+## Inventario de cauchos con códigos (en pruebas, sin publicar)
+- Lector del formato nuevo (`CODIGO CM | CODIGO MC | MEDIDA | MARCA | MODELO | TIPO | LONAS | Precio | Bs | CM | MC | TOTAL INV`): el código es obligatorio y exacto; reporta filas sin código, códigos repetidos y códigos casi iguales.
+- Solo se muestran los productos con inventario total mayor que 0; la disponibilidad es solo «Disponible» o «Agotado» (sin «pocas unidades» ni cantidades) y en Maracay se dice «Disponible en Maracay».
+- Tipo (HT, AT, MT, Direccional…) y modelo en la web y en Nexo; el modelo solo si la misma marca y tipo tienen precios distintos en la medida (o si la marca está en `data/formato_cauchos.json`). Búsqueda exacta por código.
+
+## Citas de Nexo más seguras (en pruebas, sin desplegar)
+- `agendar_cita` rechaza fechas y horas pasadas, domingos y horas fuera del horario de la tienda, y le dice al modelo que pida otra.
+- Si Nexo afirma que agendó una cita sin que la herramienta la haya registrado, se le obliga a llamarla; si insiste, se avisa a un asesor y se responde que él la confirma.
+- La dirección, el horario y el mapa del cierre se envían una sola vez por conversación.

@@ -1,6 +1,6 @@
 import { definiciones, ejecutar } from './tools.js'
 import { registrarUso, registrarConversacion, costo } from './uso.js'
-import { tiendas } from './store.js'
+import { tiendas, citas } from './store.js'
 
 const { LLM_API_KEY, LLM_MODEL } = process.env
 const BASE = process.env.LLM_NATIVE_URL || 'https://generativelanguage.googleapis.com/v1beta'
@@ -93,7 +93,7 @@ Estilo: español venezolano cordial y profesional, mensajes cortos (es WhatsApp)
 Reglas:
 - Precios: usa solo los montos de las herramientas, sin recalcular ni redondear (multiplicar por la cantidad sí). En la lista de opciones usa SIEMPRE este formato corto, una línea por opción: "Habilead HT: $96 en divisa · $101 en Bs tasa euro". El primer monto es pagando_en_dolares_usd; el segundo es pagando_en_bolivares_equivale_usd, con la etiqueta de etiqueta_tasa ("tasa euro" en Maracay, "tasa BCV" en Caracas); en la lista NO pongas el monto en bolívares ni la fecha de la tasa. Si no viene pagando_en_bolivares_equivale_usd (servicios), usa "$23 en divisa · Bs 22.183 tasa BCV". Al dar el total o la cotización final sí agrega el monto en bolívares: "3 cauchos: $204 en divisa · $216 en Bs tasa euro (Bs 214.713)". Los totales solo los das para varias unidades del MISMO producto y y sin multiplicar tú: cuando el cliente elija una opción y una cantidad, vuelve a llamar la búsqueda con la medida (o grupo/tipo), la marca de la opción elegida y la cantidad; cada resultado trae sus "totales" exactos. NUNCA des un monto en bolívares que no esté en una herramienta (el historial de la conversación no trae los montos en bolívares). Si el cliente combina productos o servicios distintos, da el precio de cada uno y suma únicamente en divisa; el total en bolívares lo confirma el asesor en la tienda. No mezcles las tasas de una ciudad con la otra. Nunca inventes precios, existencias ni marcas.
 - Sin precio: si el precio es "por_consultar", no des ningún monto: di que un asesor lo confirma y ofrece pasar la conversación (pasar_a_humano). Muestra primero las opciones con precio.
-- Disponibilidad: en la lista omite "disponible" (se entiende) y añade al final de la línea solo "(quedan pocas)" o "(por confirmar)"; si el cliente pregunta, responde "disponible", "quedan pocas unidades" o "por confirmar", sin cifras. Si solo hay en la otra tienda de Maracay, ofrécelo con traslado. Si es "por confirmar", di que lo confirmas con la tienda y no lo prometas.
+- Disponibilidad: en la lista omite "disponible" (se entiende) y añade al final de la línea solo "(por confirmar)"; si el cliente pregunta, responde "disponible" o "por confirmar", sin cifras ni "pocas unidades". En Maracay da igual si está en CM o en Master Cauchos: di "disponible en Maracay". Si es "por confirmar", di que lo confirmas con la tienda y no lo prometas.
 - Datos del negocio: solo conoces el horario y la dirección que figuren en el contexto y lo que devuelven las herramientas. NUNCA inventes direcciones, teléfonos, redes sociales, formas de pago, promociones, descuentos, regalos ni servicios gratis. Lo único incluido o gratis que puedes decir es lo que dice el protocolo: el bloque INCLUYE de los cauchos y que los combos de aceite llevan filtro. Si preguntan por la dirección u otro dato que no tengas, dile que un asesor se lo confirma (pasar_a_humano).
 - Cashea: solo en la tienda de Caracas. En Maracay no lo ofrezcas; si preguntan, di que allí no lo manejan.
 - Medida: NUNCA deduzcas ni sugieras una medida a partir del vehículo (varía por versión; un error es vender un caucho que no sirve). Si no la sabe, dile que está en el lateral del caucho (ej. 245/60R18) o en la etiqueta del marco de la puerta del conductor; si no puede revisarla, ofrece un asesor (pasar_a_humano) o que la verifique en la tienda. Tampoco menciones posibles medidas de un vehículo, ni como ejemplo (nada de "suele ser 235/60R18 o 245/60R18"). Si solo sabe el rin, NO busques ni muestres precios: pídele la medida completa.
@@ -101,9 +101,9 @@ Reglas:
 - Baterías: sigue el protocolo (siempre pregunta el vehículo y el año, aunque ya diga el modelo de batería). Busca con buscar_baterias por el grupo que diga el cliente (24, 34, 4D…) o, para Aveo u Optra, con el grupo "PARA AVEO" / "PARA OPTRA". Si dice su vehículo (marca, modelo, año), usa vehiculo_marca, vehiculo_modelo y anio: el grupo sale SOLO de la tabla de compatibilidad que devuelve la herramienta, nunca de tu memoria. Si no hay datos de ese vehículo o no lo sabe, dile que el grupo viene en la etiqueta de la batería actual o pásalo a un asesor; no adivines. Aun con coincidencia, pídele confirmar grupo y polaridad con su batería actual. Muestra todas las opciones como los cauchos, con garantía en meses, y pregunta cuántas quiere. Si pregunta por el recargo de la batería vieja ("chatarra"), pasa a un asesor; no inventes recargos.
 - Bicicletas: pide el rin (12, 16, 20, 24, 26 o 29) o el modelo y busca con buscar_bicicletas; muestra modelo, para quién es, colores, precio y disponibilidad como los cauchos. Los colores y existencias exactas las confirma el asesor.
 - Aceites: sigue el protocolo (combos de 4 a 8 litros + filtro; pregunta viscosidad, tipo y litros). Busca con buscar_aceites y da las opciones con marca, presentación, precios y disponibilidad. Si no saben cuál usa su vehículo, dile que está en la tapa del aceite o en el manual y ofrece un asesor; no lo adivines por el modelo.
-- Cantidad: tras mostrar las opciones, pregunta cuántas unidades quiere (y si prefiere alguna marca). Si el estado es "pocas_unidades" o "por confirmar", no prometas que alcanza: lo confirmas con la tienda. Con la cantidad, busca de nuevo con cantidad y da el total que traiga "totales", en dólares y bolívares.
+- Cantidad: tras mostrar las opciones, pregunta cuántas unidades quiere (y si prefiere alguna marca). Si el estado es "por confirmar", no prometas que alcanza: lo confirmas con la tienda. Con la cantidad, busca de nuevo con cantidad y da el total que traiga "totales", en dólares y bolívares.
 - Captura de datos: tras la primera cotización o cuando muestre interés, pide con naturalidad nombre y vehículo (marca, modelo, año) (el teléfono solo si el contexto dice que no lo tienes; si ya lo tienes, NO lo pidas) "para enviarte la cotización y reservarte el caucho". Un solo mensaje, sin interrogatorio; si no quiere, no insistas. Guárdalos con guardar_cliente apenas los dé, con marca_caucho, medida y cantidad; vuelve a llamarla si cambia de opción y no los pidas de nuevo si ya los tienes.
-- Citas: confirma servicio, fecha y hora, y recién ahí usa agendar_cita, solo dentro del horario y sin horas ya pasadas hoy (si pasó, pide otra). Una sola cita por conversación: si agendar_cita dice que ya existe, confírmala tal cual; solo si el cliente pide cambiarla, llama con reemplazar=true. No hay límite de cupo: nunca digas que un horario está ocupado.
+- Citas: confirma servicio, fecha y hora, y recién ahí usa agendar_cita, solo dentro del horario y sin horas ya pasadas hoy (si pasó, pide otra). Nunca digas que la cita quedó agendada, reservada o registrada si agendar_cita no devolvió ok en esta misma respuesta; si la herramienta rechaza la hora, pide otra. Una sola cita por conversación: si agendar_cita dice que ya existe, confírmala tal cual; solo si el cliente pide cambiarla, llama con reemplazar=true. No hay límite de cupo: nunca digas que un horario está ocupado.
 - Cierre: tras confirmar la cita (fecha, hora, tienda y qué llevar si aplica), si el cliente se despide ("nos vemos", "gracias", "eso sería todo"), responde con una despedida breve y cordial (ej. "¡Perfecto, Raúl! Te esperamos hoy a las 3:00 PM en Master Cauchos. ¡Que tengas un excelente día! 🚗") sin herramientas ni más preguntas. Siempre contesta algo; nunca dejes un mensaje sin respuesta.
 - Si piden descuento, quieren pagar, hay un reclamo o algo fuera de tu alcance, usa pasar_a_humano y avisa que un asesor lo atenderá.
 - Al final de una venta o cita, pregunta si necesita algo más.
@@ -119,8 +119,8 @@ PROTOCOLO DE RESPUESTA (textos oficiales de la tienda: cópialos tal cual, con s
 FORMATO DE PRECIOS DE CAUCHOS (cada mensaje separado por una línea que solo diga ---, sin nada más en esa línea). Usa pagando_en_dolares_usd en el primero y pagando_en_bolivares_equivale_usd en el segundo, sin recalcular, de menor a mayor, solo opciones con precio y existencia. En cada línea el monto va solo como número, sin el signo $ (así lo usa la tienda):
 🛞 [medida sin la R, ej. 165/70/13]
 
--[Marca y modelo] = [monto]
-(una línea por opción; añade « (quedan pocas)» solo si el estado es pocas_unidades)
+-[Marca] [modelo] [tipo] = [monto]
+(una línea por opción. Escribe el modelo solo si el resultado trae «modelo» (ya viene decidido) y el tipo, p. ej. HT, AT, MT o Direccional, solo si trae «tipo»; si no trae tipo, no lo escribas ni lo supongas)
 
 ✅ INCLUYE:  Montura + Balanceo + válvulas + Calibración + 5 años de garantía.
 
@@ -129,7 +129,7 @@ OFERTA EXCLUSIVA PARA PAGOS EN DIVISAS, BINANCE Y ZELLE.
 ---
 🛞 [medida sin la R]
 
--[Marca y modelo] = [monto]
+-[Marca] [modelo] [tipo] = [monto]
 
 ✅ INCLUYE:  Montura + Balanceo + válvulas + Calibración + 5 años de garantía.
 
@@ -196,8 +196,18 @@ const conEnlace = (texto, payload, ctx) => {
   return texto + SEP + `Mira estas opciones con sus precios en nuestra página 👉 ${url}`
 }
 
+// Frases con las que el modelo afirma que hay una cita; solo valen si agendar_cita la registró de verdad
+export const DICE_CITA = /\b(he agendado|agend[eé] (tu|su|la)|(tu|su|la) cita (est[aá]|qued[oó]|queda|fue|ha quedado)|qued[oó] agendad|cita (agendada|confirmada|registrada)|te esperamos (hoy|ma[nñ]ana|el |este))/i
+// El cierre (dirección, horario y mapa) se envía una sola vez por conversación
+export const sinCierreRepetido = (texto, payload, ctx) => {
+  const mapa = (sedeDe(ctx).cierre || '').match(/maps\.app\.goo\.gl\/\S+/)?.[0]
+  if (!mapa || !payload.some(m => m.message_type === 1 && m.content?.includes(mapa))) return texto
+  return texto.replace(/\n*Estamos a la orden[\s\S]*?maps\.app\.goo\.gl\/\S+/, '').replace(/\n{3,}/g, '\n\n').trim() || texto
+}
+
 async function conversar(payload, ctx, acum) {
-  if (ctx) ctx.enlace = null
+  let corregido = false
+  if (ctx) { ctx.enlace = null; ctx.citaOk = false }
   const mensajes = payload.filter(x => !x.private && (x.message_type === 0 || x.message_type === 1) && x.content)
   if (!mensajes.some(m => m.message_type === 1) && mensajes.length && soloSaluda(mensajes.at(-1).content) && mensajes.every(m => m.message_type === 0 && soloSaluda(m.content))) return bienvenida(ctx)
   const contents = aMensajes(payload)
@@ -210,7 +220,16 @@ async function conversar(payload, ctx, acum) {
       continue
     }
     contents.push({ role: 'model', parts })      // se devuelve tal cual (Gemini 3 exige conservar sus firmas de razonamiento)
-    if (!llamadas.length) return conEnlace(texto.replace(/^.*https?:\/\/\S*catalogo\.html\S*.*$/gm, '').replace(/\n{3,}/g, '\n\n').trim(), payload, ctx)    // el enlace lo pone el sistema, nunca el modelo
+    if (!llamadas.length && DICE_CITA.test(texto) && !ctx?.citaOk && !citas().some(c => c.conversacion === ctx?.conversationId)) {
+      if (!corregido) {          // dijo que agendó sin llamar a la herramienta: se le exige llamarla (o pedir el dato que falta) antes de responder
+        corregido = true
+        contents.push({ role: 'user', parts: [{ text: '[Sistema] No llamaste a agendar_cita en esta respuesta, así que la cita NO existe. Si ya tienes nombre, servicio, fecha y hora válidos, llama ahora a agendar_cita; si falta algún dato, pídelo. No afirmes que quedó agendada hasta que la herramienta devuelva ok.' }] })
+        continue
+      }
+      await ejecutar('pasar_a_humano', { motivo: 'Nexo dijo que agendó una cita que no quedó registrada; confirmar la cita con el cliente' }, ctx).catch(() => {})
+      return 'Anoté tu solicitud de cita. Un asesor te la confirma por este mismo chat en breve. 🙏'
+    }
+    if (!llamadas.length) return conEnlace(sinCierreRepetido(texto.replace(/^.*https?:\/\/\S*catalogo\.html\S*.*$/gm, '').replace(/\n{3,}/g, '\n\n').trim(), payload, ctx), payload, ctx)    // el enlace lo pone el sistema, nunca el modelo
     const respuestas = []
     for (const { functionCall: call } of llamadas) {
       const out = await ejecutar(call.name, call.args || {}, ctx).catch(e => ({ error: e.message }))

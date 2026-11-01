@@ -17,6 +17,12 @@
 | Aclarar el **punto 9** del protocolo: si preguntan la dirección al inicio, ¿se envía solo «Estamos a la orden 🙌» y la dirección al final? | Hoy Nexo envía el cierre completo si solo preguntan eso |
 | Si agregan a la bienvenida que atiende **Nexo, asistente virtual** | Hoy solo lo aclara si le preguntan |
 | Textos de cierre de **Master Cauchos y CM Caracas** (hoy usan el mismo formato de CM Maracay) | Despedida con dirección, horario y mapa |
+| **Inventario de cauchos (formato nuevo)**: llenar **CODIGO CM / CODIGO MC** (obligatorio, exacto como en el sistema de cada tienda) y las columnas **CM / MC** (TOTAL INV es la suma); mientras estén vacías no se publica | Sin código el producto no existe; con total 0 no se muestra |
+| Marcas que **siempre llevan el modelo** en la lista de precios (ej. Sportrak, Maxtrek) | Se guardan en `bot/data/formato_cauchos.json` (hoy vacío) |
+| Mismo formato de inventario (códigos, CM, MC, total) para **baterías y aceites**, y el de **Caracas** | Hoy solo cauchos de Maracay |
+| Tabla de **compatibilidad por marca de batería** (columnas Duncan, Titan, Fulgor…), con **posición** y **amperaje mínimo**; aclarar `N40` / `N40R` y celdas con dos grupos (`36, 42`) | Baterías: grupo + posición del positivo + amperaje; celda vacía = sin dato |
+| ¿Pueden exportar de cada sistema un archivo con código y cantidad para cruzar el inventario? | Llena CM y MC automáticamente |
+| Estado de la **API** con Alejandro para el inventario | Pendiente de Raúl |
 
 ## Técnicos
 

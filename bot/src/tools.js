@@ -1,5 +1,7 @@
+import fs from 'node:fs'
+import path from 'node:path'
 import { inventario, baterias, aceites, bicicletas, compatibilidad, servicios, addCita, updateCita, citas, tiendas } from './store.js'
-import { precio, disponibilidad, nombreTienda } from './precios.js'
+import { precio, disponibilidad, nombreTienda, horarioDe, ahoraCaracas } from './precios.js'
 import * as cw from './chatwoot.js'
 import { gruposDe } from './lista.js'
 
@@ -24,6 +26,7 @@ export const definiciones = [
         medida: { type: 'string', description: 'Medida como 195/65R15. Opcional si se da rin.' },
         rin: { type: 'integer', description: 'Rin en pulgadas, ej. 15' },
         marca: { type: 'string' },
+        codigo: { type: 'string', description: 'Código exacto del producto (CM o Master Cauchos), si el cliente o el asesor lo da.' },
       },
     },
   },
@@ -110,6 +113,21 @@ export const definiciones = [
   },
 ]
 
+// Formato de la lista de cauchos: en una medida, la misma marca y tipo con el mismo precio sale una sola vez, sin modelo;
+// con precios distintos cada una lleva su modelo. Las marcas de data/formato_cauchos.json siempre llevan el modelo.
+const siempreModelo = () => { try { return JSON.parse(fs.readFileSync(path.resolve('data', 'formato_cauchos.json'), 'utf8')).marcas_con_modelo.map(norm) } catch { return [] } }
+const grupoKey = x => [x.medida, x.marca, x.tipo ?? ''].map(norm).join('|')
+const agrupaModelos = r => {
+  const fijas = siempreModelo(), por = new Map(), usados = new Set()
+  for (const x of r) por.set(grupoKey(x), [...(por.get(grupoKey(x)) || []), x])
+  return r.filter(x => {
+    if (fijas.includes(norm(x.marca))) return true
+    const g = por.get(grupoKey(x)), k = grupoKey(x) + '|' + x.usd + '|' + x.usd_bs
+    x.modelo_oculto = new Set(g.map(y => y.usd + '|' + y.usd_bs)).size === 1          // un solo precio en el grupo: sin modelo
+    return !usados.has(k) && usados.add(k)                                           // una línea por precio distinto
+  })
+}
+const modeloVisible = (x, input) => Boolean(input.codigo) || !x.modelo_oculto
 // Productos sin precio en la lista: no se inventa ningún monto; Nexo debe decir que un asesor lo confirma
 const sinPrecio = x => (x.usd > 0 ? 0 : 1)
 const precioONada = async (x, tienda) => (x.usd > 0 ? precio(x.usd, tienda, x.usd_bs) : { precio: 'por_consultar', instruccion: 'No hay precio publicado: dile al cliente que un asesor le confirma el precio; no des ningún monto.' })
@@ -121,6 +139,17 @@ const conTotales = (resultados, cantidad) => {
   if (!(q > 1)) return
   const por = v => Math.round(v * q * 100) / 100
   for (const r of resultados) if (r.pagando_en_dolares_usd !== undefined) r.totales = { cantidad: q, pagando_en_dolares_usd: por(r.pagando_en_dolares_usd), ...(r.pagando_en_bolivares_equivale_usd && { pagando_en_bolivares_equivale_usd: por(r.pagando_en_bolivares_equivale_usd) }), pagando_en_bolivares_bs: por(r.pagando_en_bolivares_bs) }
+}
+// La cita debe tener fecha y hora válidas, no estar en el pasado y caer dentro del horario de la tienda (el modelo no lo cumplía solo)
+const aMin = h => { const m = String(h).match(/^(\d{1,2}):(\d{2})$/); return m ? +m[1] * 60 + +m[2] : null }
+function revisarHorario({ fecha, hora }, tienda, ctx) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(fecha)) || aMin(hora) === null) return 'La fecha debe ser YYYY-MM-DD y la hora HH:MM en 24 h. Corrígelas y vuelve a llamar.'
+  const hoy = ahoraCaracas()
+  if (`${fecha} ${String(hora).padStart(5, '0')}` < hoy) return `Esa fecha y hora ya pasaron (ahora son las ${hoy.slice(11)} del ${hoy.slice(0, 10)}). Pídele al cliente otra hora y no digas que quedó agendada.`
+  const h = tienda && horarioDe(tienda, ctx?.marca)
+  if (new Date(`${fecha}T12:00:00-04:00`).getDay() === 0) return 'Los domingos la tienda está cerrada. Ofrece otro día de lunes a sábado y no digas que quedó agendada.'
+  if (h && (aMin(hora) < h.desde || aMin(hora) > h.hasta)) return `Esa hora está fuera del horario de la tienda (${h.texto}). Ofrécele una hora dentro del horario y no digas que quedó agendada.`
+  return null
 }
 const FALTA_TIENDA = { error: 'tienda_desconocida', instruccion: 'Pregunta al cliente si comprará en Maracay o en Caracas y vuelve a llamar la herramienta con la ciudad.' }
 
@@ -135,11 +164,13 @@ export async function ejecutar(nombre, input, ctx) {
     if (input.medida) r = r.filter(x => norm(x.medida).includes(norm(input.medida)))
     if (input.rin) r = r.filter(x => x.rin === input.rin)
     if (input.marca) r = r.filter(x => x.marca.toLowerCase().includes(input.marca.toLowerCase()))
+    if (input.codigo) { const k = String(input.codigo).trim(); r = r.filter(x => x.codigo_cm === k || x.codigo_mc === k) }     // código exacto, sin tolerancia
+    else r = agrupaModelos(r)
     const t = (await import('./store.js')).tiendas()[tienda]
     const resultados = []
     const orden = { disponible: 0, pocas_unidades: 0, por_confirmar: 1, agotado: 2 }
     const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x) - sinPrecio(b.x) || a.x.usd - b.x.usd)
-    for (const { x, d } of todos.slice(0, MAX_CAUCHOS)) resultados.push({ marca: [x.marca, x.modelo].filter(Boolean).join(' '), medida: x.medida, ...(x.detalle && { presentacion: x.detalle }), ...(x.nota && { nota: x.nota }), ...(await precioONada(x, tienda)), disponibilidad: d })
+    for (const { x, d } of todos.slice(0, MAX_CAUCHOS)) resultados.push({ marca: x.marca, ...(x.modelo && modeloVisible(x, input) && { modelo: x.modelo }), ...(x.tipo && { tipo: x.tipo }), medida: x.medida, ...(x.detalle && { presentacion: x.detalle }), ...(x.nota && { nota: x.nota }), ...(await precioONada(x, tienda)), disponibilidad: d })
     conTotales(resultados, input.cantidad)
     if (resultados.some(x => x.pagando_en_dolares_usd)) { const med = unico(r.map(x => ({ m: x.medida })), 'm'), rin = unico(r.map(x => ({ r: x.rin })), 'r'); ctx.enlace = enlaceWeb('cauchos', { ...(med && { medida: med }), ...(rin && { rin }) }, tienda) }
     return { tienda: nombreTienda(tienda), acepta_cashea: t.cashea, etiqueta_tasa: t.etiqueta_tasa, ...agrupaTasa(resultados), total_coincidencias: r.length, resultados, nota: !r.length ? 'Sin coincidencias en inventario' : r.length > MAX_CAUCHOS ? `Se muestran ${MAX_CAUCHOS} de ${r.length}; pide medida o marca para afinar` : undefined }
@@ -204,6 +235,8 @@ export async function ejecutar(nombre, input, ctx) {
     return { ok: true }
   }
   if (nombre === 'agendar_cita') {
+    const malaHora = revisarHorario(input, tienda, ctx)
+    if (malaHora) return { ok: false, error: malaHora }
     const propia = citas().find(c => c.conversacion === ctx.conversationId)
     if (propia && !input.reemplazar) return { ok: false, error: `Esta conversación ya tiene la cita #${propia.id} (${propia.fecha} ${propia.hora}). No agendes otra: confírmala al cliente. Si quiere cambiarla, vuelve a llamar con reemplazar=true.` }
     const { reemplazar, ...datos } = input
@@ -212,6 +245,7 @@ export async function ejecutar(nombre, input, ctx) {
     await cw.addLabels(ctx.conversationId, ['cita-agendada']).catch(() => {})
     if (ctx.contactId) await cw.updateContact(ctx.contactId, { custom_attributes: { proxima_cita: `${input.fecha} ${input.hora} · ${nombreTienda(tienda) || ''}` } }).catch(() => {})
     await cw.sendMessage(ctx.conversationId, `📅 Cita #${cita.id}${propia ? ' (reprogramada)' : ''}: ${input.nombre} · ${input.servicio} · ${input.fecha} ${input.hora}${tienda ? ' · ' + nombreTienda(tienda) : ''}`, true).catch(() => {})
+    ctx.citaOk = true                                   // agent.js solo deja afirmar «cita agendada» si esto es verdad
     return { ok: true, cita }
   }
   if (nombre === 'pasar_a_humano') {

@@ -24,9 +24,18 @@ export function disponibilidad(stock, tienda) {
   const sedes = Object.keys(t.sedes)
   if (!sedes.some(s => stock?.[s] !== undefined)) return { estado: 'por_confirmar', detalle: 'Sin datos de existencia para esta ciudad; confirmar con la tienda' }
   const hay = sedes.filter(s => (stock?.[s] ?? 0) > 0)
-  const total = hay.reduce((a, s) => a + stock[s], 0)
   const negativo = sedes.some(s => (stock?.[s] ?? 0) < 0)
   if (!hay.length) return { estado: negativo ? 'por_confirmar' : 'agotado', detalle: negativo ? 'Puede haber mercancía en traslado; confirmar con la tienda' : 'Sin existencia en esta ciudad' }
-  const donde = hay.length === sedes.length ? (sedes.length > 1 ? `ambas tiendas de ${t.nombre}` : t.sedes[hay[0]]) : t.sedes[hay[0]]
-  return { estado: total <= 3 ? 'pocas_unidades' : 'disponible', detalle: `Disponible en ${donde}` + (hay.length < sedes.length ? '; la otra tienda lo puede trasladar' : '') }
+  const donde = sedes.length > 1 ? t.nombre : t.sedes[hay[0]]                     // en Maracay da igual si está en CM o en Master Cauchos
+  return { estado: 'disponible', detalle: `Disponible en ${donde}` }
 }
+
+// Horario de atención de la sede (de data/tiendas.json: «lunes a sábado de 8:00 a 17:30»). Master Cauchos es tienda_2 en Maracay.
+export function horarioDe(tienda, marca = '') {
+  const t = tiendas()[tienda]; if (!t) return null
+  const claves = Object.keys(t.horarios || {}), sede = /master/i.test(marca) && claves.includes('tienda_2') ? 'tienda_2' : claves[0]
+  const m = String(t.horarios?.[sede] || '').match(/(\d{1,2}):(\d{2})\s*a\s*(\d{1,2}):(\d{2})/)
+  return m ? { texto: t.horarios[sede], desde: +m[1] * 60 + +m[2], hasta: +m[3] * 60 + +m[4] } : null
+}
+// Fecha y hora actuales de Venezuela como «YYYY-MM-DD HH:MM»
+export const ahoraCaracas = () => new Date().toLocaleString('sv-SE', { timeZone: 'America/Caracas' }).slice(0, 16)

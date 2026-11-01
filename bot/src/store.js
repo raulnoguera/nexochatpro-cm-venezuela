@@ -5,7 +5,10 @@ const dir = path.resolve('data')
 const read = f => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8'))
 const citasFile = path.join(dir, 'citas.json')
 
-export const inventario = () => read('inventario.json')
+// Producto con código CM/MC (formato nuevo del inventario): solo existe si la suma de las dos tiendas es mayor que 0. Los productos sin código (lista anterior) siguen como estaban.
+export const conCodigo = i => Boolean(i.codigo_cm || i.codigo_mc)
+export const visible = i => !conCodigo(i) || (i.stock?.tienda_1 ?? 0) + (i.stock?.tienda_2 ?? 0) > 0
+export const inventario = () => read('inventario.json').filter(visible)
 export const baterias = () => (fs.existsSync(path.join(dir, 'baterias.json')) ? read('baterias.json') : [])
 export const bicicletas = () => (fs.existsSync(path.join(dir, 'bicicletas.json')) ? read('bicicletas.json') : [])
 export const aceites = () => (fs.existsSync(path.join(dir, 'aceites.json')) ? read('aceites.json') : [])

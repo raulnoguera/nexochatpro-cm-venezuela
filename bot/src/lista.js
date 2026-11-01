@@ -7,6 +7,7 @@ import crypto from 'node:crypto'
 import express from 'express'
 import ExcelJS from 'exceljs'
 import { usoPorDia, usoPorConversacion } from './uso.js'
+import { visible, conCodigo } from './store.js'
 
 const dir = path.resolve('data')
 const carpetaImg = path.join(dir, 'imagenes')
@@ -20,7 +21,7 @@ const celda = v => {
 const txt = v => String(celda(v) ?? '').replace(/\s+/g, ' ').trim()
 const norm = s => String(s).toUpperCase().replace(/[^A-Z0-9]/g, '')
 const sinEmoji = s => s.replace(/^[^\p{L}\p{N}]+/u, '').trim()
-const nivel = q => (q <= 0 ? 0 : q <= 2 ? 1 : 2)             // 0 agotado · 1 pocas unidades · 2 disponible
+const nivel = q => (q <= 0 ? 0 : 2)                           // 0 agotado · 2 disponible (nunca se muestran cantidades)
 const entero = v => Math.max(0, Math.floor(Number(v) || 0))
 
 // ---------- lectura de cada hoja del Excel ----------
@@ -42,7 +43,38 @@ const stockDe = (cm, mc, k) => {
 }
 const unicos = () => { const vistos = {}; return base => { vistos[base] = (vistos[base] || 0) + 1; return `${base}-${vistos[base]}` } }
 
+// Inventario de cauchos, formato nuevo: CODIGO CM | CODIGO MC | MEDIDA | MARCA | MODELO | TIPO | LONAS | Precio | Bs | CM | MC | TOTAL INV
+// El código es obligatorio (sin código el producto no existe) y se guarda tal cual, sin corregir mayúsculas ni espacios.
+const codigo = v => String(celda(v) ?? '').trim()
+function filasCauchosNuevo(ws) {
+  const items = [], omitidas = [], vistos = new Map()
+  ws.eachRow((row, n) => {
+    if (n === 1) return
+    const c = i => celda(row.getCell(i).value)
+    const cm = codigo(c(1)), mc = codigo(c(2)), med = txt(c(3)), marca = txt(c(4))
+    if (!med && !marca && !cm && !mc) return                                           // fila separadora
+    if (!cm && !mc) { omitidas.push(`Fila ${n}: ${med} ${marca} (sin código CM ni MC, no se publica)`); return }
+    if (!med || !marca) { omitidas.push(`Fila ${n}: código ${cm || mc} sin medida o marca`); return }
+    for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc].filter(Boolean)) {
+      if (vistos.has(k)) { omitidas.push(`Fila ${n}: código ${k.slice(3)} repetido (ya está en la fila ${vistos.get(k)}), no se carga`); return }
+    }
+    const [medida, rin] = medidaYRin(med), precio = Number(c(8)) > 0 ? Number(c(8)) : 0
+    const bs = Number(c(9)), qcm = entero(c(10)), qmc = entero(c(11))
+    const item = { sku: cm ? 'CM-' + cm : 'MC-' + mc, marca, modelo: txt(c(5)), tipo: txt(c(6)), medida, rin, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock: { tienda_1: qcm, tienda_2: qmc } }
+    if (cm) item.codigo_cm = cm
+    if (mc) item.codigo_mc = mc
+    if (med !== medida) item.detalle = med
+    for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc].filter(Boolean)) vistos.set(k, n)
+    items.push(item)
+  })
+  const parecidos = new Map()                                                          // códigos que solo se diferencian en espacios o mayúsculas: se avisa, no se unen
+  for (const i of items) for (const k of [i.codigo_cm && 'CM' + norm(i.codigo_cm), i.codigo_mc && 'MC' + norm(i.codigo_mc)].filter(Boolean)) parecidos.set(k, [...(parecidos.get(k) || []), i.codigo_cm || i.codigo_mc])
+  for (const l of parecidos.values()) if (l.length > 1) omitidas.push(`Aviso (sí se cargaron): los códigos «${l.join('», «')}» solo se diferencian en espacios o mayúsculas; revisa que sean productos distintos`)
+  return { items, omitidas }
+}
+
 function filasCauchos(ws) {
+  if (/^C[OÓ]DIGO\s*CM$/i.test(txt(ws.getRow(1).getCell(1).value))) return filasCauchosNuevo(ws)
   const items = [], omitidas = [], sku = unicos()
   ws.eachRow((row, n) => {
     if (n === 1) return
@@ -162,12 +194,12 @@ export const CATS = {
   cauchos: {
     archivo: 'inventario.json', hoja: 'CAUCHOS', leer: filasCauchos,
     nombre: i => `${i.marca} ${i.medida}`,
-    web: i => ({ ...comun(i), z: i.medida, r: i.rin }),
+    web: i => ({ ...comun(i), z: i.medida, r: i.rin, ...(i.modelo && { mo: i.modelo }), ...(i.tipo && { ti: i.tipo }) }),
     orden: (a, b) => (a.r ?? 0) - (b.r ?? 0) || a.z.localeCompare(b.z) || a.u - b.u,
     campos: b => {
       const medida = String(b.medida ?? '').trim()
       if (!medida || medida.length > 30) throw new Error('Escribe la medida, por ejemplo 265/60R18.')
-      return { medida, rin: b.rin === '' || b.rin == null ? medidaYRin(medida)[1] : Number(b.rin), modelo: '' }
+      return { medida, rin: b.rin === '' || b.rin == null ? medidaYRin(medida)[1] : Number(b.rin) }
     },
     vista: i => ({ medida: i.medida, rin: i.rin }),
   },
@@ -239,7 +271,7 @@ const escribir = (nombre, datos) => { const f = path.join(dir, nombre); fs.write
 
 export const aCatalogo = todo => {
   const salida = { actualizado: new Date().toLocaleDateString('en-CA', { timeZone: 'America/Caracas' }) }
-  for (const [cat, c] of Object.entries(CATS)) salida[cat] = (todo[cat] ?? leer(cat)).map(c.web).sort(c.orden)
+  for (const [cat, c] of Object.entries(CATS)) salida[cat] = (todo[cat] ?? leer(cat)).filter(visible).map(c.web).sort(c.orden)
   salida.items = salida.cauchos                                            // compatibilidad con la primera versión de la web
   return salida
 }
@@ -258,7 +290,7 @@ export async function leerExcel(buffer) {
   const wb = new ExcelJS.Workbook()
   try { await wb.xlsx.load(buffer) } catch { throw new Error('No se pudo leer el archivo. Debe ser un Excel .xlsx.') }
   const out = {}
-  for (const [cat, c] of Object.entries(CATS)) { const ws = wb.getWorksheet(c.hoja); if (ws) out[cat] = c.leer(ws) }
+  for (const [cat, c] of Object.entries(CATS)) { const ws = wb.getWorksheet(c.hoja) || (cat === 'cauchos' ? wb.worksheets.find(w => /caucho/i.test(w.name)) : null); if (ws) out[cat] = c.leer(ws) }
   if (!Object.values(out).some(r => r.items.length)) throw new Error('No se encontró ningún producto con precio. Sube la lista «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES.')
   return out
 }
@@ -294,7 +326,7 @@ function validar(cat, b, previo = {}) {
   item.etiqueta = String(b.etiqueta ?? '').trim().slice(0, 60)
   return item
 }
-const vista = (cat, i) => CATS[cat].vistaCompleta?.(i) ?? ({ sku: i.sku, marca: i.marca, usd: i.usd, usd_bs: i.usd_bs, cm: i.stock.tienda_1, mc: i.stock.tienda_2, etiqueta: extra(i), imagen: i.imagen || null, manual: i.sku.startsWith('MAN-'), ...CATS[cat].vista(i) })
+const vista = (cat, i) => CATS[cat].vistaCompleta?.(i) ?? ({ sku: i.sku, marca: i.marca, ...(conCodigo(i) && { codigo_cm: i.codigo_cm ?? '', codigo_mc: i.codigo_mc ?? '' }), usd: i.usd, usd_bs: i.usd_bs, cm: i.stock.tienda_1, mc: i.stock.tienda_2, etiqueta: extra(i), imagen: i.imagen || null, manual: i.sku.startsWith('MAN-'), ...CATS[cat].vista(i) })
 
 const TIPOS = [[[0xff, 0xd8, 0xff], 'jpg'], [[0x89, 0x50, 0x4e, 0x47], 'png'], [[0x52, 0x49, 0x46, 0x46], 'webp']]
 const extension = b => TIPOS.find(([m]) => m.every((x, i) => b[i] === x))?.[1]
