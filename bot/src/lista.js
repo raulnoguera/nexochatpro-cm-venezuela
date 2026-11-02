@@ -61,7 +61,8 @@ function filasCauchosNuevo(ws) {
     }
     const [medida, rin] = medidaYRin(med), precio = Number(c(8)) > 0 ? Number(c(8)) : 0
     const bs = Number(c(9)), qcm = entero(c(10)), qmc = entero(c(11))
-    const item = { sku: cm ? 'CM-' + cm : 'MC-' + mc, marca, modelo: txt(c(5)), tipo: txt(c(6)), medida, rin, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock: { tienda_1: qcm, tienda_2: qmc } }
+    const lonas = Number((txt(c(7)).match(/\d+/) || [])[0])
+    const item = { sku: cm ? 'CM-' + cm : 'MC-' + mc, marca, modelo: txt(c(5)), tipo: txt(c(6)), ...(lonas > 0 && { lonas }), medida, rin, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock: { tienda_1: qcm, tienda_2: qmc } }
     if (cm) item.codigo_cm = cm
     if (mc) item.codigo_mc = mc
     if (med !== medida) item.detalle = med
@@ -182,27 +183,59 @@ function filasCompat(ws) {
   return { items, omitidas }
 }
 
+// Especificaciones: en el panel se escriben una por línea («Índice de carga: 91»); se guardan como [{ k, v }] y la web las muestra en ese orden
+const especDeTexto = t => {
+  const l = String(t ?? '').split('\n').map(x => x.trim()).filter(Boolean)
+  if (l.length > 12) throw new Error('Máximo 12 especificaciones por producto.')
+  return l.map(x => {
+    const i = x.indexOf(':'), k = x.slice(0, i).trim(), v = x.slice(i + 1).trim()
+    if (i < 1 || !k || !v) throw new Error(`Escribe cada especificación como «Nombre: valor» (revisa «${x.slice(0, 40)}»).`)
+    if (k.length > 40 || v.length > 60) throw new Error(`La especificación «${k.slice(0, 20)}» es muy larga.`)
+    return { k, v }
+  })
+}
+const especATexto = e => (e || []).map(x => `${x.k}: ${x.v}`).join('\n')
+
+// ---------- ajustes de la web (los edita el cliente en el panel; la web los lee desde catalogo.json) ----------
+const AJUSTES_BASE = { servicios_compra: [], combo_detalle: '', mostrar_pendientes: true }
+export const leerAjustes = () => {
+  try { return { ...AJUSTES_BASE, ...JSON.parse(fs.readFileSync(path.join(dir, 'ajustes_web.json'), 'utf8')) } } catch { return { ...AJUSTES_BASE } }
+}
+export function validarAjustes(b) {
+  const servicios = (Array.isArray(b.servicios_compra) ? b.servicios_compra : String(b.servicios_compra ?? '').split('\n')).map(x => String(x).trim()).filter(Boolean)
+  if (servicios.length > 12) throw new Error('Máximo 12 servicios.')
+  if (servicios.some(x => x.length > 60)) throw new Error('Cada servicio debe tener máximo 60 letras.')
+  const combo = String(b.combo_detalle ?? '').trim()
+  if (combo.length > 80) throw new Error('El detalle del filtro debe tener máximo 80 letras.')
+  return { servicios_compra: servicios, combo_detalle: combo, mostrar_pendientes: b.mostrar_pendientes !== false && b.mostrar_pendientes !== 'false' }
+}
+
 const extra = i => {
   if ('etiqueta' in i) return i.etiqueta                                   // texto escrito a mano en el panel
   const t = [...(i.detalle || '').matchAll(/\(([^)]*)\)|\b(CON SET|SIN SET)\b/g)].map(m => m[1] || m[2])
   if ((i.nota || '').startsWith('Diseño')) t.push(i.nota)
   return t.map(x => (x === x.toUpperCase() ? x[0] + x.slice(1).toLowerCase() : x)).join(' · ')
 }
-const comun = i => ({ m: i.marca, u: i.usd, b: i.usd_bs, t1: nivel(i.stock.tienda_1), t2: nivel(i.stock.tienda_2), x: extra(i), ...(i.imagen && { i: `${PUBLICO}/img/${i.imagen}` }) })
+const comun = i => ({ m: i.marca, u: i.usd, b: i.usd_bs, t1: nivel(i.stock.tienda_1), t2: nivel(i.stock.tienda_2), ...(i.stock.caracas != null && { c: nivel(i.stock.caracas) }), x: extra(i), ...(i.imagen && { i: `${PUBLICO}/img/${i.imagen}` }) })
 
 // Cada categoría: archivo, hoja del Excel, cómo se lee, cómo se muestra y qué campos tiene el formulario
 export const CATS = {
   cauchos: {
     archivo: 'inventario.json', hoja: 'CAUCHOS', leer: filasCauchos,
     nombre: i => `${i.marca} ${i.medida}`,
-    web: i => ({ ...comun(i), z: i.medida, r: i.rin, ...(i.modelo && { mo: i.modelo }), ...(i.tipo && { ti: i.tipo }) }),
+    web: i => ({ ...comun(i), z: i.medida, r: i.rin, ...(i.modelo && { mo: i.modelo }), ...(i.tipo && { ti: i.tipo }), ...(i.lonas && { lo: i.lonas }), ...(i.espec?.length && { e: Object.fromEntries(i.espec.map(x => [x.k, x.v])) }) }),
     orden: (a, b) => (a.r ?? 0) - (b.r ?? 0) || a.z.localeCompare(b.z) || a.u - b.u,
     campos: b => {
       const medida = String(b.medida ?? '').trim()
       if (!medida || medida.length > 30) throw new Error('Escribe la medida, por ejemplo 265/60R18.')
-      return { medida, rin: b.rin === '' || b.rin == null ? medidaYRin(medida)[1] : Number(b.rin) }
+      const modelo = String(b.modelo ?? '').trim(), tipo = String(b.tipo ?? '').trim()
+      if (modelo.length > 40) throw new Error('El modelo es muy largo (máximo 40 letras).')
+      if (tipo.length > 30) throw new Error('El tipo es muy largo (máximo 30 letras).')
+      const lonas = b.lonas === '' || b.lonas == null ? 0 : Math.round(Number(b.lonas))
+      if (!(lonas >= 0 && lonas <= 40)) throw new Error('Las lonas deben ser un número, por ejemplo 16.')
+      return { medida, rin: b.rin === '' || b.rin == null ? medidaYRin(medida)[1] : Number(b.rin), modelo, tipo, lonas, espec: especDeTexto(b.espec) }
     },
-    vista: i => ({ medida: i.medida, rin: i.rin }),
+    vista: i => ({ medida: i.medida, rin: i.rin, modelo: i.modelo ?? '', tipo: i.tipo ?? '', lonas: i.lonas ?? '', espec: especATexto(i.espec) }),
   },
   baterias: {
     archivo: 'baterias.json', hoja: 'BATERIAS', leer: filasBaterias,
@@ -274,6 +307,7 @@ export const aCatalogo = todo => {
   const salida = { actualizado: new Date().toLocaleDateString('en-CA', { timeZone: 'America/Caracas' }) }
   for (const [cat, c] of Object.entries(CATS)) salida[cat] = (todo[cat] ?? leer(cat)).filter(visible).map(c.web).sort(c.orden)
   salida.items = salida.cauchos                                            // compatibilidad con la primera versión de la web
+  salida.ajustes = leerAjustes()
   return salida
 }
 const guardar = (cat, items) => {                                          // Nexo y la web siempre ven lo mismo
@@ -323,11 +357,13 @@ function validar(cat, b, previo = {}) {
   const propios = CATS[cat].campos(b)
   if (!(usd >= 0)) throw new Error('Escribe el precio en dólares (0 si el precio se consulta).')
   const usd_bs = usd === 0 ? 0 : Number(b.usd_bs) > 0 ? Number(b.usd_bs) : Math.ceil(usd * 1.05 - 1e-6)    // equivalente en dólares si paga en bolívares
-  const item = { ...previo, marca, ...propios, usd, usd_bs, stock: { tienda_1: entero(b.cm), tienda_2: entero(b.mc) } }
+  const stock = { tienda_1: entero(b.cm), tienda_2: entero(b.mc) }
+  if (b.cc !== '' && b.cc != null) stock.caracas = entero(b.cc)               // vacío = todavía sin dato de Caracas
+  const item = { ...previo, marca, ...propios, usd, usd_bs, stock }
   item.etiqueta = String(b.etiqueta ?? '').trim().slice(0, 60)
   return item
 }
-const vista = (cat, i) => CATS[cat].vistaCompleta?.(i) ?? ({ sku: i.sku, marca: i.marca, ...(conCodigo(i) && { codigo_cm: i.codigo_cm ?? '', codigo_mc: i.codigo_mc ?? '' }), usd: i.usd, usd_bs: i.usd_bs, cm: i.stock.tienda_1, mc: i.stock.tienda_2, etiqueta: extra(i), imagen: i.imagen || null, manual: i.sku.startsWith('MAN-'), ...CATS[cat].vista(i) })
+const vista = (cat, i) => CATS[cat].vistaCompleta?.(i) ?? ({ sku: i.sku, marca: i.marca, ...(conCodigo(i) && { codigo_cm: i.codigo_cm ?? '', codigo_mc: i.codigo_mc ?? '' }), usd: i.usd, usd_bs: i.usd_bs, cm: i.stock.tienda_1, mc: i.stock.tienda_2, cc: i.stock.caracas ?? '', etiqueta: extra(i), imagen: i.imagen || null, manual: i.sku.startsWith('MAN-'), ...CATS[cat].vista(i) })
 
 const TIPOS = [[[0xff, 0xd8, 0xff], 'jpg'], [[0x89, 0x50, 0x4e, 0x47], 'png'], [[0x52, 0x49, 0x46, 0x46], 'webp']]
 const extension = b => TIPOS.find(([m]) => m.every((x, i) => b[i] === x))?.[1]
@@ -374,6 +410,17 @@ export function montarLista(app) {
   api.get('/uso', (_req, res) => res.json(usoPorDia()))
   api.get('/uso/conversaciones', (_req, res) => res.json(usoPorConversacion()))
   api.get('/uso/presupuesto', (_req, res) => res.json({ ...estadoPresupuesto(), limite_hora: LIMITE_HORA, limite_dia: LIMITE_DIA }))
+
+  // ---- ajustes de la web: servicios incluidos con los cauchos, detalle del filtro de los combos y los «Por confirmar»
+  api.get('/ajustes', (_req, res) => res.json(leerAjustes()))
+  api.put('/ajustes', express.json(), (req, res) => {
+    try {
+      const a = validarAjustes(req.body || {})
+      escribir('ajustes_web.json', a)
+      escribir('catalogo.json', aCatalogo({}))
+      res.json(a)
+    } catch (e) { res.status(400).json({ error: e.message }) }
+  })
 
   // ---- carga masiva desde el Excel (todas las hojas a la vez)
   api.post('/excel/revisar', express.raw({ type: () => true, limit: '15mb' }), async (req, res) => {

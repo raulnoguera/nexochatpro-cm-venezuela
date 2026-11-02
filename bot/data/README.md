@@ -10,6 +10,7 @@ Esta carpeta es un volumen de Docker en el servidor (`/opt/nexochatpro/bot/data`
 | `inventario.json`, `baterias.json`, `aceites.json`, `bicicletas.json` | Listas de productos (las genera la carga del Excel o el panel de administración) | No |
 | `compatibilidad.json` | Tabla vehículo → grupo de batería | No |
 | `catalogo.json` | Catálogo público compacto que lee la web (`/catalogo.json`); se regenera solo al guardar | No |
+| `ajustes_web.json` | «Ajustes de la web» del panel: servicios incluidos con los cauchos, detalle del filtro de los combos y «Por confirmar»; viaja dentro de `catalogo.json` | No |
 | `imagenes/` | Fotos de productos subidas desde el panel | No |
 | `respaldos/` | Copia automática de cada lista antes de reemplazarla | No |
 | `citas.json` | Citas agendadas por Nexo (datos personales de clientes) | No |

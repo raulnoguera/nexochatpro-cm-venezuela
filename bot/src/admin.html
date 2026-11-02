@@ -11,7 +11,8 @@ main{max-width:1000px;margin:0 auto;padding:18px 16px 60px}
 .card{background:var(--s);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:14px}
 h2{font-size:14px;margin:0 0 8px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 p{margin:6px 0}.muted{color:var(--muted)}.err{color:var(--bad);font-weight:700}.ok{color:var(--ok);font-weight:700}
-input,select{font:inherit;color:inherit;background:var(--s2);border:1.5px solid var(--line);border-radius:10px;min-height:44px;padding:0 12px;width:100%}
+input,select,textarea{font:inherit;color:inherit;background:var(--s2);border:1.5px solid var(--line);border-radius:10px;min-height:44px;padding:0 12px;width:100%}
+textarea{padding:10px 12px;resize:vertical;line-height:1.4}
 input[type=checkbox]{width:auto;min-height:0}input[type=file]{padding:10px}
 button{border:0;border-radius:10px;background:var(--y);color:#121212;font:inherit;font-weight:800;min-height:44px;padding:0 18px;cursor:pointer}
 button.sec{background:transparent;border:1.5px solid var(--line);color:inherit;font-weight:700}button.del{background:transparent;border:1.5px solid var(--bad);color:var(--bad)}
@@ -33,7 +34,7 @@ dialog::backdrop{background:rgba(0,0,0,.55)}
 details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20px;max-height:200px;overflow:auto;font-size:14px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#141414;color:#fff;border-left:5px solid var(--y);border-radius:12px;padding:12px 16px;opacity:0;pointer-events:none;transition:.2s;max-width:92vw}.toast.on{opacity:1}
 </style></head>
-<body><header>CM VENEZUELA · Administración<a href="https://cmvenezuela.com" target="_blank" rel="noopener">Ver la web ↗</a></header>
+<body><header>CM VENEZUELA · Administración<a href="#aj" id="irAj" style="margin-left:auto">⚙ Ajustes de la web</a><a href="https://cmvenezuela.com" target="_blank" rel="noopener" style="margin-left:0">Ver la web ↗</a></header>
 <main>
   <div class="tabs" id="tabs"><button data-c="cauchos" aria-pressed="true">Cauchos</button><button data-c="baterias" aria-pressed="false">Baterías</button><button data-c="aceites" aria-pressed="false">Aceites</button><button data-c="bicicletas" aria-pressed="false">Bicicletas</button><button data-c="compatibilidad" aria-pressed="false">Vehículos → batería</button></div>
   <div class="card">
@@ -47,6 +48,14 @@ details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20
 
   <div class="card"><div id="cont" class="muted">Cargando…</div><div class="pg"><button class="sec" id="prev">← Anterior</button><span id="pgi" class="muted"></span><button class="sec" id="next">Siguiente →</button></div></div>
 
+  <details class="card" id="aj"><summary>Ajustes de la web</summary>
+    <p class="muted">Lo que escribes aquí se ve enseguida en la página cmvenezuela.com, sin tocar nada más.</p>
+    <p><label><span>Servicios que vienen con la compra de los cauchos (uno por línea)</span><textarea id="ajsrv" rows="4" placeholder="Montura&#10;Balanceo&#10;Válvula nueva"></textarea></label></p>
+    <p><label><span>Detalle del filtro que incluyen los combos de aceite</span><input id="ajcombo" maxlength="80" placeholder="Ej. Filtro de aceite"></label></p>
+    <p><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ajpend"><span style="margin:0;font-weight:400;font-size:16px;color:inherit">Mostrar «Por confirmar» donde todavía no hay información (si lo apagas, esos apartados se esconden hasta tener datos)</span></label></p>
+    <p><button id="ajgu">Guardar ajustes</button> <span id="ajmsg"></span></p>
+  </details>
+
   <details class="card"><summary>Cargar lista de precios desde Excel</summary>
     <p class="muted">Sube «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES (y COMPATIBILIDAD si ya la tienes). Antes de publicar te mostramos qué cambia. Las fotos se conservan y los productos creados a mano no se tocan. Los cambios hechos aquí a un producto que viene del Excel se reemplazan con la próxima carga.</p>
     <p><input type="file" id="xf" accept=".xlsx"></p><p><button id="xrev" disabled>Revisar archivo</button></p><p id="xmsg"></p>
@@ -59,6 +68,10 @@ details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20
   <div class="f">
     <label><span>Marca</span><input id="marca" list="marcas" required maxlength="60" autocomplete="off"></label>
     <label class="c c-cauchos"><span>Medida</span><input id="medida" maxlength="30" placeholder="265/60R18" autocomplete="off"></label>
+    <label class="c c-cauchos"><span>Modelo (opcional)</span><input id="cmodelo" maxlength="40" placeholder="SP726" autocomplete="off"></label>
+    <label class="c c-cauchos"><span>Tipo (opcional)</span><input id="ctipo" maxlength="30" list="tiposcaucho" placeholder="HT, AT, MT…" autocomplete="off"></label>
+    <label class="c c-cauchos"><span>Lonas (opcional)</span><input id="clonas" type="number" min="0" max="40" step="1" inputmode="numeric" placeholder="16"></label>
+    <label class="c c-cauchos w"><span>Especificaciones (opcional, una por línea: «Nombre: valor»)</span><textarea id="cespec" rows="4" placeholder="Índice de carga: 91&#10;Índice de velocidad: H"></textarea></label>
     <label class="c c-baterias"><span>Descripción</span><input id="descripcion" maxlength="80" placeholder="1000 AMP / 24R" autocomplete="off"></label>
     <label class="c c-baterias"><span>Grupo</span><input id="grupo" maxlength="40" list="grupos" placeholder="GRUPO 24" autocomplete="off"></label>
     <label class="c c-baterias"><span>Amperaje (opcional)</span><input id="amp" type="number" min="0" step="1" inputmode="numeric"></label>
@@ -77,7 +90,8 @@ details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20
     <label class="p"><span>Equivalente en $ si paga en bolívares</span><input id="usd_bs" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Automático (+5 %)"></label>
     <label class="p"><span>Hay en CM Maracay (unidades)</span><input id="cm" type="number" min="0" step="1" inputmode="numeric" value="0"></label>
     <label class="p"><span>Hay en Master Cauchos (unidades)</span><input id="mc" type="number" min="0" step="1" inputmode="numeric" value="0"></label>
-    <label class="w p"><span>Texto que se ve en la web (opcional, ej. Con set, 16 lonas)</span><input id="etiqueta" maxlength="60"></label>
+    <label class="p"><span>Hay en CM Caracas (unidades; vacío = aún sin dato)</span><input id="cc" type="number" min="0" step="1" inputmode="numeric" placeholder="Sin dato"></label>
+    <label class="w p"><span>Texto extra que se ve en la web (opcional, ej. Con set)</span><input id="etiqueta" maxlength="60"></label>
     <div class="w p" style="display:flex;gap:14px;align-items:center"><img class="prev" id="pv" alt="Foto"><div style="flex:1">
       <label><span>Foto del producto</span><input type="file" id="foto" accept="image/jpeg,image/png,image/webp"></label>
       <label id="lmarca" style="display:flex;gap:8px;align-items:center;margin-top:6px"><input type="checkbox" id="cmarca"><span style="margin:0;font-weight:400"></span></label>
@@ -86,7 +100,7 @@ details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20
   <p id="emsg" class="err"></p>
   <p style="display:flex;gap:8px;justify-content:flex-end"><button type="button" class="sec" id="cancel">Cancelar</button><button id="guardar">Guardar</button></p>
 </form></dialog>
-<datalist id="marcas"></datalist><datalist id="grupos"></datalist><datalist id="tipos"></datalist><datalist id="presentaciones"></datalist>
+<datalist id="marcas"></datalist><datalist id="grupos"></datalist><datalist id="tipos"></datalist><datalist id="presentaciones"></datalist><datalist id="tiposcaucho"><option value="HT"><option value="AT"><option value="MT"><option value="RT"><option value="Direccional"><option value="Mixto"></datalist>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -100,7 +114,7 @@ const toast = t => { const e = $('#toast'); e.textContent = t; e.classList.add('
 let CAT = 'cauchos', ITEMS = [], pag = 0, edit = null, quitar = false
 const PAG = 40, IMG = 'https://crm.nexochatpro.cloud/img/'
 const CFG = {   // campos propios de cada categoría, cómo se titula cada fila y por cuáles se busca
-  cauchos: { campos: ['medida'], titulo: i => i.medida, detalle: i => '', buscar: i => i.marca + i.medida },
+  cauchos: { campos: ['medida', 'modelo', 'tipo', 'lonas', 'espec'], titulo: i => i.medida, detalle: i => [i.modelo && ` · ${i.modelo}`, i.tipo && ` · ${i.tipo}`, i.lonas && ` · ${i.lonas} lonas`].filter(Boolean).join(''), buscar: i => i.marca + i.medida + (i.modelo || '') + (i.tipo || '') },
   baterias: { campos: ['descripcion', 'grupo', 'amp', 'garantia'], titulo: i => i.descripcion, detalle: i => ` · ${i.grupo}${i.garantia ? ' · garantía ' + i.garantia + ' m' : ''}`, buscar: i => i.marca + i.descripcion + i.grupo },
   compatibilidad: { campos: ['modelo', 'desde', 'hasta', 'grupo'], titulo: i => i.modelo, detalle: i => ` · ${i.desde || 'cualquier año'}${i.hasta ? '–' + i.hasta : i.desde ? ' en adelante' : ''} · batería: ${i.grupo}`, buscar: i => i.marca + i.modelo + i.grupo },
   bicicletas: { campos: ['rin', 'modelo', 'para', 'colores'], titulo: i => `Rin ${i.rin} · Modelo ${i.modelo}${i.para ? ' (' + i.para + ')' : ''}`, detalle: i => (i.colores ? ' · ' + i.colores : ''), buscar: i => 'rin' + i.rin + i.modelo + i.para + i.colores },
@@ -143,10 +157,11 @@ const reducir = file => new Promise((ok, no) => {                    // la foto 
     const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); c.toBlob(b => b ? ok(b) : no(new Error('No se pudo procesar la imagen.')), 'image/jpeg', 0.85) }
   img.onerror = () => no(new Error('No se pudo leer la imagen.')); img.src = u
 })
-const COMUNES = ['marca', 'usd', 'usd_bs', 'cm', 'mc', 'etiqueta']
+const COMUNES = ['marca', 'usd', 'usd_bs', 'cm', 'mc', 'cc', 'etiqueta']
 const esCompat = () => CAT === 'compatibilidad'
 const camposDe = () => (esCompat() ? ['marca', ...CFG.compatibilidad.campos] : [...COMUNES, ...CFG[CAT].campos])
-const idc = k => (esCompat() && k !== 'marca' ? 'v' + k : k)
+const CAUCHO_ID = ['modelo', 'tipo', 'lonas', 'espec']                     // en cauchos estos campos llevan otro id para no chocar con los de bicicletas y aceites
+const idc = k => (esCompat() && k !== 'marca' ? 'v' + k : CAT === 'cauchos' && CAUCHO_ID.includes(k) ? 'c' + k : k)
 function abrir(i) {
   edit = i; quitar = false; $('#emsg').textContent = ''; $('#foto').value = ''; $('#cmarca').checked = false
   $('#dt').textContent = (i ? 'Editar ' : 'Nuevo ') + (esCompat() ? 'vehículo' : 'producto')
@@ -213,5 +228,20 @@ $('#xpub').onclick = async () => {
   catch (er) { $('#xmsg').className = 'err'; $('#xmsg').textContent = er.message }
   $('#xpub').disabled = false
 }
+// ---- Ajustes de la web
+async function cargarAjustes() {
+  const a = await api('GET', '/ajustes')
+  $('#ajsrv').value = (a.servicios_compra || []).join('\n'); $('#ajcombo').value = a.combo_detalle || ''; $('#ajpend').checked = a.mostrar_pendientes !== false
+}
+$('#irAj').onclick = () => { $('#aj').open = true }                         // el acceso directo de arriba abre la tarjeta
+$('#ajgu').onclick = async () => {
+  $('#ajgu').disabled = true; $('#ajmsg').className = 'muted'; $('#ajmsg').textContent = 'Guardando…'
+  try {
+    await api('PUT', '/ajustes', { servicios_compra: $('#ajsrv').value, combo_detalle: $('#ajcombo').value, mostrar_pendientes: $('#ajpend').checked })
+    $('#ajmsg').className = 'ok'; $('#ajmsg').textContent = 'Guardado. Ya se ve en la web.'; await cargarAjustes()
+  } catch (er) { $('#ajmsg').className = 'err'; $('#ajmsg').textContent = er.message }
+  $('#ajgu').disabled = false
+}
+cargarAjustes().catch(er => { $('#ajmsg').className = 'err'; $('#ajmsg').textContent = er.message })
 cargar().catch(er => { $('#cont').textContent = er.message })
 </script></body></html>
