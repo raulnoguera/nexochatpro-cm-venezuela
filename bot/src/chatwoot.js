@@ -26,3 +26,5 @@ export const history = async conv => (await api('GET', `/conversations/${conv}/m
 export const abiertas = async () =>
   (await api('GET', '/conversations?status=open')).data.payload
 export const inboxes = async () => (await api('GET', '/inboxes')).payload
+export const teams = () => api('GET', '/teams')
+export const asignarEquipo = (conv, equipo) => api('POST', `/conversations/${conv}/assignments`, { team_id: equipo })

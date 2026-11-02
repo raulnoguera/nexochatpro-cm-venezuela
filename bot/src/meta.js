@@ -13,6 +13,9 @@ const MARCA = process.env.META_MARCA || 'CM Venezuela'
 const PRODUCCION = process.env.META_MODO === 'produccion'
 const CLAVE_PRUEBA = (process.env.META_CLAVE_PRUEBA || '#prueba').toLowerCase()
 const CHATWOOT_BOT = process.env.CHATWOOT_BOT_URL || 'http://rails:3000/bot'      // el canal de Messenger de Chatwoot recibe sus avisos aquí
+const CHATWOOT_IG = process.env.CHATWOOT_IG_URL || 'http://rails:3000/webhooks/instagram'      // y el de Instagram, aquí
+// Meta firma los avisos de Instagram (inicio de sesión de Instagram) con la clave de la app de Instagram, distinta a la de Facebook
+const SECRETOS = [META_APP_SECRET, process.env.META_IG_APP_SECRET].filter(Boolean)
 const archivo = path.resolve('data', 'comentarios.json')
 
 const TEXTOS = {
@@ -85,13 +88,13 @@ export async function atender(c) {
   } catch (e) { console.error('Comentario no atendido', c.red, c.id, e.message) }
 }
 
-// Meta solo permite una dirección de avisos por app: este bot recibe todo y entrega a Chatwoot los mensajes de Messenger tal cual
+// Meta solo permite una dirección de avisos por app: este bot recibe todo y entrega a Chatwoot los mensajes de Messenger y de Instagram tal cual
 // (mismo cuerpo y mismas firmas, que Chatwoot vuelve a validar con la clave de la app).
 async function reenviarAChatwoot(req) {
   const headers = { 'Content-Type': 'application/json', 'X-Forwarded-Proto': 'https' }
   for (const h of ['x-hub-signature', 'x-hub-signature-256']) if (req.headers[h]) headers[h] = req.headers[h]
   try {
-    const r = await fetch(CHATWOOT_BOT, { method: 'POST', headers, body: req.rawBody, signal: AbortSignal.timeout(15000) })
+    const r = await fetch(req.body?.object === 'instagram' ? CHATWOOT_IG : CHATWOOT_BOT, { method: 'POST', headers, body: req.rawBody, signal: AbortSignal.timeout(15000) })
     console.log('Meta webhook: mensajes reenviados a Chatwoot, respuesta', r.status)
   } catch (e) { console.error('Meta webhook: no se pudo reenviar a Chatwoot:', e.message) }
 }
@@ -102,11 +105,14 @@ export function montarMeta(app) {
     res.sendStatus(403)
   })
   app.post('/meta/webhook', (req, res) => {
-    if (!META_APP_SECRET) return res.sendStatus(404)
+    if (!SECRETOS.length) return res.sendStatus(404)
     console.log('Meta webhook: llegó un aviso')
     const firma = Buffer.from(String(req.headers['x-hub-signature-256'] || ''))
-    const esperada = Buffer.from('sha256=' + crypto.createHmac('sha256', META_APP_SECRET).update(req.rawBody || '').digest('hex'))
-    if (firma.length !== esperada.length || !crypto.timingSafeEqual(firma, esperada)) { console.error('Meta webhook: firma inválida, aviso rechazado'); return res.sendStatus(401) }
+    const valida = SECRETOS.some(s => {
+      const esperada = Buffer.from('sha256=' + crypto.createHmac('sha256', s).update(req.rawBody || '').digest('hex'))
+      return firma.length === esperada.length && crypto.timingSafeEqual(firma, esperada)
+    })
+    if (!valida) { console.error('Meta webhook: firma inválida, aviso rechazado'); return res.sendStatus(401) }
     res.sendStatus(200)                                           // Meta exige respuesta rápida; se procesa después
     const lista = comentarios(req.body)
     if ((req.body?.entry || []).some(e => e.messaging || e.standby)) reenviarAChatwoot(req)

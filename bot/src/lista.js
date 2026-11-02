@@ -7,6 +7,7 @@ import crypto from 'node:crypto'
 import express from 'express'
 import ExcelJS from 'exceljs'
 import { usoPorDia, usoPorConversacion } from './uso.js'
+import { estadoPresupuesto, LIMITE_HORA, LIMITE_DIA } from './limites.js'
 import { visible, conCodigo } from './store.js'
 
 const dir = path.resolve('data')
@@ -372,6 +373,7 @@ export function montarLista(app) {
   app.use('/admin/api', api)
   api.get('/uso', (_req, res) => res.json(usoPorDia()))
   api.get('/uso/conversaciones', (_req, res) => res.json(usoPorConversacion()))
+  api.get('/uso/presupuesto', (_req, res) => res.json({ ...estadoPresupuesto(), limite_hora: LIMITE_HORA, limite_dia: LIMITE_DIA }))
 
   // ---- carga masiva desde el Excel (todas las hojas a la vez)
   api.post('/excel/revisar', express.raw({ type: () => true, limit: '15mb' }), async (req, res) => {

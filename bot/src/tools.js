@@ -3,6 +3,7 @@ import path from 'node:path'
 import { inventario, baterias, aceites, bicicletas, compatibilidad, servicios, addCita, updateCita, citas, tiendas } from './store.js'
 import { precio, disponibilidad, nombreTienda, horarioDe, ahoraCaracas } from './precios.js'
 import * as cw from './chatwoot.js'
+import { traspasar } from './equipos.js'
 import { gruposDe } from './lista.js'
 
 const MAX_RESULTADOS = 6
@@ -251,6 +252,7 @@ export async function ejecutar(nombre, input, ctx) {
   if (nombre === 'pasar_a_humano') {
     await cw.sendMessage(ctx.conversationId, `🙋 Handoff solicitado por el bot: ${input.motivo}`, true).catch(() => {})
     await cw.addLabels(ctx.conversationId, ['requiere-humano']).catch(() => {})
+    await traspasar(ctx.conversationId, ctx.equipo)
     ctx.handoff = true
     return { ok: true }
   }
