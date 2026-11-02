@@ -6,8 +6,12 @@
 
 - **Pestañas:** Cauchos, Baterías, Aceites, Bicicletas y «Vehículos → batería».
 - **Crear, editar y eliminar** productos; **subir foto** (se reduce a 900 px en el navegador); «usar la misma foto en los demás de esta marca».
+- **Cauchos:** además de marca y medida, el formulario lleva **Modelo**, **Tipo** (HT, AT, MT…), **Lonas** y **Especificaciones** (una por línea, «Índice de carga: 91»). La web las muestra en la tarjeta (Marca, Tipo con las lonas, Modelo y el desplegable «Ver especificaciones») y Nexo las ve al buscar cauchos. Lo que se deja vacío no se muestra.
+- **Existencia de Caracas:** todos los productos tienen el campo «Hay en CM Caracas»; vacío significa que aún no hay dato (la web sigue diciendo «cargando el inventario de Caracas»).
+- **Ajustes de la web** (acceso directo arriba): servicios que vienen con la compra de los cauchos (uno por línea), detalle del filtro que incluyen los combos de aceite e interruptor de «Por confirmar» (apagado esconde los apartados que aún no tienen información). Se guarda en `data/ajustes_web.json`, viaja en `catalogo.json` y la web lo aplica sin republicar.
 - **Excel:** sección «Cargar lista». Se sube el archivo «MCY - LISTA DE PRECIOS.xlsx», el panel muestra qué cambia (productos nuevos, precios distintos, los que salen) y solo se publica al confirmar.
   - Hojas que se leen: `CAUCHOS`, `BATERIAS`, `ACEITES`, `BICICLETAS` y `COMPATIBILIDAD` (opcional).
+  - Cauchos en el formato nuevo: `CODIGO CM | CODIGO MC | MEDIDA | MARCA | MODELO | TIPO | LONAS | Precio | Bs | CM | MC | TOTAL INV`. Modelo, tipo y lonas (número) se leen de sus columnas; las especificaciones y la existencia de Caracas todavía se escriben desde el panel.
   - Los productos creados a mano (`MAN-…`) y las fotos se conservan.
   - Filas con marca «NO HAY» no se publican. Precio 0 → «Consultar precio».
   - Bicicletas: la columna `#` son las unidades en CM Maracay y `MC` marca si hay en Master Cauchos.

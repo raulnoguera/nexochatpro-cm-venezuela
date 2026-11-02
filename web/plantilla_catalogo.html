@@ -187,12 +187,12 @@ const CATS = {
     msg: p => `la bicicleta rin ${p.r} modelo ${p.d}`,
   },
 };
-// Servicios que vienen con la compra de los cauchos: el cliente aún no los ha enviado. Cuando los confirme se escriben aquí (uno por línea) y la tarjeta los muestra sola.
-// Ej.: const SERVICIOS_COMPRA = ['Montura', 'Balanceo'];
-const SERVICIOS_COMPRA = [];
+// Servicios que vienen con la compra de los cauchos, detalle del filtro de los combos y «Por confirmar»: el cliente los escribe en el panel de administración
+// («Ajustes de la web») y llegan dentro de catalogo.json (aplicarAjustes). Estos valores solo se usan si el catálogo no los trae.
+let SERVICIOS_COMPRA = [];
 // Mientras el cliente no envíe los datos, la tarjeta muestra igual los apartados «Incluye con tu compra» y «Ver especificaciones» con el texto «Por confirmar».
 // Cuando estén cargados se muestran los reales; poner false para ocultar los apartados que aún no tengan datos.
-const MOSTRAR_PENDIENTES = true;
+let MOSTRAR_PENDIENTES = true;
 const ciudad = () => $('#ciudad').value;
 const nivel = p => Math.max(0, ...CIUDADES[ciudad()].tiendas.map(k => p[k] ?? 0));
 const medDisp = () => {                                     // medidas con existencia en la ciudad elegida: { '175/65R13': { n: opciones, r: rin } }
@@ -282,7 +282,7 @@ const wa = (msg, k) => `https://wa.me/${TIENDAS[k].wa}?text=${encodeURIComponent
 // Del nombre «Sportrak SP726 HT 16Pr» salen: tipo (HT, AT, MT, RT, Direccional, Mixto), lonas (16Pr o «18 Lonas» en el dato extra) y modelo (lo que queda: SP726)
 const TIPO_CAUCHO = /^\(?(HT|AT|MT|RT|Direccional|Dir\.?|Mixto)\)?$/i, LONAS_CAUCHO = /^\(?(\d+)\s*Pr\)?$/i;
 const detalleCaucho = p => {
-  let tipo = p.ti || '', lonas = (String(p.x || '').match(/(\d+)\s*lonas/i) || [])[1] || '';
+  let tipo = p.ti || '', lonas = p.lo || (String(p.x || '').match(/(\d+)\s*lonas/i) || [])[1] || '';
   const resto = [];
   for (const t of (p.mo ? '' : p.m.slice(marcaDe(p).length)).replace(/(\d+)\s+Pr\b/gi, '$1Pr').replace(/(\S)\(/g, '$1 (').trim().split(/\s+/).filter(Boolean)) {      // «(10 Pr)» y «10Pr» son lo mismo
     const l = t.match(LONAS_CAUCHO), ti = t.match(TIPO_CAUCHO);
@@ -305,7 +305,13 @@ const bloqueCaucho = p => {
 };
 // Combos de aceite (4 litros o más): incluyen filtro. El detalle del filtro (marca, tipo…) lo enviará el cliente: se escribe en COMBO_DETALLE y la tarjeta lo muestra sola.
 // Ej.: const COMBO_DETALLE = 'Filtro de aceite';
-const COMBO_DETALLE = '';
+let COMBO_DETALLE = '';
+const aplicarAjustes = a => {
+  if (!a) return
+  if (Array.isArray(a.servicios_compra)) SERVICIOS_COMPRA = a.servicios_compra
+  if (typeof a.combo_detalle === 'string') COMBO_DETALLE = a.combo_detalle
+  if (typeof a.mostrar_pendientes === 'boolean') MOSTRAR_PENDIENTES = a.mostrar_pendientes
+};
 const bloqueAceite = p => {
   if (!esCombo(p.p)) return '';
   const pend = !COMBO_DETALLE && MOSTRAR_PENDIENTES ? '<li class="pend">Detalle del filtro: por confirmar</li>' : '';
@@ -489,6 +495,7 @@ async function tasas() {                              // Maracay usa la tasa eur
   const [j] = await Promise.all([fetch(CATALOGO_URL, { cache: 'no-cache' }).then(r => r.json()).catch(() => fetch('catalogo.json').then(r => r.json())), tasas()]);
   DATA = { cauchos: j.cauchos || j.items || [], baterias: j.baterias || [], aceites: j.aceites || [], bicicletas: j.bicicletas || [] };
   COMPAT = (j.compatibilidad || []).map(c => ({ ...c, gr: c.r || c.g.join(' / ') }));
+  aplicarAjustes(j.ajustes);
   const hash = location.hash.slice(1); if (CATS[hash]) CAT = hash;
   const P = new URLSearchParams(location.search);
   let guardada = ''; try { guardada = localStorage.getItem('cm_ciudad') || ''; } catch (_) {}

@@ -179,3 +179,20 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Capturas:** `10-combos-aceite-antes.jpg` (web publicada), `10-combos-aceite-despues.jpg`.
 
 **Estado:** publicado en cmvenezuela.com (2 nov 2026). Falta subir todo a git.
+
+## 11. Panel de administración ajustado a lo nuevo
+**Pedido:** que el panel de administración (gestión de productos, especificaciones, etc.) esté ajustado a lo que se agregó en la web.
+
+| Antes | Ahora |
+|---|---|
+| El formulario de cauchos solo pedía marca y medida; modelo y tipo solo entraban por Excel | Campos **Modelo**, **Tipo**, **Lonas** y **Especificaciones** (una por línea, «Nombre: valor») |
+| No existían las especificaciones | Se guardan por caucho y la web las muestra en «Ver especificaciones»; Nexo también las ve |
+| Servicios incluidos y detalle del filtro de combos estaban escritos en el código de la web | Sección **Ajustes de la web** en el panel (acceso directo arriba): servicios, detalle del filtro e interruptor de «Por confirmar»; se ven al instante, sin republicar la web |
+| Sin existencia de Caracas | Campo **Hay en CM Caracas** (vacío = aún sin dato); la web y Nexo lo usan |
+| El Excel nuevo no leía las lonas | Se lee la columna LONAS |
+
+**Archivos:** `bot/src/lista.js`, `bot/src/admin.html`, `bot/src/store.js`, `bot/src/tools.js`, `web/plantilla_catalogo.html`; prueba `bot/scripts/probar_panel.mjs` (18 comprobaciones).
+
+**Capturas:** `11-panel-formulario-cauchos.jpg`, `11-panel-ajustes-web.jpg`.
+
+**Estado:** desplegado el 2 de noviembre de 2026: panel en el servidor y web publicada en cmvenezuela.com. Falta subir el código a git.
