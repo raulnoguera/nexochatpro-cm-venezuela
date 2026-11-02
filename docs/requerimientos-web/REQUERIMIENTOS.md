@@ -1,0 +1,181 @@
+# Requerimientos de la página web (reunión con el cliente, 2 nov 2026)
+
+Cada cambio lleva su captura del antes y del después en esta carpeta. Estado: «hecho en local» = modificado y probado en el equipo, publicado = ya está en la web.
+
+## 1. Botón «Escríbenos» de la cabecera
+**Pedido:** al elegir una ciudad, el botón mostraba ambos números de Maracay aunque se eligiera Caracas. Debe mostrar solo los de la ciudad elegida.
+
+| Ciudad elegida | Antes | Después |
+|---|---|---|
+| Ninguna | CM Maracay y Master Cauchos (Caracas no aparecía) | CM Maracay, Master Cauchos y CM Caracas |
+| Maracay | CM Maracay y Master Cauchos | Igual: CM Maracay y Master Cauchos |
+| Caracas | CM Maracay y Master Cauchos (error) | Solo CM Caracas |
+
+**Número de Caracas:** CM Caracas usa el 0424-3188302. Con Caracas elegida el botón abre WhatsApp directo a ese número; sin ciudad aparece en la lista de los tres. También se activó el botón de WhatsApp en la tarjeta de la sede de Caracas (antes decía «próximamente»).
+
+**Archivos:** `web/plantilla_home.html`, `web/plantilla_catalogo.html`, `demo-flujo/catalogo_plantilla.html` (estilo del número pendiente); se regeneran `web/index.html` y `web/catalogo.html` con `python3 web/build.py`.
+
+**Capturas:** `01-escribenos-antes-sin-ciudad.jpg`, `01-escribenos-antes-caracas.png`, `01-escribenos-despues-sin-ciudad.png`, `01-escribenos-despues-maracay.png`, `01-escribenos-despues-caracas.png`.
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026), con el número de Caracas. Falta subir todo a git.
+
+## 2. Filtro «Medida disponible»: quitar el número entre paréntesis
+**Pedido:** en el filtro de medidas, cada opción mostraba un número entre paréntesis (ej. «195/65R15 (16)»), que el cliente podía confundir con otra cosa (era la cantidad de productos de esa medida). Debe verse solo la medida.
+
+| Antes | Después |
+|---|---|
+| 185/65R15 (6) | 185/65R15 |
+| 195/65R15 (16) | 195/65R15 |
+
+Aplica en la portada (buscador «Busca por medida») y en el catálogo. Las sugerencias que salen al escribir en el buscador siguen mostrando «N opciones» debajo de cada medida (no estaba entre paréntesis ni en el filtro; queda a decisión del cliente).
+
+**Archivos:** `web/plantilla_home.html`, `web/plantilla_catalogo.html`; se regeneran con `python3 web/build.py`.
+
+**Capturas:** `02-medidas-antes.jpg`, `02-medidas-despues.jpg` (lista de opciones desplegada, rin 15, Maracay).
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026). Falta subir todo a git.
+
+## 3. Filtro «Marca»: solo las marcas disponibles
+**Pedido:** la lista del filtro de marcas traía todas las marcas del catálogo, tengan o no productos. Debe cargarse solo con las marcas que están disponibles.
+
+**Cómo funciona ahora:** la lista solo incluye marcas con productos en existencia en la ciudad elegida y que cumplan los filtros ya escogidos (por ejemplo, el rin). Si el cliente cambia el rin, la lista se actualiza. Las marcas que solo existen en la otra ciudad o sin existencia ya no salen (con «Mostrar también los agotados» vuelven a aparecer). Aplica a cauchos, aceites y al filtro de marca de baterías.
+
+| Caso (catálogo, Maracay, cauchos) | Antes | Después |
+|---|---|---|
+| Sin rin elegido | 99 marcas | 66 marcas |
+| Rin 15 | 99 marcas | 36 marcas |
+
+Se comprobó que cada marca de la lista da al menos un resultado.
+
+**Archivos:** `web/plantilla_catalogo.html`; se regenera con `python3 web/build.py`. La portada no tiene este filtro (solo accesos directos por marca, que ya mostraban solo las marcas con existencia).
+
+**Capturas:** `03-marcas-antes.jpg`, `03-marcas-despues.jpg` (lista de marcas desplegada, rin 15, Maracay).
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026). Falta subir todo a git.
+
+## 4. Precios de los productos: «Oferta en divisa» y tasa euro sin símbolo de dólar
+**Pedido:** en el listado de productos, cambiar el texto «pagando en dólares» por «Oferta en divisa», y quitar el símbolo de dólar donde aparece la tasa euro.
+
+| | Antes | Después |
+|---|---|---|
+| Etiqueta del precio | $25 pagando en dólares | $25 Oferta en divisa |
+| Monto a tasa euro | ($27 a tasa euro) | (27 a tasa euro) |
+
+El precio grande sigue con su «$» (es el precio en divisa) y la línea en bolívares no cambia. El «$» solo se quita en la línea de la tasa euro (Maracay); la de Caracas, que usa la tasa del dólar BCV, queda como estaba.
+
+**Archivos:** `web/plantilla_catalogo.html` (las tarjetas de producto); se regenera con `python3 web/build.py`. La portada no muestra tarjetas de precio.
+
+**Capturas:** `04-precios-antes.jpg` (web publicada), `04-precios-despues.jpg` (Maracay, cauchos).
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026). Falta subir todo a git.
+
+## 5. «Consultar por WhatsApp» de cada producto: elegir la tienda en Maracay
+**Pedido:** al pulsar «Consultar por WhatsApp» en un producto, si la ciudad es Maracay debe dar la opción de elegir la tienda.
+
+| | Antes | Después |
+|---|---|---|
+| Maracay | Abría WhatsApp directo a una sola tienda (la de más existencia, normalmente CM Maracay) | Abre una lista «Elige la tienda» con CM Maracay y Master Cauchos; el cliente elige y se abre WhatsApp de esa tienda |
+| Caracas | Abre WhatsApp directo | Igual (una sola tienda) |
+
+Cada opción indica si esa tienda tiene el producto («Disponible» o «Sin existencia ahora»). El mensaje se adapta: «Vi que está en {tienda}» si la tiene, o «Les escribo a {tienda}» si no. La lista se cierra al pulsar fuera o al abrir la de otro producto.
+
+**Archivos:** `web/plantilla_catalogo.html` (tarjetas de producto); se regenera con `python3 web/build.py`.
+
+**Capturas:** `05-consultar-antes.jpg` (web publicada), `05-consultar-despues.jpg` (lista de tiendas abierta, Maracay).
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026). Falta subir todo a git.
+
+## 6. Tarjeta del caucho: modelo, servicios incluidos y más especificaciones
+**Pedido:** (a) agregar a la tarjeta los servicios que vienen con la compra de los cauchos; (b) mostrar el modelo del caucho; (c) mostrar más detalles de las especificaciones. Lo de (a) y (c) lo debe enviar el cliente; se deja la tarjeta preparada y un ejemplo impreso.
+
+**(b) Modelo — hecho y activo con los datos actuales.** Antes el modelo salía pegado a la marca («HAIDA RUNSPIRIT») o no salía. Ahora la línea superior muestra solo la marca y debajo de la medida aparece «Modelo Runspirit». En el catálogo actual 817 de 1.108 cauchos traen el modelo en el nombre (ej. HT, AT, SP716, ES31); los demás no muestran línea de modelo porque no hay dato. Si el cliente agrega el modelo en la columna «Modelo» del Excel, también se usa.
+
+**(d) Tipo y lonas junto a la marca — hecho y activo con los datos actuales.** A la derecha de la marca se muestra el tipo del caucho y, entre paréntesis, la cantidad de lonas: «AT (6 lonas)», «AT (10 lonas)», «HT». Se leen del nombre del producto (tipos HT, AT, MT, RT, Direccional, Mixto; lonas como «6Pr», «(10 Pr)») o del dato extra «18 Lonas». Con el catálogo actual: 663 de 1.108 cauchos tienen tipo y 133 tienen lonas; los que no traen ese dato no muestran nada. Al salir el tipo en esa línea, ya no se repite como «Modelo» (ej. «Haida HT» muestra HT a la derecha y sin línea de modelo; «Sportrak SP726 HT» muestra SP726 como modelo y HT a la derecha). Si ya viene «18 Lonas» como etiqueta, no se repite.
+
+**(e) Etiquetas «Marca», «Tipo» y «Modelo».** Debajo de la medida, la tarjeta muestra «MARCA Sportrak» a la izquierda y «TIPO AT (10 lonas)» a la derecha, en la misma línea (el tipo lleva las lonas entre paréntesis), y debajo «MODELO SP786». Cada etiqueta lleva su valor a la derecha. Lo que no tiene dato no se muestra; si el espacio no alcanza, el tipo baja a la línea siguiente. Los servicios incluidos y las especificaciones se mantienen en la misma tarjeta (ver (a) y (c)).
+
+**(a) Servicios incluidos — preparado, sin datos.** En `web/plantilla_catalogo.html` hay una lista `SERVICIOS_COMPRA` (hoy vacía). Cuando el cliente confirme cuáles servicios incluye la compra (por ejemplo montura, balanceo…), se escriben ahí y todas las tarjetas de cauchos muestran el recuadro «Incluye con tu compra». Mientras esté vacía no se muestra nada.
+
+**(c) Especificaciones — preparado, sin datos.** La tarjeta muestra un desplegable «Ver especificaciones» cuando el producto trae el campo `e` con pares etiqueta/valor (ej. índice de carga, índice de velocidad, tipo) o los atajos `ic` e `iv`. Falta que el cliente indique qué datos quiere y en qué columnas del Excel vienen; luego se conecta el cargador de inventario del bot para enviarlos a la web.
+
+**Apartados siempre visibles.** Para que se vea cómo queda la tarjeta, los apartados «Incluye con tu compra» y «Ver especificaciones» aparecen en todas las tarjetas de cauchos; mientras el cliente no envíe los datos dicen «Por confirmar». Al cargar los datos reales se reemplaza ese texto por el contenido. Se controla con `MOSTRAR_PENDIENTES` en `web/plantilla_catalogo.html` (true = mostrarlos con «Por confirmar»; false = ocultar los que no tengan datos). Antes de publicar conviene decidir cuál de las dos opciones se deja.
+
+**Pendiente del cliente:** lista de servicios incluidos y lista de especificaciones (con su dato por cada caucho).
+
+**Archivos:** `web/plantilla_catalogo.html`; se regenera con `python3 web/build.py`.
+
+**Capturas:** `06-tarjeta-antes.jpg` (web publicada), `06-tarjeta-despues.jpg` (modelo separado, datos reales), `06-tarjeta-tipo-lonas.jpg` (tipo y lonas a la derecha de la marca, sin etiquetas), `06-tarjeta-etiquetas.jpg` (tarjeta completa con datos reales: etiquetas, «Incluye con tu compra» y «Ver especificaciones» con «Por confirmar»), `06-tarjeta-ejemplo-servicios-especificaciones.jpg` (EJEMPLO con todo junto: etiquetas, servicios incluidos y especificaciones; datos de muestra marcados como tal, no son del cliente).
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026): modelo, tipo y lonas con datos reales; servicios incluidos y especificaciones visibles con «Por confirmar» hasta que el cliente envíe los datos. Falta subir todo a git.
+
+## 7. Baterías: filtro «Encuentra tu batería» con el estilo de la portada
+**Pedido:** en la sección de baterías del catálogo, mantener el estilo del filtro de baterías como en el inicio (portada) y poner «Encuentra tu batería» en el título.
+
+| | Antes | Después |
+|---|---|---|
+| Título | «Encontrar batería» | «Encuentra tu batería» |
+| Estilo | Barra de título oscura centrada, etiquetas a un lado y campos oscuros con letra amarilla, botón «Buscar» con icono | Igual al buscador de la portada: tarjeta blanca centrada en la página, título centrado, etiquetas pequeñas sobre cada campo (Marca, Modelo, Año), campos claros uno bajo otro y botón amarillo ancho «Ver baterías» |
+
+La función no cambia: Marca → Modelo → Año, el botón se activa al completar los tres y se muestra la recomendación de grupo con «Quitar vehículo». Hoy el catálogo aún no tiene la tabla de compatibilidad de vehículos cargada, así que los campos salen desactivados con el aviso «Muy pronto podrás buscar…» (igual que antes).
+
+**Archivos:** `web/plantilla_catalogo.html` (estilos y título del buscador de vehículo); se regenera con `python3 web/build.py`.
+
+**Capturas:** `07-baterias-antes.jpg` (web publicada), `07-baterias-despues.jpg` (datos reales, campos desactivados), `07-baterias-despues-con-vehiculo-ejemplo.jpg` (con compatibilidad de MUESTRA para ver el estado activo; el letrero rojo lo indica, no son datos del cliente).
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026). Falta subir todo a git.
+
+## 8. Baterías, filtro «Grupo»: quitar la palabra «grupo» de las opciones
+**Pedido:** quitar la palabra «grupo» del filtro, ya que por el título de la lista se entiende que es grupo.
+
+| Opciones de la lista «Grupo» | Antes | Después |
+|---|---|---|
+| | GRUPO 4D · GRUPO 22 Y 42 · GRUPO 24 · GRUPO 27 · GRUPO 34 … | 4D · 22 Y 42 · 24 · 27 · 34 … |
+| Sin cambio | 30H (BORNE) · 30H (TORNILLO) · PARA AVEO · PARA OPTRA | igual (no llevaban la palabra «grupo») |
+
+El filtro sigue funcionando igual: al elegir «24» solo quedan las baterías del grupo 24. La etiqueta «Grupo» sobre la lista y la opción «Todos los grupos» se mantienen. No se tocaron las etiquetas dentro de las tarjetas de batería (ahí sigue «GRUPO 24»); si el cliente quiere quitarlas también, es un cambio aparte.
+
+**Archivos:** `web/plantilla_catalogo.html`; se regenera con `python3 web/build.py`.
+
+**Capturas:** `08-grupo-antes.jpg` (web publicada), `08-grupo-despues.jpg` (lista de opciones desplegada).
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026). Falta subir todo a git.
+
+## 9. No mostrar productos si el cliente no ha buscado nada (todas las categorías)
+**Pedido:** no mostrar el listado si la persona no ha buscado nada en los filtros; aplica a las diferentes categorías.
+
+| Categoría (Maracay, sin filtros) | Antes | Después |
+|---|---|---|
+| Cauchos | 491 resultados listados | Ninguno: mensaje «Usa los filtros para ver los productos» |
+| Baterías | 8 listadas | Ninguna: mismo mensaje |
+| Aceites | 48 listados (primera página) | Ninguno: mismo mensaje |
+| Bicicletas | 30 listadas | Ninguna: mismo mensaje |
+
+Cada categoría indica qué hacer: cauchos («Elige el rin y la medida, la marca, o escribe la medida»), baterías («Elige tu vehículo, el grupo o la marca»), aceites («Elige el tipo, la viscosidad o la marca, o escribe lo que buscas») y bicicletas («Elige el rin o escribe el modelo»).
+
+**Cuándo sí se muestran:** en cuanto el cliente elige cualquier filtro (rin, medida, marca, grupo, tipo, viscosidad…), escribe en el buscador, toca una marca de la cinta, o llega desde la portada con una medida o marca ya elegida. «Mostrar también los agotados» solo no cuenta como búsqueda. «Limpiar» o cambiar de categoría vuelve al estado sin productos. Antes de elegir ciudad sigue saliendo «Elige tu ciudad para empezar».
+
+Se comprobó en las cuatro categorías: sin filtros 0 tarjetas; con filtro, aparecen (cauchos rin 15: 48 en la primera página; baterías grupo 24: 1; aceites con marca: 12; bicicletas con filtro: 6).
+
+**Archivos:** `web/plantilla_catalogo.html`; se regenera con `python3 web/build.py`.
+
+**Capturas:** `09-sin-busqueda-antes.jpg` (web publicada: 491 cauchos sin buscar), `09-sin-busqueda-despues.jpg` (mensaje en lugar del listado).
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026). Falta subir todo a git.
+
+## 10. Aceites: los combos incluyen filtro
+**Pedido:** los combos de aceite incluyen filtro; el detalle de esa información lo enviará el cliente.
+
+| | Antes | Después |
+|---|---|---|
+| Tarjeta de un combo (4 litros o más) | Solo «4 Litros»; no decía nada del filtro (solo el recuadro de filtros decía «Incluye filtro + servicio GRATIS») | Recuadro «Incluye con tu combo: Filtro» y la línea «Detalle del filtro: por confirmar» |
+| Tarjeta de 1 litro o paila | Sin cambio | Sin cambio (no es combo) |
+
+Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Preparado para el detalle:** cuando el cliente indique qué filtro incluye (marca, tipo…), se escribe en `COMBO_DETALLE` en `web/plantilla_catalogo.html` y la línea «por confirmar» se reemplaza por ese texto («Filtro · detalle»). Con `MOSTRAR_PENDIENTES = false` (el mismo interruptor del requerimiento 6) la línea «por confirmar» se oculta y queda solo «Filtro».
+
+**Pendiente del cliente:** detalle del filtro que incluye cada combo. Además, el texto del filtro de combos dice «Incluye filtro + servicio GRATIS»: conviene que el cliente confirme si el servicio gratis también aplica a todos los combos.
+
+**Archivos:** `web/plantilla_catalogo.html`; se regenera con `python3 web/build.py`.
+
+**Capturas:** `10-combos-aceite-antes.jpg` (web publicada), `10-combos-aceite-despues.jpg`.
+
+**Estado:** publicado en cmvenezuela.com (2 nov 2026). Falta subir todo a git.
