@@ -6,6 +6,8 @@ import { inventario, citas, servicios } from './store.js'
 import { tasaPara } from './tasa.js'
 import { montarLista } from './lista.js'
 import { montarMeta } from './meta.js'
+import { equipoDeBandeja, traspasar } from './equipos.js'
+import { motivoDeFreno } from './limites.js'
 
 const app = express()
 app.use(express.json({ verify: (req, _res, buf) => { req.rawBody = buf } }))     // el cuerpo exacto sirve para validar la firma de Meta
@@ -45,6 +47,7 @@ async function revisar() {
         if (n < 3) return setTimeout(() => intentado.delete(c.id), 5000)   // reintenta el mismo mensaje
         await cw.sendMessage(c.id, 'Disculpa, tuve un inconveniente técnico para responderte. Un asesor te atenderá en breve. 🙏').catch(() => {})
         await cw.addLabels(c.id, [HUMANO]).catch(() => {})
+        await traspasar(c.id, (await contextoDeBandeja(c.inbox_id)).equipo)
       })
       .finally(() => procesando.delete(c.id))
   }
@@ -56,10 +59,11 @@ let bandejas = { ts: 0, lista: [] }
 async function contextoDeBandeja(id) {
   if (Date.now() - bandejas.ts > 5 * 60 * 1000) bandejas = { ts: Date.now(), lista: await cw.inboxes().catch(() => bandejas.lista) }
   const nombre = bandejas.lista.find(b => b.id === id)?.name || ''
-  if (/master/i.test(nombre)) return { tienda: 'maracay', marca: 'Master Cauchos', canal: nombre }
-  if (/caracas/i.test(nombre)) return { tienda: 'caracas', marca: 'CM Venezuela', canal: nombre }
-  if (/maracay/i.test(nombre)) return { tienda: 'maracay', marca: 'CM Venezuela', canal: nombre }
-  return { tienda: null, marca: null, canal: nombre }
+  const empresa = /master/i.test(nombre) ? { tienda: 'maracay', marca: 'Master Cauchos', canal: nombre }
+    : /caracas/i.test(nombre) ? { tienda: 'caracas', marca: 'CM Venezuela', canal: nombre }
+    : /maracay/i.test(nombre) ? { tienda: 'maracay', marca: 'CM Venezuela', canal: nombre }
+    : { tienda: null, marca: null, canal: nombre }
+  return { ...empresa, equipo: await equipoDeBandeja(id, empresa).catch(() => null) }
 }
 
 // Seguimiento: si el cliente dejó la conversación a medias (el último mensaje es del bot), a las 2 h le escribimos una vez,
@@ -89,11 +93,26 @@ async function seguimiento(c, ult) {
   } finally { enSeguimiento.delete(c.id) }
 }
 
+// Tope de mensajes del cliente o del gasto semanal: Nexo no llama al modelo, avisa al cliente una sola vez y deja la conversación a un asesor.
+const FRENOS = {
+  hora: { aviso: 'Recibimos muchos mensajes seguidos tuyos. Un asesor te atenderá por este mismo chat en breve. 🙏', nota: 'el cliente superó el límite de mensajes por hora' },
+  dia: { aviso: 'Recibimos muchos mensajes tuyos hoy. Un asesor te atenderá por este mismo chat en breve. 🙏', nota: 'el cliente superó el límite de mensajes por día' },
+  semana: { aviso: 'Estamos atendiendo muchas consultas en este momento. Un asesor te responde por este mismo chat en breve. 🙏', nota: 'se alcanzó el tope de gasto semanal del modelo' },
+}
+async function frenar(c, ctx, motivo) {
+  await cw.addLabels(c.id, [HUMANO, `limite-${motivo}`])      // primero la etiqueta: así no se repite el aviso
+  await cw.sendMessage(c.id, FRENOS[motivo].aviso)
+  await cw.sendMessage(c.id, `⛔ Nexo dejó de responder: ${FRENOS[motivo].nota}. Conviene que un asesor revise la conversación.`, true).catch(() => {})
+  await traspasar(c.id, ctx.equipo)
+}
+
 async function atender(c) {
   const ctx = { conversationId: c.id, contactId: c.meta?.sender?.id, telefono: c.meta?.channel === 'Channel::Whatsapp' ? c.meta?.sender?.phone_number : undefined, ...(await contextoDeBandeja(c.inbox_id)) }
   ctx.ficha = (await cw.contacto(ctx.contactId).catch(() => ({}))).custom_attributes || {}
   const payload = await cw.history(c.id)
   if (payload.some(m => m.message_type === 1 && !m.private && m.sender?.type === 'user' && !m.content_attributes?.bot)) return // ya lo atiende un humano
+  const freno = motivoDeFreno(payload)
+  if (freno) return frenar(c, ctx, freno)
   const texto = await responder(payload, ctx)
   if (!texto) throw new Error('respuesta vacía del modelo')   // se reintenta; nunca dejamos al cliente sin respuesta
   const partes = texto.split(/\n\s*-{3,}\s*\n/).map(x => x.trim()).filter(Boolean)     // «---» separa mensajes distintos (precios en divisa, precios en bolívares, enlace)

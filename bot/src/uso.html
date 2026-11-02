@@ -11,7 +11,7 @@ th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
 th{background:#1a1a1a;color:#fff;font-weight:600;font-size:13px}
 .mal{color:#b00020;font-weight:600}.wrap{overflow-x:auto}
 </style></head><body><main>
-<h1>Uso del modelo</h1><p>Llamadas y tokens por día (hora de Caracas). Cuenta desde que se activó el contador. «Pensando» es el razonamiento interno del modelo y se cobra como salida; «En caché» es la entrada repetida que Google cobra con descuento.</p>
+<h1>Uso del modelo</h1><p id="pres">Cargando…</p><p>Llamadas y tokens por día (hora de Caracas). Cuenta desde que se activó el contador. «Pensando» es el razonamiento interno del modelo y se cobra como salida; «En caché» es la entrada repetida que Google cobra con descuento.</p>
 <div class="wrap"><table><thead><tr><th>Día</th><th>Modelo</th><th>Llamadas</th><th>Tokens entrada</th><th>En caché</th><th>Pensando</th><th>Tokens salida</th><th>429 (cuota)</th><th>Otros errores</th><th>Costo est. US$</th></tr></thead><tbody id="t"></tbody></table></div>
 <h1 style="margin-top:32px">Gasto por conversación</h1><p id="res">Cargando…</p>
 <div class="wrap"><table><thead><tr><th>Conversación</th><th>Canal</th><th>Última actividad</th><th>Mensajes</th><th>Llamadas</th><th>Tokens entrada</th><th>En caché</th><th>Costo est. US$</th></tr></thead><tbody id="c"></tbody></table></div>
@@ -20,6 +20,11 @@ const n=x=>x.toLocaleString('es-VE');
 // Precio por millón de tokens (lista pública de Google); lo que está en caché se cobra al 10 % de la entrada. Es una estimación.
 const hora=t=>new Date(t).toLocaleString('es-VE',{timeZone:'America/Caracas',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false});
 const costo=(m,v)=>{const p=/lite/i.test(m)?[0.25,1.5]:[0.5,3],c=v.cache||0;return (((v.entrada-c)*p[0]+c*p[0]*0.1+((v.salida||0)+(v.pensando||0))*p[1])/1e6).toFixed(3)};
+fetch('/admin/api/uso/presupuesto').then(r=>r.json()).then(p=>{
+  const el=document.getElementById('pres'),alto=p.pct>=100;
+  el.textContent=`Semana desde el ${p.desde} (lunes a domingo): US$ ${p.gasto.toFixed(2)} de US$ ${p.tope} (${p.pct.toFixed(0)} %).`+(alto?' Tope alcanzado: Nexo no responde y pasa las conversaciones a un asesor.':p.pct>=80?' Cerca del tope.':'')+` Límite por cliente: ${p.limite_hora} mensajes por hora y ${p.limite_dia} por día.`;
+  if(p.pct>=80)el.className='mal';
+});
 fetch('/admin/api/uso').then(r=>r.json()).then(d=>{
   const f=[];
   for(const dia of Object.keys(d).sort().reverse())for(const [m,v] of Object.entries(d[dia]))

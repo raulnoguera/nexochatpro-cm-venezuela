@@ -26,7 +26,7 @@
 
 ## Técnicos
 
-- **Instagram:** token propio, adaptación de `meta.js` al inicio de sesión de Instagram y pruebas.
+- **Instagram:** conectar la app de Instagram con Chatwoot (ver `docs/META.md`), crear la bandeja y probar mensajes; adaptar y probar los comentarios con el inicio de sesión de Instagram.
 - **Mensajes fijos con imagen:** sección «Mensajes» en el panel y herramienta `enviar_mensaje(clave)` que envía el texto y la imagen directo a Chatwoot sin pasar por el modelo (una frase de ~15 palabras por mensaje en las instrucciones, que van en caché).
 - **Meta en producción:** verificación del negocio y revisión de permisos (acceso avanzado); token permanente de WhatsApp; conectar el número real de Master Cauchos.
 - **Messenger:** decidir si Nexo continúa la conversación (hoy en prueba) o se invita a WhatsApp. El bot maneja una sola página de Facebook.
@@ -35,3 +35,4 @@
 - **Recargo de baterías «chatarra»:** hoy Nexo pasa a un asesor; se puede modelar el recargo.
 - **Existencias de Caracas en el catálogo:** definir de dónde sale el dato (hoja del Excel o columna nueva) y agregar el campo `c` en `lista.js`.
 - **Seguridad:** retirar la llave SSH de trabajo del hPanel de Hostinger al terminar; cambiar la contraseña de administrador de Chatwoot; revocar cualquier token permanente de sistema que haya quedado en capturas.
+- **Equipos por empresa:** cuando se creen las bandejas reales de CM Maracay y CM Caracas, agregar sus ids a `BOT_EQUIPOS` (bandeja:equipo, hoy `2:2,3:2`) o dejar que Nexo las deduzca por el nombre de la bandeja («Maracay», «Caracas», «Master»). Crear los colaboradores reales como agentes en su equipo y sus bandejas, y borrar el colaborador de prueba. Definir si la conversación llega a una persona concreta (reparto automático de la bandeja) o solo a la lista del equipo.

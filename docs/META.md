@@ -59,6 +59,19 @@ Pasos que se siguieron:
 - El usuario del bot (agente) no ve una bandeja nueva hasta que se le agrega como colaborador.
 - Una conversación **resuelta** abre una conversación nueva cuando el cliente vuelve a escribir.
 
-## Instagram (pendiente)
+## Instagram en Chatwoot
 
-El caso de uso de Instagram es de la versión nueva (permisos `instagram_business_*`, inicio de sesión de Instagram). El Explorador de Facebook no muestra `instagram_basic`, `instagram_manage_comments` ni `instagram_manage_messages`. Falta generar el token propio de Instagram y adaptar `meta.js`: el camino de Instagram del código está escrito para el inicio de sesión de Facebook y **no ha sido probado**.
+Chatwoot trae el canal de Instagram (inicio de sesión de Instagram): recibe en `/webhooks/instagram`, el inicio de sesión vuelve a `/instagram/callback` y usa `INSTAGRAM_APP_ID`, `INSTAGRAM_APP_SECRET` e `INSTAGRAM_VERIFY_TOKEN` (la clave y el id son los de la **app de Instagram**, distintos a los de Facebook: Meta → caso de uso «API de Instagram» → «Configuración de la API con inicio de sesión de Instagram»).
+
+Como en Messenger, Meta permite una sola dirección de avisos por objeto, así que **el bot recibe los avisos de Instagram y reenvía los mensajes a Chatwoot** (`http://rails:3000/webhooks/instagram`). Meta firma esos avisos con la clave de la app de Instagram: el bot acepta las dos claves (`META_APP_SECRET` y `META_IG_APP_SECRET`). Los comentarios los sigue atendiendo el bot. Prueba sin Meta: `node scripts/probar_instagram_mensajes.mjs`.
+
+Pasos:
+
+1. **Meta, paso 1:** «Add all required permissions» (`instagram_business_basic`, `instagram_business_manage_comments`, `instagram_business_manage_messages`).
+2. **Meta, paso 2:** «Agregar cuenta» con la cuenta de Instagram profesional y aceptar la invitación de probador en la app de Instagram (Configuración → Sitios web y herramientas).
+3. **Servidor:** `ssh -t -i <llave> root@<IP_VPS> 'python3 /opt/nexochatpro/bot/conectar-instagram.py'`. Pide el id y la clave secreta de la app de Instagram (oculta) y los carga en los `.env` y en la base de Chatwoot (esa copia manda sobre el entorno; ver la trampa de Messenger).
+4. **Meta, paso 3 (webhooks):** URL `https://<dominio>/meta/webhook` y el mismo `META_VERIFY_TOKEN`; suscribir `messages` y `comments`. La app debe estar publicada.
+5. **Meta, paso 4 (inicio de sesión de empresa):** URI de redirección OAuth válida `https://<dominio>/instagram/callback`.
+6. **Chatwoot:** Ajustes → Bandejas → Agregar → Instagram → «Continuar con Instagram». Luego agregar a Nexo como colaborador de la bandeja y sumar la bandeja a `BOT_INBOX_IDS` (y a `BOT_PRUEBA_INBOX_IDS` mientras se prueba).
+
+Mientras los permisos estén en acceso estándar solo atiende cuentas con rol en la app. El camino de comentarios de Instagram del bot (`meta.js`) está escrito para el inicio de sesión de Facebook y **no ha sido probado** con la clave de Instagram.
