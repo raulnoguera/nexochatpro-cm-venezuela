@@ -422,6 +422,24 @@ export function montarLista(app) {
     } catch (e) { res.status(400).json({ error: e.message }) }
   })
 
+  // ---- resumen de la pantalla de inicio: cuántos productos hay y qué les falta
+  api.get('/resumen', (_req, res) => {
+    const categorias = {}
+    for (const [c, def] of Object.entries(CATS)) {
+      const items = leer(c)
+      if (def.sinProductos) { categorias[c] = { total: items.length }; continue }
+      categorias[c] = {
+        total: items.length,
+        sin_foto: items.filter(i => !i.imagen).length,
+        sin_precio: items.filter(i => !(i.usd > 0)).length,
+        agotados: items.filter(i => (i.stock?.tienda_1 ?? 0) + (i.stock?.tienda_2 ?? 0) + (i.stock?.caracas ?? 0) <= 0).length,
+        sin_caracas: items.filter(i => i.stock?.caracas == null).length,
+      }
+    }
+    let actualizado = null; try { actualizado = JSON.parse(fs.readFileSync(path.join(dir, 'catalogo.json'), 'utf8')).actualizado } catch {}
+    res.json({ categorias, actualizado, ajustes: leerAjustes() })
+  })
+
   // ---- carga masiva desde el Excel (todas las hojas a la vez)
   api.post('/excel/revisar', express.raw({ type: () => true, limit: '15mb' }), async (req, res) => {
     try {
@@ -455,6 +473,26 @@ export function montarLista(app) {
       const c = req.params.cat, items = leer(c), i = items.findIndex(x => x.sku === req.params.sku)
       if (i < 0) return res.status(404).json({ error: 'Ese producto ya no existe.' })
       items[i] = validar(c, req.body, items[i]); guardar(c, items); res.json(vista(c, items[i]))
+    } catch (e) { res.status(400).json({ error: e.message }) }
+  })
+  cat.patch('/items/:sku', (req, res) => {                                     // edición rápida desde la lista: precio y existencias, sin tocar el resto
+    try {
+      const c = req.params.cat, items = leer(c), i = items.findIndex(x => x.sku === req.params.sku), b = req.body || {}
+      if (CATS[c].sinProductos) return res.status(404).json({ error: 'Esta lista no tiene precios.' })
+      if (i < 0) return res.status(404).json({ error: 'Ese producto ya no existe.' })
+      const it = { ...items[i], stock: { ...items[i].stock } }
+      if ('usd' in b) {
+        const usd = b.usd === '' || b.usd == null ? NaN : Number(b.usd)
+        if (!(usd >= 0)) throw new Error('Escribe el precio en dólares (0 si el precio se consulta).')
+        it.usd = usd; it.usd_bs = usd === 0 ? 0 : Number(b.usd_bs) > 0 ? Number(b.usd_bs) : Math.ceil(usd * 1.05 - 1e-6)
+      } else if ('usd_bs' in b) {
+        const bs = b.usd_bs === '' || b.usd_bs == null ? NaN : Number(b.usd_bs)
+        if (!(bs >= 0)) throw new Error('Escribe el equivalente en dólares si paga en bolívares.')
+        it.usd_bs = bs
+      }
+      for (const [campo, tienda] of [['cm', 'tienda_1'], ['mc', 'tienda_2']]) if (campo in b) it.stock[tienda] = entero(b[campo])
+      if ('cc' in b) { if (b.cc === '' || b.cc == null) delete it.stock.caracas; else it.stock.caracas = entero(b.cc) }
+      items[i] = it; guardar(c, items); res.json(vista(c, it))
     } catch (e) { res.status(400).json({ error: e.message }) }
   })
   cat.delete('/items/:sku', (req, res) => {

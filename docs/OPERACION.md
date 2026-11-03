@@ -4,7 +4,9 @@
 
 `https://crm.nexochatpro.cloud/admin` (clave: `LISTA_CLAVE`). Es lo que se entrega al cliente.
 
-- **Pestañas:** Cauchos, Baterías, Aceites, Bicicletas y «Vehículos → batería».
+- **Navegación lateral:** Inicio, Cauchos, Baterías, Aceites, Bicicletas, Vehículos → batería, Ajustes de la web, Cargar Excel, y enlaces al consumo de Nexo y a la web.
+- **Inicio:** resumen con el total de productos de cada categoría y cuántos están sin foto, sin precio, agotados o sin dato de Caracas (cada número lleva a la lista ya filtrada), el estado de los ajustes de la web y el consumo semanal de Nexo.
+- **Edición rápida en la lista:** el precio, el equivalente en bolívares y las existencias (CM Maracay, Master Cauchos y Caracas) se cambian directamente en la fila y se guardan al salir de la casilla (`PATCH /admin/api/<categoría>/items/<sku>`); la lista se puede filtrar (sin foto, sin precio, agotados, sin dato de Caracas) y ordenar. «Editar» abre el formulario completo (modelo, tipo, lonas, especificaciones, foto…).
 - **Crear, editar y eliminar** productos; **subir foto** (se reduce a 900 px en el navegador); «usar la misma foto en los demás de esta marca».
 - **Cauchos:** además de marca y medida, el formulario lleva **Modelo**, **Tipo** (HT, AT, MT…), **Lonas** y **Especificaciones** (una por línea, «Índice de carga: 91»). La web las muestra en la tarjeta (Marca, Tipo con las lonas, Modelo y el desplegable «Ver especificaciones») y Nexo las ve al buscar cauchos. Lo que se deja vacío no se muestra.
 - **Existencia de Caracas:** todos los productos tienen el campo «Hay en CM Caracas»; vacío significa que aún no hay dato (la web sigue diciendo «cargando el inventario de Caracas»).

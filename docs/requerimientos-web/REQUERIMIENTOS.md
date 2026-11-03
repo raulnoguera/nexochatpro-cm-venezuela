@@ -196,3 +196,20 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Capturas:** `11-panel-formulario-cauchos.jpg`, `11-panel-ajustes-web.jpg`.
 
 **Estado:** desplegado el 2 de noviembre de 2026: panel en el servidor y web publicada en cmvenezuela.com. Falta subir el código a git.
+
+## 12. Rediseño del panel de administración
+**Pedido:** el panel no gusta; se puede mejorar: diseño y aspecto, más fácil de usar, un inicio con resumen y poder modificar precio, especificaciones, etc. de cada producto.
+
+| Antes | Ahora |
+|---|---|
+| Una sola página larga con pestañas y todo al final | Navegación lateral (Inicio, categorías, Ajustes de la web, Cargar Excel) con el contador de cada categoría |
+| Sin pantalla de inicio | **Inicio** con el resumen: productos por categoría y cuántos están sin foto, sin precio, agotados o sin dato de Caracas (cada número abre la lista ya filtrada), ajustes de la web y consumo semanal de Nexo |
+| Para cambiar un precio había que abrir cada producto | **Edición rápida en la lista:** precio, equivalente en bolívares y existencias (CM Maracay, Master Cauchos, Caracas) se cambian en la misma fila y se guardan solos |
+| Solo búsqueda y marca | Filtros por chip (sin foto, sin precio, agotados, sin dato de Caracas) y orden por marca, precio o existencia |
+| Formulario largo y plano | Formulario con secciones (Producto, Precio y existencias, Foto) y botones fijos; modelo, tipo, lonas y especificaciones siguen ahí |
+
+**Archivos:** `bot/src/admin.html` (rediseño completo), `bot/src/lista.js` (`GET /admin/api/resumen` y `PATCH …/items/:sku`), prueba `bot/scripts/probar_panel.mjs` (25 comprobaciones).
+
+**Capturas:** `12-panel-inicio.jpg`, `12-panel-lista-editable.jpg`, `12-panel-formulario.jpg`.
+
+**Estado:** hecho, probado en local y desplegado en el servidor (2 nov 2026).
