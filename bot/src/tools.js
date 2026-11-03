@@ -4,7 +4,7 @@ import { inventario, baterias, aceites, bicicletas, compatibilidad, servicios, a
 import { precio, disponibilidad, nombreTienda, horarioDe, ahoraCaracas } from './precios.js'
 import * as cw from './chatwoot.js'
 import { traspasar } from './equipos.js'
-import { gruposDe } from './lista.js'
+import { gruposDe, serviciosDe } from './lista.js'
 
 const MAX_RESULTADOS = 6
 const MAX_CAUCHOS = 14        // el protocolo de la tienda lista TODAS las opciones de una medida
@@ -171,7 +171,7 @@ export async function ejecutar(nombre, input, ctx) {
     const resultados = []
     const orden = { disponible: 0, pocas_unidades: 0, por_confirmar: 1, agotado: 2 }
     const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x) - sinPrecio(b.x) || a.x.usd - b.x.usd)
-    for (const { x, d } of todos.slice(0, MAX_CAUCHOS)) resultados.push({ marca: x.marca, ...(x.modelo && modeloVisible(x, input) && { modelo: x.modelo }), ...(x.tipo && { tipo: x.tipo }), ...(x.lonas && { lonas: x.lonas }), ...(x.espec?.length && { especificaciones: x.espec.map(e => `${e.k}: ${e.v}`).join('; ') }), medida: x.medida, ...(x.detalle && { presentacion: x.detalle }), ...(x.nota && { nota: x.nota }), ...(await precioONada(x, tienda)), disponibilidad: d })
+    for (const { x, d } of todos.slice(0, MAX_CAUCHOS)) resultados.push({ marca: x.marca, ...(x.modelo && modeloVisible(x, input) && { modelo: x.modelo }), ...(x.tipo && { tipo: x.tipo }), ...(x.lonas && { lonas: x.lonas }), ...(serviciosDe(x).length && { servicios_incluidos: serviciosDe(x) }), ...(x.espec?.length && { especificaciones: x.espec.map(e => `${e.k}: ${e.v}`).join('; ') }), medida: x.medida, ...(x.detalle && { presentacion: x.detalle }), ...(x.nota && { nota: x.nota }), ...(await precioONada(x, tienda)), disponibilidad: d })
     conTotales(resultados, input.cantidad)
     if (resultados.some(x => x.pagando_en_dolares_usd)) { const med = unico(r.map(x => ({ m: x.medida })), 'm'), rin = unico(r.map(x => ({ r: x.rin })), 'r'); ctx.enlace = enlaceWeb('cauchos', { ...(med && { medida: med }), ...(rin && { rin }) }, tienda) }
     return { tienda: nombreTienda(tienda), acepta_cashea: t.cashea, etiqueta_tasa: t.etiqueta_tasa, ...agrupaTasa(resultados), total_coincidencias: r.length, resultados, nota: !r.length ? 'Sin coincidencias en inventario' : r.length > MAX_CAUCHOS ? `Se muestran ${MAX_CAUCHOS} de ${r.length}; pide medida o marca para afinar` : undefined }

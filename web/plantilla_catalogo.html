@@ -299,7 +299,8 @@ const ESPEC_ROT = { ic: 'Índice de carga', iv: 'Índice de velocidad' };       
 const especCaucho = p => Object.entries({ ...Object.fromEntries(Object.entries(ESPEC_ROT).filter(([k]) => p[k]).map(([k, et]) => [et, p[k]])), ...(p.e || {}) }).filter(([, v]) => v !== '' && v != null);
 const bloqueCaucho = p => {
   const pend = '<li class="pend">Por confirmar</li>';
-  const sv = SERVICIOS_COMPRA.length || MOSTRAR_PENDIENTES ? `<div class="incl"><b>Incluye con tu compra</b><ul>${SERVICIOS_COMPRA.length ? SERVICIOS_COMPRA.map(x => `<li>${esc(x)}</li>`).join('') : pend}</ul></div>` : '';
+  const lista = p.sv || SERVICIOS_COMPRA;       // p.sv: servicios de este caucho (generales + por marca/modelo + propios); sin eso, los generales
+  const sv = lista.length || MOSTRAR_PENDIENTES ? `<div class="incl"><b>Incluye con tu compra</b><ul>${lista.length ? lista.map(x => `<li>${esc(x)}</li>`).join('') : pend}</ul></div>` : '';
   const es = especCaucho(p), det = es.length ? `<details class="esp"><summary>Ver especificaciones</summary><dl>${es.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></details>` : MOSTRAR_PENDIENTES ? '<details class="esp"><summary>Ver especificaciones</summary><p class="pend">Por confirmar</p></details>' : '';
   return sv + det;
 };

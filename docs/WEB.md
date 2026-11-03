@@ -48,7 +48,7 @@ Orden de la página (pedido del cliente, 30/10/2026):
 Comunes: `m` marca, `u` precio USD, `b` equivalente USD en bolívares, `t1`/`t2` existencia en Maracay (0/1/2), `c` existencia en Caracas (solo si ya hay dato), `x` etiqueta, `i` foto.
 Cauchos `z` medida, `r` rin, `mo` modelo, `ti` tipo, `lo` lonas, `e` especificaciones (`{ nombre: valor }`) · Baterías `d` descripción, `g` grupo, `k` grupos, `a` amperaje, `w` garantía · Aceites `t` tipo, `p` presentación · Bicicletas `r` rin, `d` modelo, `p` para quién, `co` colores · Compatibilidad `o` marca, `d` modelo, `a`/`b` años, `g` grupos, `r` texto del grupo.
 
-Además de las listas, `catalogo.json` trae `ajustes` (`servicios_compra`, `combo_detalle`, `mostrar_pendientes`), que el cliente edita en el panel («Ajustes de la web»). La página los aplica al cargar (`aplicarAjustes`); si el catálogo no los trae usa sus valores por defecto.
+Además de las listas, `catalogo.json` trae `ajustes` (`servicios_compra`, `combo_detalle`, `mostrar_pendientes`), que el cliente edita en el panel («Ajustes de la web»). La página los aplica al cargar (`aplicarAjustes`); si el catálogo no los trae usa sus valores por defecto. Cada caucho lleva además `sv`, la lista final de servicios que le corresponden (generales + reglas por marca/modelo + propios), calculada en el servidor; `ajustes.servicios_reglas` guarda las reglas.
 
 ### Secciones de la portada
 Buscador, categorías (con contador por ciudad), atajos rápidos (medidas, rines, marcas y aceites con más opciones), «Compra con confianza», **Nuestras sedes** (dirección, horario, WhatsApp y Google Maps de cada sede) y pie de página.

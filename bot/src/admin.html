@@ -29,6 +29,9 @@ p{margin:6px 0}.muted{color:var(--muted)}.err{color:var(--bad);font-weight:700}.
 /* ---- controles ---- */
 input,select,textarea{background:var(--s2);border:1.5px solid var(--line);border-radius:10px;min-height:42px;padding:0 12px;width:100%}
 textarea{padding:10px 12px;resize:vertical;line-height:1.4}
+.regla{display:grid;grid-template-columns:1fr 1fr 1.6fr auto;gap:8px;align-items:start;margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--s2)}
+.regla input,.regla textarea{background:var(--s)}
+@media(max-width:700px){.regla{grid-template-columns:1fr}}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--yd);box-shadow:0 0 0 3px rgba(245,217,10,.3)}
 input[type=checkbox]{width:auto;min-height:0}input[type=file]{padding:9px}
 button{border:0;border-radius:10px;background:var(--y);color:#141414;font-weight:800;min-height:42px;padding:0 18px;cursor:pointer}
@@ -126,6 +129,8 @@ details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20
   <div class="cab"><div><h1>Ajustes de la web</h1><p class="sub">Lo que escribes aquí se ve enseguida en cmvenezuela.com, sin tocar nada más.</p></div></div>
   <div class="card" style="max-width:720px">
     <p><label><span class="l">Servicios que vienen con la compra de los cauchos (uno por línea)</span><textarea id="ajsrv" rows="5" placeholder="Montura&#10;Balanceo&#10;Válvula nueva"></textarea></label></p>
+    <div class="reglas"><span class="l">Servicios según la marca o el modelo <small class="muted">(se suman a los de arriba; deja el modelo vacío para toda la marca)</small></span>
+      <div id="regs"></div><p><button class="sec" id="regnew" type="button">＋ Agregar regla</button></p></div>
     <p><label><span class="l">Detalle del filtro que incluyen los combos de aceite</span><input id="ajcombo" maxlength="80" placeholder="Ej. Filtro de aceite"></label></p>
     <p><label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" id="ajpend" style="margin-top:4px"><span style="font-size:15px;color:inherit">Mostrar «Por confirmar» donde todavía no hay información <small class="muted">(si lo apagas, esos apartados se esconden hasta tener datos)</small></span></label></p>
     <p style="margin-top:14px"><button id="ajgu">Guardar ajustes</button> <span id="ajmsg"></span></p>
@@ -152,6 +157,7 @@ details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20
     <label class="c c-cauchos"><span class="l">Modelo (opcional)</span><input id="cmodelo" maxlength="40" placeholder="SP726" autocomplete="off"></label>
     <label class="c c-cauchos"><span class="l">Tipo (opcional)</span><input id="ctipo" maxlength="30" list="tiposcaucho" placeholder="HT, AT, MT…" autocomplete="off"></label>
     <label class="c c-cauchos"><span class="l">Lonas (opcional)</span><input id="clonas" type="number" min="0" max="40" step="1" inputmode="numeric" placeholder="16"></label>
+    <label class="c c-cauchos w"><span class="l">Servicios solo de este caucho (opcional, uno por línea; con «-» delante se quita uno general, ej. «-Balanceo»)</span><textarea id="cservicios" rows="3" placeholder="Alineación gratis"></textarea></label>
     <label class="c c-cauchos w"><span class="l">Especificaciones (opcional, una por línea: «Nombre: valor»)</span><textarea id="cespec" rows="4" placeholder="Índice de carga: 91&#10;Índice de velocidad: H"></textarea></label>
     <label class="c c-baterias"><span class="l">Descripción</span><input id="descripcion" maxlength="80" placeholder="1000 AMP / 24R" autocomplete="off"></label>
     <label class="c c-baterias"><span class="l">Grupo</span><input id="grupo" maxlength="40" list="grupos" placeholder="GRUPO 24" autocomplete="off"></label>
@@ -199,7 +205,7 @@ const PAG = 40, IMG = 'https://crm.nexochatpro.cloud/img/'
 let CAT = 'cauchos', ITEMS = [], pag = 0, edit = null, quitar = false, FILTRO = '', NUEVO_AL_ABRIR = false
 const esCompat = () => CAT === 'compatibilidad'
 const CFG = {   // campos propios de cada categoría, cómo se titula cada fila y por cuáles se busca
-  cauchos: { campos: ['medida', 'modelo', 'tipo', 'lonas', 'espec'], titulo: i => i.medida, detalle: i => [i.modelo, i.tipo, i.lonas && `${i.lonas} lonas`].filter(Boolean).join(' · '), buscar: i => i.marca + i.medida + (i.modelo || '') + (i.tipo || '') },
+  cauchos: { campos: ['medida', 'modelo', 'tipo', 'lonas', 'servicios', 'espec'], titulo: i => i.medida, detalle: i => [i.modelo, i.tipo, i.lonas && `${i.lonas} lonas`].filter(Boolean).join(' · '), buscar: i => i.marca + i.medida + (i.modelo || '') + (i.tipo || '') },
   baterias: { campos: ['descripcion', 'grupo', 'amp', 'garantia'], titulo: i => i.descripcion, detalle: i => [i.grupo, i.garantia && 'garantía ' + i.garantia + ' m'].filter(Boolean).join(' · '), buscar: i => i.marca + i.descripcion + i.grupo },
   compatibilidad: { campos: ['modelo', 'desde', 'hasta', 'grupo'], titulo: i => i.modelo, detalle: i => `${i.desde || 'cualquier año'}${i.hasta ? '–' + i.hasta : i.desde ? ' en adelante' : ''} · batería: ${i.grupo}`, buscar: i => i.marca + i.modelo + i.grupo },
   bicicletas: { campos: ['rin', 'modelo', 'para', 'colores'], titulo: i => `Rin ${i.rin} · Modelo ${i.modelo}${i.para ? ' (' + i.para + ')' : ''}`, detalle: i => i.colores || '', buscar: i => 'rin' + i.rin + i.modelo + i.para + i.colores },
@@ -324,7 +330,7 @@ const reducir = file => new Promise((ok, no) => {                    // la foto 
 })
 const COMUNES = ['marca', 'usd', 'usd_bs', 'cm', 'mc', 'cc', 'etiqueta']
 const camposDe = () => (esCompat() ? ['marca', ...CFG.compatibilidad.campos] : [...COMUNES, ...CFG[CAT].campos])
-const CAUCHO_ID = ['modelo', 'tipo', 'lonas', 'espec']                     // en cauchos estos campos llevan otro id para no chocar con los de bicicletas y aceites
+const CAUCHO_ID = ['modelo', 'tipo', 'lonas', 'servicios', 'espec']                     // en cauchos estos campos llevan otro id para no chocar con los de bicicletas y aceites
 const idc = k => (esCompat() && k !== 'marca' ? 'v' + k : CAT === 'cauchos' && CAUCHO_ID.includes(k) ? 'c' + k : k)
 function abrir(i) {
   edit = i; quitar = false; $('#emsg').textContent = ''; $('#foto').value = ''; $('#cmarca').checked = false
@@ -368,14 +374,23 @@ document.addEventListener('click', async e => {
 })
 
 // ---------- Ajustes de la web ----------
+function filaRegla(r = {}) {
+  const d = document.createElement('div'); d.className = 'regla'
+  d.innerHTML = `<input data-r="marca" maxlength="40" placeholder="Marca (ej. Sportrak)" value="${esc(r.marca || '')}"><input data-r="modelo" maxlength="40" placeholder="Modelo (opcional)" value="${esc(r.modelo || '')}"><textarea data-r="servicios" rows="2" placeholder="Un servicio por línea">${esc((r.servicios || []).join('\n'))}</textarea><button class="sec" type="button" title="Quitar regla">✕</button>`
+  d.querySelector('button').onclick = () => d.remove()
+  $('#regs').append(d)
+}
+$('#regnew').onclick = () => filaRegla()
+const leerReglas = () => [...document.querySelectorAll('#regs .regla')].map(d => ({ marca: d.querySelector('[data-r=marca]').value, modelo: d.querySelector('[data-r=modelo]').value, servicios: d.querySelector('[data-r=servicios]').value })).filter(r => r.marca.trim() || r.modelo.trim() || r.servicios.trim())
 async function cargarAjustes() {
   const a = await api('GET', '/ajustes')
+  $('#regs').innerHTML = ''; (a.servicios_reglas || []).forEach(filaRegla)
   $('#ajsrv').value = (a.servicios_compra || []).join('\n'); $('#ajcombo').value = a.combo_detalle || ''; $('#ajpend').checked = a.mostrar_pendientes !== false
 }
 $('#ajgu').onclick = async () => {
   $('#ajgu').disabled = true; $('#ajmsg').className = 'muted'; $('#ajmsg').textContent = 'Guardando…'
   try {
-    await api('PUT', '/ajustes', { servicios_compra: $('#ajsrv').value, combo_detalle: $('#ajcombo').value, mostrar_pendientes: $('#ajpend').checked })
+    await api('PUT', '/ajustes', { servicios_compra: $('#ajsrv').value, servicios_reglas: leerReglas(), combo_detalle: $('#ajcombo').value, mostrar_pendientes: $('#ajpend').checked })
     $('#ajmsg').className = 'ok'; $('#ajmsg').textContent = 'Guardado. Ya se ve en la web.'; await cargarAjustes()
   } catch (er) { $('#ajmsg').className = 'err'; $('#ajmsg').textContent = er.message }
   $('#ajgu').disabled = false

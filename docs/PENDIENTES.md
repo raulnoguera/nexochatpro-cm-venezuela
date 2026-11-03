@@ -10,6 +10,7 @@
 | **Imágenes PNG** con fondo transparente: cauchos, envases de aceite de las marcas más reconocidas y al menos 3 baterías | Tarjetas de categorías de la portada (ver `WEB.md`) |
 | **Mensajes fijos** que mandan a mano (texto + imagen) y en qué momento | Herramienta de envío directo sin gastar tokens (ver abajo) |
 | Aclarar si **reservan** existencias al cotizar | Nexo dice «ya guardé la reserva», pero solo guarda datos y cita |
+| **Servicios que vienen con la compra de los cauchos**: cuáles son y a qué marcas o modelos aplica cada uno (pueden variar) | Se cargan como reglas en Ajustes de la web (estructura lista) |
 | Hojas SERVICIOS, ALINEACION (449 vehículos) y CONSUMIBLES | Importar y mostrar en la web y en Nexo |
 | Confirmar el RIF y la dirección completa de cada sede | Documentos y mensajes |
 | **Protocolo de respuesta, punto 7:** formato de mensaje de precios para **baterías, aceites (combos de 4 a 8 litros + filtro) y bicicletas**, como el de cauchos | Hoy usan una línea corta por opción |
