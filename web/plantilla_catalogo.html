@@ -74,10 +74,10 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
 .logo-m img{position:absolute;inset:18px 20px;z-index:1;width:calc(100% - 40px);height:calc(100% - 36px);object-fit:contain;opacity:0}
 .logo-m.con-logo img{opacity:1}.logo-m.con-logo b{visibility:hidden}
 .logo-m b{position:relative;z-index:1;font-family:var(--display);font-size:32px;line-height:1;font-weight:800;text-transform:uppercase;color:#fff;text-align:center}
-.fbox{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fbox label{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px}
+.fbox{display:grid;grid-template-columns:1fr 1fr;gap:12px}.fbox label{display:block;padding:0}      /* sin título encima, el select va solo (sin caja alrededor) */
 .fbox label span{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
 .fbox select{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);padding:0 10px;font-weight:700;font-size:16px}
-@media (max-width:560px){.fbox{gap:8px}.fbox label{padding:8px}.fbox select{font-size:14.5px;padding:0 6px}}   /* móvil: Grupo y Marca siguen lado a lado, más compactos */
+@media (max-width:560px){.fbox{gap:8px}.fbox select{font-size:14.5px;padding:0 8px}}   /* móvil: Grupo y Marca siguen lado a lado, más compactos */
 .two select{width:100%;min-height:50px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 10px;font-weight:700;font-size:16px}
 </style>
 </head>
@@ -242,8 +242,8 @@ const marcasBat = () => { const n = {}; for (const p of DATA.baterias || []) { c
 function filtrosBaterias() {
   const grupos = uniq((DATA.baterias || []).map(p => p.g).filter(g => g && g !== '-')).sort(num);
   return `<div class="grp sepa"><div class="fbox">
-    <label><span>Grupo</span><select id="bgrupo" aria-label="Grupo de batería"><option value="">Elige el grupo</option>${grupos.map(g => `<option value="${esc(g)}" ${g === F.grupo ? 'selected' : ''}>${esc(g.replace(/^GRUPO\s+/i, ''))}</option>`).join('')}</select></label>
-    <label><span>Marca</span><select id="bmarca" aria-label="Marca de batería">${opt(marcasDisp(DATA.baterias || []), F.marca, 'Elige la marca')}</select></label></div></div>`;
+    <label><select id="bgrupo" aria-label="Grupo de batería"><option value="">Elige el grupo</option>${grupos.map(g => `<option value="${esc(g)}" ${g === F.grupo ? 'selected' : ''}>${esc(g.replace(/^GRUPO\s+/i, ''))}</option>`).join('')}</select></label>
+    <label><select id="bmarca" aria-label="Marca de batería">${opt(marcasDisp(DATA.baterias || []), F.marca, 'Elige la marca')}</select></label></div></div>`;
 }
 const slug = m => m.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 function marcasCinta() {                                   // baterías: todas; cauchos y aceites: las marcas destacadas (ORDEN) que hay en la lista

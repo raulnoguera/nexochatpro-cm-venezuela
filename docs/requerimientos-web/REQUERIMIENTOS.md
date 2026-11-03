@@ -408,3 +408,15 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Archivos:** `web/plantilla_catalogo.html` (`filtrosBaterias`, `datosBateria`, `card`, estilos) y `web/catalogo.html` (generado).
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 27. Baterías: quitar las etiquetas «Grupo» y «Marca» de los filtros
+
+**Qué pidió el cliente (reunión del 3 nov):** eliminar el título «Grupo» y «Marca» de los filtros de baterías.
+
+**Antes:** cada filtro tenía su título («GRUPO», «MARCA») encima del desplegable, dentro de una caja (ver `26-baterias-despues.jpg`).
+
+**Cómo quedó** (`27-baterias-filtros-sin-etiquetas.jpg`): los dos desplegables van solos, lado a lado, y se explican con su propio texto («Elige el grupo», «Elige la marca»). Como ya no hay título, se quitó también la caja que los rodeaba para que no quedara un doble marco. Siguen teniendo su nombre para lectores de pantalla.
+
+**Archivos:** `web/plantilla_catalogo.html` (`filtrosBaterias`, estilos de `.fbox`) y `web/catalogo.html` (generado).
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
