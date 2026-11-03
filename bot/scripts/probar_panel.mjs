@@ -66,6 +66,35 @@ try {
 
   // 7) la categoría «ajustes» no se confunde con una lista de productos
   r = await api('GET', '/ajustes'); ok('GET /ajustes responde ajustes, no una categoría', () => assert.ok('servicios_compra' in r.j))
+  // 7b) edición rápida (PATCH): solo cambia lo que se manda
+  r = await api('POST', '/cauchos/items', { ...base1, medida: '205/55R16', modelo: 'X1', tipo: 'HT', lonas: 8, espec: 'Índice de carga: 91', etiqueta: 'Con set', cm: 4, mc: 1, cc: 6 })
+  const rap = r.j.sku
+  r = await api('PATCH', `/cauchos/items/${rap}`, { usd: 80 })
+  ok('PATCH del precio recalcula el equivalente en bolívares y no toca lo demás', () => { assert.equal(r.s, 200); assert.equal(r.j.usd, 80); assert.equal(r.j.usd_bs, 84); assert.equal(r.j.modelo, 'X1'); assert.equal(r.j.tipo, 'HT'); assert.equal(r.j.lonas, 8); assert.equal(r.j.espec, 'Índice de carga: 91'); assert.equal(r.j.cm, 4); assert.equal(r.j.mc, 1); assert.equal(r.j.cc, 6); assert.equal(r.j.etiqueta, 'Con set') })
+  r = await api('PATCH', `/cauchos/items/${rap}`, { usd: 80, usd_bs: 90 })
+  ok('PATCH respeta el equivalente en bolívares si se escribe', () => assert.equal(r.j.usd_bs, 90))
+  r = await api('PATCH', `/cauchos/items/${rap}`, { cm: 0, mc: 7, cc: '' })
+  ok('PATCH de existencias cambia las tiendas y quita Caracas si queda vacío', () => { assert.equal(r.j.cm, 0); assert.equal(r.j.mc, 7); assert.equal(r.j.cc, ''); assert.equal(r.j.usd, 80); assert.ok(!('c' in catalogo().cauchos.find(x => x.z === '205/55R16'))) })
+  r = await api('PATCH', `/cauchos/items/${rap}`, { usd: -3 })
+  ok('PATCH rechaza un precio negativo', () => { assert.equal(r.s, 400); assert.match(r.j.error, /precio/) })
+  r = await api('PATCH', '/cauchos/items/NO-EXISTE', { usd: 5 })
+  ok('PATCH de un producto que no existe da 404', () => assert.equal(r.s, 404))
+  r = await api('PATCH', '/compatibilidad/items/x', { usd: 5 })
+  ok('la tabla de vehículos no tiene precios que editar', () => assert.equal(r.s, 404))
+
+  // 7c) resumen para la pantalla de inicio
+  await api('POST', '/cauchos/items', { ...base1, medida: '175/70R13', cm: 0, mc: 0 })          // uno agotado
+  r = await api('GET', '/resumen')
+  ok('el resumen cuenta productos, fotos, precios, agotados y Caracas', () => {
+    const c = r.j.categorias.cauchos
+    assert.ok(c.total >= 3 && c.sin_foto === c.total && c.sin_precio === 0)
+    assert.equal(c.sin_caracas, c.total)
+    assert.equal(c.agotados, 1)
+    assert.equal(c.total, 4)
+    assert.ok(r.j.ajustes && 'servicios_compra' in r.j.ajustes && r.j.actualizado)
+    assert.equal(r.j.categorias.baterias.total, 0)
+  })
+
   // 8) Excel del formato nuevo: la columna LONAS se lee
   const wb = new ExcelJS.Workbook(), ws = wb.addWorksheet('CAUCHOS')
   ws.addRow(['CODIGO CM', 'CODIGO MC', 'MEDIDA', 'MARCA', 'MODELO', 'TIPO', 'LONAS', 'Precio', 'Bs', 'CM', 'MC', 'TOTAL INV'])
