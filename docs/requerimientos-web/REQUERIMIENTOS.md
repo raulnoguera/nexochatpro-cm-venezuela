@@ -309,3 +309,15 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Capturas (móvil):** `20-home-otros-movil-antes.jpg`, `20-home-otros-movil-despues.jpg`.
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 21. Tarjeta de Servicios con el mismo diseño que las demás
+
+**Qué pidió el cliente (reunión del 3 nov):** que la tarjeta de Servicios tenga el diseño de las otras tarjetas.
+
+**Cómo quedó:** la tarjeta de Servicios dejó su fondo blanco con borde y ahora es oscura, con el icono amarillo y el mismo texto gris claro y brillo de las demás. El texto («Montura, balanceo, rotación y alineación. Pregúntanos por WhatsApp.») y el enlace a WhatsApp no cambiaron. Como esa descripción es más larga, en móvil la fila de Aceites y Servicios queda un poco más alta que las otras; en escritorio todas miden lo mismo.
+
+**Archivos:** `web/plantilla_home.html` (se quitaron los estilos propios de `.tile.srv`) y `web/index.html` (generado).
+
+**Capturas (móvil):** `21-servicios-tarjeta-antes.jpg`, `21-servicios-tarjeta-despues.jpg`.
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).

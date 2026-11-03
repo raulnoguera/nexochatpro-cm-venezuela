@@ -195,14 +195,11 @@ section.blk{scroll-margin-top:72px;padding-block:48px 8px}
 .tile small{color:#B9B9B2;font-size:14px}
 .tile .n{position:absolute;right:16px;top:16px;background:var(--y);color:var(--y-ink);font-weight:800;border-radius:99px;padding:4px 10px;font-size:13px}
 .tile::after{content:"";position:absolute;right:-40px;bottom:-40px;width:140px;height:140px;border-radius:50%;background:radial-gradient(closest-side,rgba(245,217,10,.25),transparent)}
-.tile.srv{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
 .tile .pic{position:absolute;right:-4px;bottom:-6px;width:46%;max-width:230px;height:auto;aspect-ratio:1;object-fit:contain;z-index:1;pointer-events:none;filter:drop-shadow(0 16px 18px rgba(0,0,0,.55));transition:transform .28s cubic-bezier(.2,.8,.2,1)}
 .tile:hover .pic{transform:translateY(-8px) rotate(-5deg) scale(1.06)}
 .tile b,.tile small{position:relative;z-index:2}
 .tile .n{z-index:3}
 .tile small{max-width:54%}
-.tile.srv .pic{filter:drop-shadow(0 14px 16px rgba(0,0,0,.25))}.tile.srv small{color:var(--muted)}
-.tile.srv svg.ic{color:var(--ink)}
 /* escritorio: 6 tarjetas en una fila; título y relleno algo menores para que «Bicicletas» quepa */
 @media(min-width:1100px){.tile{padding:16px}.tile b{font-size:27px}}
 /* móvil: las tarjetas de categorías y servicios van de a 2 */
