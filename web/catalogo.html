@@ -366,9 +366,9 @@ function filtrosAceites() {
   const pres = F.tipo ? uniq(lista.filter(p => p.t.toUpperCase() === F.tipo.toUpperCase()).map(p => p.p)).sort(num) : [];
   const combos = uniq(lista.map(p => p.p).filter(esCombo)).sort(num);
   return `<div class="grp"><h3>Busca por tipo y viscosidad</h3><div class="two">
-    <label><span>1. Tipo de aceite</span><select id="atipo" aria-label="Tipo de aceite"><option value="">Elige el tipo…</option>${Object.keys(TIPOS_ACE).filter(k => porTipo[k]).map(k => `<option value="${k}" ${tipo === k ? 'selected' : ''}>${TIPOS_ACE[k]}</option>`).join('')}</select></label>
-    <label><span>2. Viscosidad</span><select id="avis" aria-label="Viscosidad" ${tipo ? '' : 'disabled'}><option value="">${tipo ? 'Todas las viscosidades…' : 'Primero el tipo'}</option>${viscs.map(t => `<option value="${esc(t)}" ${F.tipo && F.tipo.toUpperCase() === t ? 'selected' : ''}>${esc(viscAce(t))}</option>`).join('')}</select></label></div>
-    ${pres.length > 1 ? `<label style="display:block;margin-top:8px"><span>3. Presentación</span><select id="apres" aria-label="Presentación"><option value="">Todas las presentaciones</option>${pres.map(p => `<option value="${esc(p)}" ${F.presentacion === p ? 'selected' : ''}>${esc(presAce(p))}</option>`).join('')}</select></label>` : ''}</div>
+    <label><select id="atipo" aria-label="Tipo de aceite"><option value="">Elige el tipo</option>${Object.keys(TIPOS_ACE).filter(k => porTipo[k]).map(k => `<option value="${k}" ${tipo === k ? 'selected' : ''}>${TIPOS_ACE[k]}</option>`).join('')}</select></label>
+    <label><select id="avis" aria-label="Viscosidad" ${tipo ? '' : 'disabled'}><option value="">${tipo ? 'Elige la viscosidad' : 'Primero el tipo'}</option>${viscs.map(t => `<option value="${esc(t)}" ${F.tipo && F.tipo.toUpperCase() === t ? 'selected' : ''}>${esc(viscAce(t))}</option>`).join('')}</select></label></div>
+    ${pres.length > 1 ? `<label style="display:block;margin-top:8px"><select id="apres" aria-label="Presentación"><option value="">Elige la presentación</option>${pres.map(p => `<option value="${esc(p)}" ${F.presentacion === p ? 'selected' : ''}>${esc(presAce(p))}</option>`).join('')}</select></label>` : ''}</div>
   ${combos.length ? `<div class="grp"><h3>Combos para cambio de aceite</h3><p class="sub" style="margin:0 0 6px">Incluye filtro + servicio GRATIS</p><div class="chips">${combos.map(p => `<button class="chip" data-combo="${esc(p)}" aria-pressed="${F.presentacion === p && !F.tipo && !F.atipo}">${esc(presAce(p))}</button>`).join('')}</div></div>` : ''}`;
 }
 // Baterías: filtros para quien ya sabe qué batería usa (grupo y marca), aparte del buscador por vehículo
@@ -542,8 +542,9 @@ function paint() {
   const otrosVacio = CAT === 'otros' && !(DATA.otros || []).length;      // «Otros» aún sin productos: solo el aviso
   $('#qgrp').hidden = CAT === 'baterias' || otrosVacio;
   const marcas = marcasDisp(d);
-  $('#mgrp h3').hidden = CAT === 'cauchos'; $('#mgrp').classList.toggle('sinh3', CAT === 'cauchos');                        // en cauchos el texto va dentro de la lista, sin título encima
-  $('#marca').innerHTML = `<option value="">${CAT === 'cauchos' ? 'Elige la marca' : 'Todas las marcas'}</option>` + marcas.map(m => `<option ${m === F.marca ? 'selected' : ''}>${esc(m)}</option>`).join('');
+  const sinTitulos = CAT === 'cauchos' || CAT === 'aceites';
+  $('#mgrp h3').hidden = sinTitulos; $('#mgrp').classList.toggle('sinh3', sinTitulos);                        // en cauchos el texto va dentro de la lista, sin título encima
+  $('#marca').innerHTML = `<option value="">${sinTitulos ? 'Elige la marca' : 'Todas las marcas'}</option>` + marcas.map(m => `<option ${m === F.marca ? 'selected' : ''}>${esc(m)}</option>`).join('');
   const mods = modelosDisp(); if (F.modelo && !mods.includes(F.modelo)) F.modelo = '';
   $('#modgrp').hidden = !mods.length; $('#modgrp h3').hidden = true;
   $('#modelo').innerHTML = '<option value="">Elige el modelo</option>' + mods.map(m => `<option ${m === F.modelo ? 'selected' : ''}>${esc(m)}</option>`).join('');
