@@ -437,3 +437,20 @@ Los textos no se parten en dos líneas ni se cortan en móvil, y se dejó un peq
 **Archivos:** `web/plantilla_catalogo.html` (`filtrosCauchos`, `paint`, estilos) y `web/catalogo.html` (generado).
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 29. Aceites: filtros sin títulos, con el texto dentro de la lista
+
+**Qué pidió el cliente (reunión del 3 nov):** lo mismo que en cauchos: eliminar los títulos de los filtros de aceites.
+
+**Antes** (`29-aceites-filtros-antes.jpg`): títulos encima de cada lista («1. TIPO DE ACEITE», «2. VISCOSIDAD», «3. PRESENTACIÓN», «MARCA»).
+
+**Cómo quedó** (`29-aceites-filtros-despues.jpg`): sin esos títulos, con el texto dentro de cada lista:
+- **Tipo:** «Elige el tipo».
+- **Viscosidad:** «Primero el tipo» y, con el tipo elegido, «Elige la viscosidad».
+- **Presentación** (aparece cuando hay más de una): «Elige la presentación».
+- **Marca:** «Elige la marca».
+Los textos no se parten ni se cortan en móvil. Se conservaron los encabezados de grupo «Busca por tipo y viscosidad» y «Combos para cambio de aceite» (no son títulos de una lista). Bicicletas y baterías no cambian.
+
+**Archivos:** `web/plantilla_catalogo.html` (`filtrosAceites`, `paint`) y `web/catalogo.html` (generado).
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
