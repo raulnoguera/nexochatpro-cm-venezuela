@@ -339,3 +339,15 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Captura (móvil, Maracay):** `22-servicios-whatsapp-maracay.jpg`.
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 23. «Ver especificaciones» en una ventana emergente
+
+**Qué pidió el cliente (reunión del 3 nov):** que al pulsar «Ver especificaciones» en la tarjeta de un caucho salga un popup y no se despliegue dentro de la tarjeta, para no alargarla.
+
+**Antes:** el texto se abría dentro de la tarjeta y la estiraba (ver `23-especificaciones-antes.jpg`).
+
+**Cómo quedó:** «Ver especificaciones» es un botón (con un icono de información) que abre una ventana emergente con el título «Especificaciones», la marca, el modelo y la medida del caucho, y la lista de especificaciones. La tarjeta no cambia de tamaño. Se cierra con la ×, con «Cerrar», tocando fuera de la ventana o con Esc. Si el caucho aún no tiene especificaciones, la ventana dice «Por confirmar» (como antes, mientras «Mostrar Por confirmar» esté activo en Ajustes de la web). Captura: `23-especificaciones-popup.jpg`.
+
+**Archivos:** `web/plantilla_catalogo.html` (`bloqueCaucho`, `#espdlg`) y `web/catalogo.html` (generado).
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
