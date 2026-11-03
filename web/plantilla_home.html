@@ -261,6 +261,7 @@ section.blk{scroll-margin-top:72px;padding-block:48px 8px}
 
 <footer class="gut"><div class="wrap"><b>CM Maracay</b> · Av. Bolívar, diagonal al C.C. Global La Barraca, Maracay · Lunes a sábado, 8:00 a. m. a 5:30 p. m.<br><b>Master Cauchos</b> · Av. Bolívar Este #150, diagonal al C.C. Parque Aragua, Maracay · Lunes a sábado, 8:00 a. m. a 5:30 p. m.<br><b>CM Caracas</b> · Av. Rómulo Gallegos con calle El Carmen, diagonal a la iglesia Claret y Banesco, Dos Caminos, Caracas · Lunes a sábado, 8:00 a. m. a 5:00 p. m.</div></footer>
 
+<div class="wamenu" id="svmenu" hidden style="right:auto;position:absolute"></div>
 <script>
 const CATALOGO_URL = 'https://crm.nexochatpro.cloud/catalogo.json';   // lo actualiza el cliente desde el panel de administración; catalogo.json local queda de respaldo
 const WA = 'https://wa.me/584144540116?text=';
@@ -276,15 +277,25 @@ $('#wa').href = WA + encodeURIComponent('Hola, quiero consultar un producto');
 // WhatsApp de la barra: sin ciudad elegida salen las tres tiendas; con ciudad, solo las de esa ciudad (Maracay dos, Caracas una)
 const WA_T = [{ n: 'CM Maracay', c: 'maracay', wa: '584144540116', d: 'Av. Bolívar, diagonal al C.C. Global La Barraca' }, { n: 'Master Cauchos', c: 'maracay', wa: '584144885724', d: 'Av. Bolívar Este, diagonal al C.C. Parque Aragua' }, { n: 'CM Caracas', c: 'caracas', wa: '584243188302', d: 'Dos Caminos, Caracas' }];
 const waDe = () => CIUDAD ? WA_T.filter(t => t.c === CIUDAD) : WA_T;
+const WA_ICO = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg>';
+const waItems = (ts, msg) => ts.map(t => t.wa ? `<a href="https://wa.me/${t.wa}?text=${msg}" target="_blank" rel="noopener">${WA_ICO}<span>${t.n}<small>${t.d}</small></span></a>` : `<div class="off">${WA_ICO}<span>${t.n}<small>${t.d} · WhatsApp próximamente</small></span></div>`).join('');
+// Tarjeta «Servicios»: con ciudad elegida abre el WhatsApp de esa ciudad (en Maracay, un menú para escoger la tienda); sin ciudad, el menú con todas
+const MSG_SERV = encodeURIComponent('Hola, quiero consultar por servicios (montura, balanceo, alineación)');
 document.addEventListener('click', e => {
   const menu = $('#wamenu'), b = e.target.closest('#wa'), msg = encodeURIComponent('Hola, quiero consultar un producto');
   if (b) { const ts = waDe(); if (ts.length === 1 && ts[0].wa) { b.href = 'https://wa.me/' + ts[0].wa + '?text=' + msg; return; } e.preventDefault();     // una sola tienda con número: abre directo
-    menu.innerHTML = '<p>Escríbenos por WhatsApp</p>' + ts.map(t => t.wa ? `<a href="https://wa.me/${t.wa}?text=${msg}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg><span>${t.n}<small>${t.d}</small></span></a>` : `<div class="off"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg><span>${t.n}<small>${t.d} · WhatsApp próximamente</small></span></div>`).join('');
+    menu.innerHTML = '<p>Escríbenos por WhatsApp</p>' + waItems(ts, msg);
     menu.hidden = !menu.hidden; return; }
   if (!e.target.closest('#wamenu')) menu.hidden = true;
+  const sm = $('#svmenu'), sv = e.target.closest('#servicios');
+  if (sv) { const ts = waDe(); if (ts.length === 1 && ts[0].wa) { sv.href = 'https://wa.me/' + ts[0].wa + '?text=' + MSG_SERV; return; } e.preventDefault();
+    const r = sv.getBoundingClientRect(), abrir = sm.hidden; sm.innerHTML = '<p>Servicios: elige la tienda</p>' + waItems(ts, MSG_SERV);
+    sm.hidden = !abrir; if (abrir) { sm.style.top = (r.bottom + scrollY + 6) + 'px'; sm.style.left = Math.max(8, Math.min(r.left + scrollX, innerWidth - sm.offsetWidth - 8)) + 'px'; }     // dentro de la pantalla, con margen
+    return; }
+  if (!e.target.closest('#svmenu')) sm.hidden = true;
 });
 $('#wa2').href = WA + encodeURIComponent('Hola, necesito ayuda para elegir');
-$('#servicios').href = WA + encodeURIComponent('Hola, quiero consultar por servicios (montura, balanceo, alineación)');
+$('#servicios').href = WA + MSG_SERV;   // respaldo; al pulsar se usa el número de la ciudad (ver arriba)
 
 function llenar(id, vals, cur) { $(id).innerHTML = '<option value="">—</option>' + vals.map(v => `<option ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join(''); }
 const num = (a, b) => String(a).localeCompare(String(b), 'es', { numeric: true });

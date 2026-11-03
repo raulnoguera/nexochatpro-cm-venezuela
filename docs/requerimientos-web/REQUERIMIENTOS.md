@@ -321,3 +321,21 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Capturas (móvil):** `21-servicios-tarjeta-antes.jpg`, `21-servicios-tarjeta-despues.jpg`.
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 22. Tarjeta de Servicios: WhatsApp según la ciudad
+
+**Qué pidió el cliente (reunión del 3 nov):** que la tarjeta de Servicios lleve al WhatsApp de la ciudad elegida y que, si es Maracay, deje escoger la tienda.
+
+**Antes:** abría siempre el WhatsApp de CM Maracay, sin importar la ciudad.
+
+**Cómo quedó:**
+- **Caracas:** abre directamente el WhatsApp de CM Caracas con el mensaje «Hola, quiero consultar por servicios (montura, balanceo, alineación)».
+- **Maracay:** muestra un menú «Servicios: elige la tienda» con CM Maracay y Master Cauchos (nombre y dirección); cada opción abre su WhatsApp con el mismo mensaje.
+- **Sin ciudad elegida:** el menú muestra las tres tiendas, igual que el botón «Escríbenos» de la barra. (Si se prefiere pedir primero la ciudad, es un cambio pequeño.)
+- Un segundo toque en la tarjeta o tocar fuera cierra el menú; en móvil queda dentro de la pantalla.
+
+**Archivos:** `web/plantilla_home.html` (`waItems`, `MSG_SERV`, menú `#svmenu`) y `web/index.html` (generado).
+
+**Captura (móvil, Maracay):** `22-servicios-whatsapp-maracay.jpg`.
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
