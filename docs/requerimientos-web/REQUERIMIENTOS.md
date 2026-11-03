@@ -371,3 +371,22 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Capturas (móvil, el mismo caucho):** `24-tarjeta-caucho-antes.jpg`, `24-tarjeta-caucho-despues.jpg`.
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 25. Tarjeta de caucho: la medida debajo de la marca y etiquetas «Marca»/«Modelo» destacadas
+
+**Qué pidió el cliente (reunión del 3 nov):** poner la medida debajo de la marca, así:
+`Marca Habilead` / `265/60R18`, y que el texto de la etiqueta «Marca» también se destaque, con el mismo tamaño que el valor.
+
+**Antes:** la medida iba arriba de todo, sola, y la etiqueta «MARCA» era pequeña, en mayúsculas y gris.
+
+**Cómo quedó:**
+- Orden de los datos: **Marca** (con el tipo a la derecha, si lo hay), **Modelo** (si lo hay) y, debajo, la **medida**. Sin modelo queda exactamente como el ejemplo: `Marca Habilead` y `165/65R13` debajo.
+- Las etiquetas «Marca» y «Modelo» ahora son del mismo tamaño (19 px), grosor y color que su valor, y ya no van en mayúsculas pequeñas.
+- La etiqueta «Tipo» (a la derecha) se queda pequeña.
+- Se interpretó que, si el caucho tiene modelo, la medida va **después del modelo** (marca → modelo → medida); si se prefiere justo debajo de la marca y antes del modelo, es un cambio pequeño.
+
+**Archivos:** `web/plantilla_catalogo.html` (`datosCaucho`, `card`, estilos) y `web/catalogo.html` (generado).
+
+**Capturas (móvil):** `25-tarjeta-caucho-medida-antes.jpg`, `25-tarjeta-caucho-medida-despues.jpg` (sin modelo) y `25-tarjeta-caucho-medida-con-modelo.jpg`.
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
