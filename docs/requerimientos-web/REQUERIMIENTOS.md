@@ -390,3 +390,21 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Capturas (móvil):** `25-tarjeta-caucho-medida-antes.jpg`, `25-tarjeta-caucho-medida-despues.jpg` (sin modelo) y `25-tarjeta-caucho-medida-con-modelo.jpg`.
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 26. Baterías: filtros lado a lado, sin título, y tarjeta mejorada
+
+**Qué pidió el cliente (reunión del 3 nov):**
+1. En baterías, versión móvil: Grupo y Marca uno al lado del otro.
+2. Mejorar el filtro de baterías quitando el texto de título y que ese texto lo diga en los filtros.
+3. Mejorar la tarjeta de la batería.
+
+**Antes:** el título «¿Ya sabes qué batería usa tu vehículo?» iba encima, y en móvil Grupo y Marca estaban uno debajo del otro, cada uno en una caja grande (`26-baterias-filtros-antes.jpg`, `26-baterias-tarjeta-antes.jpg`).
+
+**Cómo quedó** (`26-baterias-despues.jpg`):
+- **Filtros:** se quitó el título. Grupo y Marca van en la misma fila también en móvil (cajas más compactas) y el texto lo dicen los propios filtros: «Elige el grupo» y «Elige la marca» (cortos para que quepan sin cortarse en pantallas pequeñas). En escritorio siguen en dos columnas.
+- **Tarjeta:** el mismo estilo que la del caucho. Marca (con la garantía a la derecha), Grupo (sin la palabra «GRUPO» repetida) y debajo la descripción grande (amperaje y polaridad, ej. «800 AMP / 42MR»). Se quitaron las etiquetas sueltas de grupo, amperaje y garantía, que repetían datos. Las etiquetas «Marca» y «Grupo» tienen el tamaño y el peso del valor, igual que en los cauchos. Precio en REF, botón de WhatsApp y disponibilidad no cambian.
+- Esta mejora de la tarjeta fue una interpretación (el pedido era general); se puede ajustar.
+
+**Archivos:** `web/plantilla_catalogo.html` (`filtrosBaterias`, `datosBateria`, `card`, estilos) y `web/catalogo.html` (generado).
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
