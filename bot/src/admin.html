@@ -338,6 +338,7 @@ function abrir(i) {
   $('#dt').textContent = (i ? 'Editar ' : 'Nuevo ') + (esCompat() ? 'vehículo' : 'producto') + (i ? ' · ' + i.marca : '')
   $$('.c').forEach(x => x.classList.toggle('on', x.classList.contains('c-' + CAT)))
   $$('.p').forEach(x => x.classList.toggle('off', esCompat()))
+  $('#usd').required = !esCompat()                                  // los vehículos no llevan precio: un campo oculto y obligatorio bloquearía el guardado sin avisar
   for (const k of camposDe()) $('#' + idc(k)).value = i ? (i[k] ?? '') : (k === 'cm' || k === 'mc' ? 0 : '')
   const bici = CAT === 'bicicletas'; $('#marca').closest('label').hidden = bici; $('#marca').required = !bici; if (bici && !$('#marca').value) $('#marca').value = 'Bicicleta'   // las bicicletas no llevan marca
   $('#pv').src = i?.imagen ? IMG + i.imagen : 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#ddd"/></svg>')

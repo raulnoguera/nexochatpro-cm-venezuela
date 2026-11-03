@@ -259,3 +259,13 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Archivos:** `bot/src/admin.html` (`filaRegla`).
 
 **Estado:** hecho, probado en local y desplegado en el servidor (2 nov 2026).
+
+## 17. Panel: no se podía guardar un vehículo (Vehículos → batería)
+
+**Qué pasaba:** al pulsar «Guardar» en un vehículo nuevo no ocurría nada. El formulario es el mismo de los productos y su campo «Precio en dólares» es obligatorio; en los vehículos ese campo está oculto, y el navegador bloqueaba el envío sin mostrar ningún aviso.
+
+**Arreglo:** el precio solo es obligatorio cuando no se está en Vehículos → batería. Los productos siguen exigiéndolo.
+
+**Archivos:** `bot/src/admin.html` (`abrir`).
+
+**Estado:** arreglado, probado en local (un vehículo nuevo se guarda y aparece en la lista) y desplegado en el servidor (2 nov 2026).
