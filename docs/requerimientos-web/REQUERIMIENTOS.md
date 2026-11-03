@@ -351,3 +351,23 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Archivos:** `web/plantilla_catalogo.html` (`bloqueCaucho`, `#espdlg`) y `web/catalogo.html` (generado).
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 24. Tarjeta de caucho: marca y modelo destacados, sin «Rin», lo que incluye al final, y precios en REF
+
+**Qué pidió el cliente (reunión del 3 nov):**
+1. Que la marca y el modelo del caucho destaquen más.
+2. Quitar «Rin 16» de la tarjeta del caucho.
+3. Bajar «Incluye con tu compra» y «Ver especificaciones» al final de la tarjeta.
+4. En los precios en divisas, quitar el signo de dólar y poner **REF**; también en la línea de la tasa euro. Aplica a todos los productos.
+
+**Cómo quedó:**
+- **Marca y modelo** con letra más grande (19 px en lugar de 14) y en negrita; el tipo (HT, AT…) se queda al lado derecho con su tamaño de antes.
+- **Sin «Rin N»:** el rin sigue sirviendo para filtrar y buscar, pero ya no sale como etiqueta en la tarjeta. Si la tarjeta se queda sin etiquetas, no deja espacio vacío.
+- **Orden de la tarjeta:** medida, marca/modelo/tipo, disponibilidad, **precio, botón de WhatsApp** y, al final, «Incluye con tu compra» y «Ver especificaciones». (Se interpretó «de último» como debajo del botón; si se prefiere entre el precio y el botón, es un cambio pequeño.) En los aceites el bloque del filtro de los combos queda donde estaba.
+- **REF:** el precio principal pasa de «$52» a «REF 52» (con REF más pequeño), y la línea de la tasa de «(55 a tasa euro)» a «(REF 55 a tasa euro)». Se verificó en cauchos, baterías, aceites y bicicletas; no queda ningún signo «$» en las tarjetas.
+
+**Archivos:** `web/plantilla_catalogo.html` (`ref`, `refGrande`, `datosCaucho`, `card`, estilos) y `web/catalogo.html` (generado).
+
+**Capturas (móvil, el mismo caucho):** `24-tarjeta-caucho-antes.jpg`, `24-tarjeta-caucho-despues.jpg`.
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).

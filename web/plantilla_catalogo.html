@@ -17,7 +17,7 @@
 .price .bs b{color:var(--ink)}
 .sub{color:var(--muted);font-size:13px;font-weight:600}
 select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 12px;font-weight:600}
-.datos{margin-top:6px;display:grid;gap:2px;font-size:14px}.datos i{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px}.datos b{color:var(--ink);font-weight:800}.datos .fila{display:flex;justify-content:space-between;align-items:baseline;gap:4px 10px;flex-wrap:wrap}.datos .der{margin-left:auto;text-align:right}
+.datos{margin-top:6px;display:grid;gap:2px;font-size:14px}.datos i{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px}.datos b{color:var(--ink);font-weight:800}.datos .fila{display:flex;justify-content:space-between;align-items:baseline;gap:4px 10px;flex-wrap:wrap}.datos .der{margin-left:auto;text-align:right}.datos .dest{font-size:18px;line-height:1.2}.datos .dest b{font-size:19px;font-weight:800;letter-spacing:.005em}.datos .dest i{font-size:11px}.tags:empty{display:none}
 .incl{background:var(--surface2);border-radius:12px;padding:9px 12px;font-size:13.5px}.incl b{display:block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}.incl ul{margin:0;padding:0;list-style:none}.incl li{padding-left:20px;position:relative;font-weight:600}.incl li:before{content:'✓';position:absolute;left:0;color:var(--ok);font-weight:800}
 .incl li.pend:before{content:'·'}.pend{color:var(--muted);font-weight:600}.esp p.pend{margin:8px 0 0}
 .espbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:6px 0;margin:0;font:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}.espbtn:hover{text-decoration:underline}.espbtn svg{width:16px;height:16px;flex:none;color:var(--muted)}
@@ -28,7 +28,7 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
 .askwrap{position:relative}.askmenu{top:auto;bottom:calc(100% + 6px);left:0;right:0;min-width:0}
 .card .ph.foto{height:150px;padding:0;overflow:hidden}.card .ph.foto img{width:100%;height:100%;object-fit:cover}
 .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.tabs .chip{flex:none}
-.price .usd.consulta{font-size:26px;line-height:1.1}
+.price .usd.consulta{font-size:26px;line-height:1.1}.price .usd .refp{font-size:.55em;letter-spacing:.04em;margin-right:2px}
 .inicio{color:#CFCFC8;font-size:14px;font-weight:600;text-decoration:none;white-space:nowrap}.inicio:hover{color:var(--y)}
 .note{color:var(--muted);font-size:13px;padding-bottom:28px}
 .ciudad select{width:100%;min-height:52px;border-radius:12px;border:2px solid var(--y);background:var(--surface2);padding:0 12px;font-weight:800;font-size:17px}
@@ -131,6 +131,8 @@ const CATALOGO_URL = 'https://crm.nexochatpro.cloud/catalogo.json';   // lo actu
 const $ = s => document.querySelector(s);
 const bs = n => Math.ceil(n - 1e-6).toLocaleString('es-VE');
 const usd = n => '$' + Number(n).toLocaleString('es-VE', { maximumFractionDigits: 2 });
+const ref = n => 'REF ' + Number(n).toLocaleString('es-VE', { maximumFractionDigits: 2 });          // los precios en divisas se muestran con «REF», no con «$»
+const refGrande = n => `<span class="refp">REF</span> ${Number(n).toLocaleString('es-VE', { maximumFractionDigits: 2 })}`;
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const uniq = a => [...new Set(a)];
 const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z.]/g, '');
@@ -169,7 +171,7 @@ const CATS = {
     nombre: 'Cauchos', pista: 'Ej. 265/60R18 o Haida', titulo: 'Escribe la medida o la marca',
     texto: p => p.z + p.m + (p.mo || '') + (p.ti || ''),
     filtros: () => [],                                  // los cauchos se filtran con las casillas Rin → Medida (ver filtrosCauchos)
-    titulo_p: p => p.z, tags: p => (p.r != null ? ['Rin ' + p.r] : []).concat(p.ti ? [p.ti] : []),
+    titulo_p: p => p.z, tags: p => (p.ti ? [p.ti] : []),
     msg: p => `el caucho ${p.m}${p.mo ? ' ' + p.mo : ''} ${p.z}${p.ti ? ' ' + p.ti : ''}${p.x ? ' (' + p.x + ')' : ''}`,
   },
   baterias: {
@@ -306,7 +308,7 @@ const detalleCaucho = p => {
 };
 const modeloCaucho = p => detalleCaucho(p).modelo;
 // Marca (izquierda) y tipo (derecha, con las lonas entre paréntesis) en la misma línea; el modelo debajo. Cada uno con su etiqueta y el valor a su lado; lo que no tiene dato no se muestra
-const datosCaucho = p => `<div class="datos"><div class="fila"><span><i>Marca</i> <b>${esc(marcaDe(p))}</b></span>${tipoLonas(p) ? `<span class="der"><i>Tipo</i> <b>${esc(tipoLonas(p))}</b></span>` : ''}</div>${modeloCaucho(p) ? `<div><i>Modelo</i> <b>${esc(modeloCaucho(p))}</b></div>` : ''}</div>`;
+const datosCaucho = p => `<div class="datos"><div class="fila"><span class="dest"><i>Marca</i> <b>${esc(marcaDe(p))}</b></span>${tipoLonas(p) ? `<span class="der"><i>Tipo</i> <b>${esc(tipoLonas(p))}</b></span>` : ''}</div>${modeloCaucho(p) ? `<div class="dest"><i>Modelo</i> <b>${esc(modeloCaucho(p))}</b></div>` : ''}</div>`;
 const tipoLonas = p => { const d = detalleCaucho(p); return [d.tipo, d.lonas ? `(${d.lonas} lonas)` : ''].filter(Boolean).join(' '); };      // a la derecha de la marca: «HT (16 lonas)»
 const ESPEC_ROT = { ic: 'Índice de carga', iv: 'Índice de velocidad' };                  // atajos de campos del catálogo, por si el cliente los envía así
 // Especificaciones: p.e = { 'Índice de carga': '91', ... } (cualquier etiqueta). Sin datos no se muestra nada.
@@ -341,12 +343,13 @@ function botonTiendas(p, c, ci, ks) {
 }
 function card(p) {
   const c = CATS[CAT], [k, t] = estado(p), tasa = TASAS[CIUDADES[ciudad()].tasa], ci = CIUDADES[ciudad()], tk = tiendaWa(p), conWa = ci.tiendas.filter(x => TIENDAS[x].wa);
-  const precioBs = tasa ? `<div class="bs"><b>Bs ${bs(p.b * tasa)}</b> pagando en bolívares<br><span class="sub">(${ci.etiqueta === 'tasa euro' ? usd(p.b).replace('$', '') : usd(p.b)} a ${ci.etiqueta})</span></div>` : '';
+  const precioBs = tasa ? `<div class="bs"><b>Bs ${bs(p.b * tasa)}</b> pagando en bolívares<br><span class="sub">(${ref(p.b)} a ${ci.etiqueta})</span></div>` : '';
   const tags = c.tags(p).concat(p.x && !(CAT === 'cauchos' && /^\d+\s*lonas$/i.test(p.x.trim())) ? [p.x] : []);
   return `<article class="card"><div class="ph${p.i ? ' foto' : ''}">${p.i ? `<img src="${esc(p.i)}" alt="${esc(p.m + ' ' + c.titulo_p(p))}" loading="lazy">` : ICONOS[CAT]}</div><div>${CAT === 'cauchos' ? `<h4>${esc(c.titulo_p(p))}</h4>${datosCaucho(p)}` : `<div class="brand">${esc(p.m)}${p.mo ? ' · ' + esc(p.mo) : ''}</div><h4>${esc(c.titulo_p(p))}</h4>`}</div>
-    <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}<span class="stk ${k}">${t}</span>${CAT === 'cauchos' ? bloqueCaucho(p) : CAT === 'aceites' ? bloqueAceite(p) : ''}
-    <div class="price">${p.u > 0 ? `<div class="usd">${usd(p.u)}<small>Oferta en divisa</small></div>${precioBs}` : '<div class="usd consulta">Consultar precio</div><div class="bs">Te lo confirmamos por WhatsApp</div>'}</div>
-    ${conWa.length > 1 ? botonTiendas(p, c, ci, conWa) : TIENDAS[tk].wa ? `<a class="ask" href="${wa(`Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} Consultar por WhatsApp</a>` : ''}</article>`;
+    <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}<span class="stk ${k}">${t}</span>${CAT === 'aceites' ? bloqueAceite(p) : ''}
+    <div class="price">${p.u > 0 ? `<div class="usd">${refGrande(p.u)}<small>Oferta en divisa</small></div>${precioBs}` : '<div class="usd consulta">Consultar precio</div><div class="bs">Te lo confirmamos por WhatsApp</div>'}</div>
+    ${conWa.length > 1 ? botonTiendas(p, c, ci, conWa) : TIENDAS[tk].wa ? `<a class="ask" href="${wa(`Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} Consultar por WhatsApp</a>` : ''}
+    ${CAT === 'cauchos' ? bloqueCaucho(p) : ''}</article>`;
 }
 
 const gruposVeh = () => {                                                // grupos de batería que sirven al vehículo elegido, según la tabla de compatibilidad
