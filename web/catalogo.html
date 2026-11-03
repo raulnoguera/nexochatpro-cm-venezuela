@@ -151,8 +151,8 @@ select option::checkmark{display:none}
 .more{display:block;margin:0 auto 40px;min-width:220px}
 .price .bs b{color:var(--ink)}
 .sub{color:var(--muted);font-size:13px;font-weight:600}
-select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 12px;font-weight:600}
-.datos{margin-top:6px;display:grid;gap:2px;font-size:14px}.datos i{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px}.datos b{color:var(--ink);font-weight:800}.datos .fila{display:flex;justify-content:space-between;align-items:baseline;gap:4px 10px;flex-wrap:wrap}.datos .der{margin-left:auto;text-align:right}.datos .dest{font-size:18px;line-height:1.2}.datos .dest b{font-size:19px;font-weight:800;letter-spacing:.005em}.datos .dest i{font-size:19px;font-weight:800;letter-spacing:.005em;text-transform:none;color:var(--ink);margin-right:7px}.datos .med{margin:4px 0 0}.tags:empty{display:none}
+select.marca{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 12px;font-weight:600}
+.datos{margin-top:6px;display:grid;gap:2px;font-size:14px}.datos i{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px}.datos b{color:var(--ink);font-weight:800}.datos .fila{display:flex;justify-content:space-between;align-items:baseline;gap:4px 10px;flex-wrap:wrap}.datos .der{margin-left:auto;text-align:right}.datos .dest{font-size:18px;line-height:1.2}.datos .dest b{font-size:19px;font-weight:800;letter-spacing:.005em}.datos .dest i{font-size:19px;font-weight:800;letter-spacing:.005em;text-transform:none;color:var(--ink);margin-right:7px}.datos .med{margin:4px 0 0}.tags:empty{display:none}.grp.sinh3{margin-top:10px;margin-bottom:10px}
 .incl{background:var(--surface2);border-radius:12px;padding:9px 12px;font-size:13.5px}.incl b{display:block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}.incl ul{margin:0;padding:0;list-style:none}.incl li{padding-left:20px;position:relative;font-weight:600}.incl li:before{content:'✓';position:absolute;left:0;color:var(--ok);font-weight:800}
 .incl li.pend:before{content:'·'}.pend{color:var(--muted);font-weight:600}.esp p.pend{margin:8px 0 0}
 .espbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:6px 0;margin:0;font:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}.espbtn:hover{text-decoration:underline}.espbtn svg{width:16px;height:16px;flex:none;color:var(--muted)}
@@ -213,7 +213,7 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
 .fbox label span{display:block;font-size:12px;font-weight:800;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
 .fbox select{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);padding:0 10px;font-weight:700;font-size:16px}
 @media (max-width:560px){.fbox{gap:8px}.fbox select{font-size:14.5px;padding:0 8px}}   /* móvil: Grupo y Marca siguen lado a lado, más compactos */
-.two select{width:100%;min-height:50px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 10px;font-weight:700;font-size:16px}
+.two select{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:50px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 10px;font-weight:700;font-size:16px}
 </style>
 </head>
 <body>
@@ -237,7 +237,7 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
     <div class="grp" id="qgrp"><h3 id="qtit">Escribe la medida o la marca</h3><div class="q"><input id="q" inputmode="text" autocomplete="off" aria-label="Buscar"><button class="btn" id="qb">Buscar</button><div class="sug" id="sug" hidden></div></div></div>
     <div id="filtros"></div>
     <div class="grp" id="mgrp"><h3>Marca</h3><select class="marca" id="marca" aria-label="Marca"><option value="">Todas las marcas</option></select></div>
-    <div class="grp" id="modgrp" hidden><h3>Modelo</h3><select class="marca" id="modelo" aria-label="Modelo"><option value="">Todos los modelos</option></select></div>
+    <div class="grp sinh3" id="modgrp" hidden><h3>Modelo</h3><select class="marca" id="modelo" aria-label="Modelo"><option value="">Todos los modelos</option></select></div>
     <div class="grp"><button class="chip" id="todos" aria-pressed="false">Mostrar también los agotados</button> <button class="btn ghost" id="clr" style="min-height:44px">Limpiar</button></div>
   </div>
   <div class="meta"><span id="count"></span><span class="sub" id="fecha"></span></div>
@@ -355,8 +355,8 @@ const rinesDisp = md => uniq(Object.values(md).map(e => e.r)).sort((a, b) => a -
 function filtrosCauchos() {                                 // 1.º el rin, 2.º una lista con las medidas que hay en ese rin
   const md = medDisp(), meds = Object.keys(md).filter(z => !F.rin || md[z].r === F.rin).sort(num);
   return `<div class="grp"><h3>Busca por medida</h3><div class="two">
-    <label><span>1. Rin</span><select id="frin" aria-label="Rin"><option value="">Elige el rin…</option>${rinesDisp(md).map(r => `<option ${F.rin === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></label>
-    <label><span>2. Medida disponible</span><select id="fmed" aria-label="Medida" ${F.rin ? '' : 'disabled'}><option value="">${F.rin ? 'Todas las medidas…' : 'Primero el rin'}</option>${meds.map(z => `<option value="${esc(z)}" ${F.medida === z ? 'selected' : ''}>${esc(z)}</option>`).join('')}</select></label></div></div>`;
+    <label><select id="frin" aria-label="Rin"><option value="">Elige el rin</option>${rinesDisp(md).map(r => `<option value="${esc(r)}" ${F.rin === r ? 'selected' : ''}>Rin ${esc(r)}</option>`).join('')}</select></label>
+    <label><select id="fmed" aria-label="Medida disponible" ${F.rin ? '' : 'disabled'}><option value="">${F.rin ? 'Elige la medida' : 'Primero el rin'}</option>${meds.map(z => `<option value="${esc(z)}" ${F.medida === z ? 'selected' : ''}>${esc(z)}</option>`).join('')}</select></label></div></div>`;
 }
 function filtrosAceites() {
   const ks = (CIUDADES[ciudad()] || { tiendas: [] }).tiendas;
@@ -542,10 +542,11 @@ function paint() {
   const otrosVacio = CAT === 'otros' && !(DATA.otros || []).length;      // «Otros» aún sin productos: solo el aviso
   $('#qgrp').hidden = CAT === 'baterias' || otrosVacio;
   const marcas = marcasDisp(d);
-  $('#marca').innerHTML = '<option value="">Todas las marcas</option>' + marcas.map(m => `<option ${m === F.marca ? 'selected' : ''}>${esc(m)}</option>`).join('');
+  $('#mgrp h3').hidden = CAT === 'cauchos'; $('#mgrp').classList.toggle('sinh3', CAT === 'cauchos');                        // en cauchos el texto va dentro de la lista, sin título encima
+  $('#marca').innerHTML = `<option value="">${CAT === 'cauchos' ? 'Elige la marca' : 'Todas las marcas'}</option>` + marcas.map(m => `<option ${m === F.marca ? 'selected' : ''}>${esc(m)}</option>`).join('');
   const mods = modelosDisp(); if (F.modelo && !mods.includes(F.modelo)) F.modelo = '';
-  $('#modgrp').hidden = !mods.length;
-  $('#modelo').innerHTML = '<option value="">Todos los modelos</option>' + mods.map(m => `<option ${m === F.modelo ? 'selected' : ''}>${esc(m)}</option>`).join('');
+  $('#modgrp').hidden = !mods.length; $('#modgrp h3').hidden = true;
+  $('#modelo').innerHTML = '<option value="">Elige el modelo</option>' + mods.map(m => `<option ${m === F.modelo ? 'selected' : ''}>${esc(m)}</option>`).join('');
   $('#todos').setAttribute('aria-pressed', !!F.todos);
   $('#mgrp').hidden = !!c.sinMarca || CAT === 'baterias';
   const cid = ciudad(), ci = CIUDADES[cid];

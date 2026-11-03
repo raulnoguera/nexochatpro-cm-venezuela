@@ -420,3 +420,20 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Archivos:** `web/plantilla_catalogo.html` (`filtrosBaterias`, estilos de `.fbox`) y `web/catalogo.html` (generado).
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 28. Cauchos: filtros sin títulos, con el texto dentro de la lista
+
+**Qué pidió el cliente (reunión del 3 nov):** mejorar los filtros de los cauchos eliminando los títulos de las listas y que ese título esté dentro de la lista.
+
+**Antes** (`28-cauchos-filtros-antes.jpg`): cada lista tenía su título encima («1. RIN», «2. MEDIDA DISPONIBLE», «MARCA», «MODELO»).
+
+**Cómo quedó** (`28-cauchos-filtros-despues.jpg`): se quitaron esos títulos y el texto está dentro de cada lista:
+- **Rin:** «Elige el rin»; ya elegido, la lista muestra «Rin 15» (no solo «15»).
+- **Medida:** «Primero el rin» y, con el rin elegido, «Elige la medida».
+- **Marca:** «Elige la marca».
+- **Modelo:** «Elige el modelo» (aparece al elegir una marca que tenga modelos).
+Los textos no se parten en dos líneas ni se cortan en móvil, y se dejó un pequeño espacio donde estaban los títulos. Se conservó el encabezado «Busca por medida» (es el título del grupo, no de una lista). Los nombres internos de cada lista siguen ahí para lectores de pantalla. Los filtros de aceites y bicicletas no cambian.
+
+**Archivos:** `web/plantilla_catalogo.html` (`filtrosCauchos`, `paint`, estilos) y `web/catalogo.html` (generado).
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
