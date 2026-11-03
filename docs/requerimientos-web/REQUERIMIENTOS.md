@@ -249,3 +249,13 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Archivos:** `web/plantilla_catalogo.html` (`modelosDisp`, parámetro `sinModelo` en `filtrar`) y `web/catalogo.html` (generado).
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (2 nov 2026).
+
+## 16. Panel: el modelo de cada regla se elige de una lista filtrada por la marca
+
+**Qué faltaba:** en el panel, al crear la regla de servicios, el campo «Modelo» no filtraba por la marca elegida (era un campo de texto con sugerencias).
+
+**Cómo quedó:** el modelo es una lista desplegable. Sin marca dice «Primero la marca» y está desactivada; al escribir o elegir la marca se llena con los modelos de esa marca (Sportrak → SP366, SP706, SP716…) y la primera opción es «Toda la marca». Al cambiar la marca, el modelo vuelve a «Toda la marca». Un modelo ya guardado se conserva aunque ya no esté en el inventario. El contador «Aplica a N cauchos» sigue funcionando.
+
+**Archivos:** `bot/src/admin.html` (`filaRegla`).
+
+**Estado:** hecho, probado en local y desplegado en el servidor (2 nov 2026).

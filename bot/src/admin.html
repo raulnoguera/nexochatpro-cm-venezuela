@@ -393,15 +393,20 @@ function alcance() {                                               // «Aplica a
     } catch { /* sin conexión: se queda sin contador */ }
   }, 350)
 }
-let nReg = 0
 function filaRegla(r = {}) {
-  const id = ++nReg, d = document.createElement('div'); d.className = 'regla'
-  d.innerHTML = `<input data-r="marca" maxlength="40" list="dl-marcas" autocomplete="off" placeholder="Marca (ej. Sportrak)" value="${esc(r.marca || '')}"><input data-r="modelo" maxlength="40" list="dl-mod-${id}" autocomplete="off" placeholder="Modelo (opcional)" value="${esc(r.modelo || '')}"><datalist id="dl-mod-${id}"></datalist><textarea data-r="servicios" rows="2" placeholder="Un servicio por línea">${esc((r.servicios || []).join('\n'))}</textarea><button class="sec" type="button" title="Quitar regla">✕</button><div class="alc"></div>`
-  const mod = d.querySelector('datalist'), marca = d.querySelector('[data-r=marca]')
-  const modelos = () => { mod.innerHTML = (marcaOpc(marca.value)?.modelos || []).map(m => `<option value="${esc(m)}">`).join('') }
-  marca.oninput = () => { modelos(); alcance() }; d.querySelector('[data-r=modelo]').oninput = alcance
+  const d = document.createElement('div'); d.className = 'regla'
+  d.innerHTML = `<input data-r="marca" maxlength="40" list="dl-marcas" autocomplete="off" placeholder="Marca (ej. Sportrak)" value="${esc(r.marca || '')}"><select data-r="modelo" aria-label="Modelo"></select><textarea data-r="servicios" rows="2" placeholder="Un servicio por línea">${esc((r.servicios || []).join('\n'))}</textarea><button class="sec" type="button" title="Quitar regla">✕</button><div class="alc"></div>`
+  const marca = d.querySelector('[data-r=marca]'), mod = d.querySelector('[data-r=modelo]')
+  const modelos = (actual = mod.value) => {                       // el modelo se elige de los de la marca escrita; sin marca conocida no hay lista
+    const o = marcaOpc(marca.value), lista = o ? [...o.modelos] : []
+    if (actual && !lista.includes(actual)) lista.push(actual)       // un modelo ya guardado se conserva aunque ya no esté en el inventario
+    mod.disabled = !marca.value.trim()
+    mod.innerHTML = `<option value="">${marca.value.trim() ? (o && o.modelos.length ? 'Toda la marca' : 'Toda la marca (sin modelos en la lista)') : 'Primero la marca'}</option>` + lista.map(m => `<option ${m === actual ? 'selected' : ''}>${esc(m)}</option>`).join('')
+    mod.value = lista.includes(actual) ? actual : ''
+  }
+  marca.oninput = () => { modelos(''); alcance() }; mod.onchange = alcance
   d.querySelector('button').onclick = () => { d.remove(); alcance() }
-  modelos(); $('#regs').append(d)
+  modelos(r.modelo || ''); $('#regs').append(d)
 }
 $('#regnew').onclick = () => filaRegla()
 const leerReglas = () => [...document.querySelectorAll('#regs .regla')].map(d => ({ marca: d.querySelector('[data-r=marca]').value, modelo: d.querySelector('[data-r=modelo]').value, servicios: d.querySelector('[data-r=servicios]').value })).filter(r => r.marca.trim() || r.modelo.trim() || r.servicios.trim())
