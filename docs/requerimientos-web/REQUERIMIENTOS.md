@@ -227,3 +227,15 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Archivos:** `bot/src/lista.js` (`serviciosDe`, reglas en `/ajustes`), `bot/src/tools.js`, `bot/src/admin.html`, `web/plantilla_catalogo.html`, prueba `bot/scripts/probar_panel.mjs` (35 comprobaciones).
 
 **Estado:** hecho, probado en local y desplegado (2 nov 2026); falta cargar la lista del cliente.
+
+## 14. Reglas de servicios: listas de marcas y modelos y contador de alcance
+
+**Por qué:** al probar una regla («Milemax» + «SP716») no se veía en la web porque ningún Milemax es SP716, y nada lo avisaba.
+
+**Cómo quedó:**
+- La marca y el modelo de cada regla se eligen de una lista (se puede escribir a mano). La marca es la primera palabra del nombre; el modelo sale del campo modelo, o de la palabra con número que sigue a la marca («Sportrak SP716 HT» → SP716), sin confundirla con tipos ni lonas. Con la columna MODELO del Excel nuevo la lista será exacta.
+- Cada regla muestra «Aplica a N cauchos» o, si no alcanza a ninguno, «No aplica a ningún caucho: revisa la marca y el modelo».
+
+**Archivos:** `bot/src/lista.js` (`coincide`, `opcionesMarcas`, `GET /admin/api/ajustes/opciones`, `POST /admin/api/ajustes/alcance`), `bot/src/admin.html`, prueba `bot/scripts/probar_panel.mjs` (40 comprobaciones).
+
+**Estado:** hecho, probado en local y desplegado en el servidor (2 nov 2026); la web no cambia.

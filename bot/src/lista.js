@@ -217,21 +217,41 @@ function validarReglas(r) {
     return { marca, modelo, servicios }
   })
 }
+// ¿La regla {marca, modelo?} vale para este caucho? En algunos productos el modelo viene dentro de la marca («Sportrak SP716»):
+// la marca coincide si empieza por la de la regla (palabras completas) y el modelo si es el campo modelo o una palabra de «marca modelo».
+const pal = t => ` ${String(t || '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim()} `
+export const coincide = (r, i) => {
+  if (!pal(i.marca).startsWith(pal(r.marca))) return false
+  return !r.modelo || norm(r.modelo) === norm(i.modelo || '') || pal(`${i.marca} ${i.modelo || ''}`).includes(pal(r.modelo))
+}
 // Servicios que vienen con un caucho: los generales + los de las reglas que cumple (marca, o marca + modelo) + los propios del producto.
 // En el producto, una línea que empieza con «-» quita ese servicio solo para él (ej. «-Válvula nueva»).
 export const serviciosDe = (i, aj = leerAjustes()) => {
   const lista = [...(aj.servicios_compra || [])]
   for (const r of aj.servicios_reglas || []) {
-    // en algunos productos el modelo viene dentro de la marca («Sportrak SP716»): la regla vale si la marca empieza por la de la regla
-    const pal = t => ` ${String(t || '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim()} `
-    if (!pal(i.marca).startsWith(pal(r.marca))) continue
-    if (r.modelo && norm(r.modelo) !== norm(i.modelo || '') && !pal(`${i.marca} ${i.modelo || ''}`).includes(pal(r.modelo))) continue
+    if (!coincide(r, i)) continue
     lista.push(...r.servicios)
   }
   const quitar = new Set()
   for (const x of i.servicios || []) { if (x.startsWith('-')) quitar.add(norm(x.slice(1))); else lista.push(x) }
   const vistos = new Set()
   return lista.filter(x => { const k = norm(x); if (!k || quitar.has(k) || vistos.has(k)) return false; vistos.add(k); return true })
+}
+// Marcas y modelos que existen, para elegirlos en las reglas. Marca = primera palabra del nombre (se puede escribir otra a mano);
+// modelo = el campo modelo si lo hay, o la palabra con número que sigue a la marca («Sportrak SP716 HT» -> SP716).
+const TIPO_O_LONAS = /^(\d+PR|PR|HT|AT|MT|RT|XT|LT|DIR|DIRECCIONAL|MIXTO|TACO|TUBELESS|RADIAL|WIDE)$/
+export function opcionesMarcas(items) {
+  const marcas = new Map()
+  for (const i of items) {
+    const palabras = String(i.marca || '').replace(/\([^)]*\)/g, ' ').split(/\s+/).filter(Boolean)
+    if (!palabras.length) continue
+    const k = palabras[0].toUpperCase(), m = marcas.get(k) ?? { marca: palabras[0], total: 0, modelos: new Set() }
+    m.total++
+    const mod = i.modelo || palabras.slice(1).find(w => /\d/.test(w) && !TIPO_O_LONAS.test(w.toUpperCase().replace(/[^A-Z0-9]/g, '')))
+    if (mod) m.modelos.add(mod.toUpperCase())
+    marcas.set(k, m)
+  }
+  return [...marcas.values()].sort((a, b) => a.marca.localeCompare(b.marca, 'es')).map(m => ({ marca: m.marca, total: m.total, modelos: [...m.modelos].sort((a, b) => a.localeCompare(b, 'es', { numeric: true })) }))
 }
 export function validarAjustes(b) {
   const servicios = (Array.isArray(b.servicios_compra) ? b.servicios_compra : String(b.servicios_compra ?? '').split('\n')).map(x => String(x).trim()).filter(Boolean)
@@ -449,6 +469,12 @@ export function montarLista(app) {
 
   // ---- ajustes de la web: servicios incluidos con los cauchos, detalle del filtro de los combos y los «Por confirmar»
   api.get('/ajustes', (_req, res) => res.json(leerAjustes()))
+  api.get('/ajustes/opciones', (_req, res) => res.json({ marcas: opcionesMarcas(leer('cauchos').filter(visible)) }))
+  api.post('/ajustes/alcance', express.json(), (req, res) => {                    // a cuántos cauchos publicados alcanza cada regla
+    const reglas = Array.isArray(req.body?.reglas) ? req.body.reglas.slice(0, 60) : []
+    const items = leer('cauchos').filter(visible)
+    res.json({ alcance: reglas.map(r => (String(r?.marca ?? '').trim() ? items.filter(i => coincide({ marca: String(r.marca).trim(), modelo: String(r.modelo ?? '').trim() }, i)).length : 0)) })
+  })
   api.put('/ajustes', express.json(), (req, res) => {
     try {
       const a = validarAjustes(req.body || {})

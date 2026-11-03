@@ -31,6 +31,7 @@ input,select,textarea{background:var(--s2);border:1.5px solid var(--line);border
 textarea{padding:10px 12px;resize:vertical;line-height:1.4}
 .regla{display:grid;grid-template-columns:1fr 1fr 1.6fr auto;gap:8px;align-items:start;margin:8px 0;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--s2)}
 .regla input,.regla textarea{background:var(--s)}
+.regla .alc{grid-column:1/-1;font-size:13px;min-height:0}.regla .alc:empty{display:none}
 @media(max-width:700px){.regla{grid-template-columns:1fr}}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--yd);box-shadow:0 0 0 3px rgba(245,217,10,.3)}
 input[type=checkbox]{width:auto;min-height:0}input[type=file]{padding:9px}
@@ -188,7 +189,7 @@ details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20
   </div></div>
   <div class="df"><p id="emsg" class="err" style="margin:0;flex:1"></p><span style="display:flex;gap:8px"><button type="button" class="sec" id="cancel">Cancelar</button><button id="guardar">Guardar</button></span></div>
 </form></dialog>
-<datalist id="marcas"></datalist><datalist id="grupos"></datalist><datalist id="tipos"></datalist><datalist id="presentaciones"></datalist><datalist id="tiposcaucho"><option value="HT"><option value="AT"><option value="MT"><option value="RT"><option value="Direccional"><option value="Mixto"></datalist>
+<datalist id="marcas"></datalist><datalist id="dl-marcas"></datalist><datalist id="grupos"></datalist><datalist id="tipos"></datalist><datalist id="presentaciones"></datalist><datalist id="tiposcaucho"><option value="HT"><option value="AT"><option value="MT"><option value="RT"><option value="Direccional"><option value="Mixto"></datalist>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -374,17 +375,41 @@ document.addEventListener('click', async e => {
 })
 
 // ---------- Ajustes de la web ----------
+let OPC = []                                                       // marcas y modelos que existen (para las listas de las reglas)
+const marcaOpc = m => OPC.find(o => o.marca.toUpperCase() === String(m).trim().toUpperCase())
+let tAlc = 0
+function alcance() {                                               // «Aplica a N cauchos» al lado de cada regla
+  clearTimeout(tAlc)
+  tAlc = setTimeout(async () => {
+    const filas = [...document.querySelectorAll('#regs .regla')]
+    if (!filas.length) return
+    try {
+      const r = await api('POST', '/ajustes/alcance', { reglas: filas.map(d => ({ marca: d.querySelector('[data-r=marca]').value, modelo: d.querySelector('[data-r=modelo]').value })) })
+      filas.forEach((d, n) => {
+        const e = d.querySelector('.alc'), k = r.alcance[n], vacia = !d.querySelector('[data-r=marca]').value.trim()
+        e.className = 'alc ' + (vacia ? '' : k ? 'ok' : 'err')
+        e.textContent = vacia ? '' : k ? `Aplica a ${k} ${k === 1 ? 'caucho' : 'cauchos'}` : 'No aplica a ningún caucho: revisa la marca y el modelo'
+      })
+    } catch { /* sin conexión: se queda sin contador */ }
+  }, 350)
+}
+let nReg = 0
 function filaRegla(r = {}) {
-  const d = document.createElement('div'); d.className = 'regla'
-  d.innerHTML = `<input data-r="marca" maxlength="40" placeholder="Marca (ej. Sportrak)" value="${esc(r.marca || '')}"><input data-r="modelo" maxlength="40" placeholder="Modelo (opcional)" value="${esc(r.modelo || '')}"><textarea data-r="servicios" rows="2" placeholder="Un servicio por línea">${esc((r.servicios || []).join('\n'))}</textarea><button class="sec" type="button" title="Quitar regla">✕</button>`
-  d.querySelector('button').onclick = () => d.remove()
-  $('#regs').append(d)
+  const id = ++nReg, d = document.createElement('div'); d.className = 'regla'
+  d.innerHTML = `<input data-r="marca" maxlength="40" list="dl-marcas" autocomplete="off" placeholder="Marca (ej. Sportrak)" value="${esc(r.marca || '')}"><input data-r="modelo" maxlength="40" list="dl-mod-${id}" autocomplete="off" placeholder="Modelo (opcional)" value="${esc(r.modelo || '')}"><datalist id="dl-mod-${id}"></datalist><textarea data-r="servicios" rows="2" placeholder="Un servicio por línea">${esc((r.servicios || []).join('\n'))}</textarea><button class="sec" type="button" title="Quitar regla">✕</button><div class="alc"></div>`
+  const mod = d.querySelector('datalist'), marca = d.querySelector('[data-r=marca]')
+  const modelos = () => { mod.innerHTML = (marcaOpc(marca.value)?.modelos || []).map(m => `<option value="${esc(m)}">`).join('') }
+  marca.oninput = () => { modelos(); alcance() }; d.querySelector('[data-r=modelo]').oninput = alcance
+  d.querySelector('button').onclick = () => { d.remove(); alcance() }
+  modelos(); $('#regs').append(d)
 }
 $('#regnew').onclick = () => filaRegla()
 const leerReglas = () => [...document.querySelectorAll('#regs .regla')].map(d => ({ marca: d.querySelector('[data-r=marca]').value, modelo: d.querySelector('[data-r=modelo]').value, servicios: d.querySelector('[data-r=servicios]').value })).filter(r => r.marca.trim() || r.modelo.trim() || r.servicios.trim())
 async function cargarAjustes() {
   const a = await api('GET', '/ajustes')
-  $('#regs').innerHTML = ''; (a.servicios_reglas || []).forEach(filaRegla)
+  OPC = (await api('GET', '/ajustes/opciones').catch(() => ({ marcas: [] }))).marcas
+  $('#dl-marcas').innerHTML = OPC.map(o => `<option value="${esc(o.marca)}" label="${o.total} cauchos">`).join('')
+  $('#regs').innerHTML = ''; (a.servicios_reglas || []).forEach(r => filaRegla(r)); alcance()
   $('#ajsrv').value = (a.servicios_compra || []).join('\n'); $('#ajcombo').value = a.combo_detalle || ''; $('#ajpend').checked = a.mostrar_pendientes !== false
 }
 $('#ajgu').onclick = async () => {
