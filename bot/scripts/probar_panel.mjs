@@ -51,9 +51,9 @@ try {
 
   // 5) ajustes de la web
   r = await api('GET', '/ajustes')
-  ok('ajustes por defecto: sin servicios, sin detalle y «Por confirmar» visible', () => { assert.deepEqual(r.j, { servicios_compra: [], combo_detalle: '', mostrar_pendientes: true }) })
+  ok('ajustes por defecto: sin servicios, sin detalle y «Por confirmar» visible', () => { assert.deepEqual(r.j, { servicios_compra: [], servicios_reglas: [], combo_detalle: '', mostrar_pendientes: true }) })
   r = await api('PUT', '/ajustes', { servicios_compra: ' Montura \n\nBalanceo\nVálvula nueva', combo_detalle: 'Filtro de aceite', mostrar_pendientes: false })
-  ok('guarda los ajustes y limpia las líneas vacías', () => { assert.equal(r.s, 200); assert.deepEqual(r.j, { servicios_compra: ['Montura', 'Balanceo', 'Válvula nueva'], combo_detalle: 'Filtro de aceite', mostrar_pendientes: false }) })
+  ok('guarda los ajustes y limpia las líneas vacías', () => { assert.equal(r.s, 200); assert.deepEqual(r.j, { servicios_compra: ['Montura', 'Balanceo', 'Válvula nueva'], servicios_reglas: [], combo_detalle: 'Filtro de aceite', mostrar_pendientes: false }) })
   ok('catalogo.json trae los ajustes al instante', () => assert.deepEqual(catalogo().ajustes, r.j))
   ok('aCatalogo también los incluye', () => assert.deepEqual(aCatalogo({}).ajustes, r.j))
   r = await api('PUT', '/ajustes', { servicios_compra: Array.from({ length: 13 }, (_, i) => 'S' + i) })
@@ -112,5 +112,34 @@ try {
   const res = await ejecutar('buscar_cauchos', { tienda: 'maracay', medida: '235/75R15' }, ctx).catch(e => ({ error: e.message }))
   const lista = res.resultados || []
   ok('Nexo recibe las lonas y las especificaciones', () => { assert.equal(lista.length, 2, JSON.stringify(res).slice(0, 300)); assert.deepEqual(lista.map(x => x.lonas).sort(), [10, 12]); assert.equal(lista.find(x => x.lonas === 10).especificaciones, 'Índice de carga: 91'); assert.ok(!('especificaciones' in lista.find(x => x.lonas === 12))) })
+
+  // 10) servicios por marca / modelo / producto
+  r = await api('PUT', '/ajustes', { servicios_compra: ['Montura'], mostrar_pendientes: true, combo_detalle: '', servicios_reglas: [
+    { marca: 'sportrak', modelo: '', servicios: 'Balanceo' },
+    { marca: 'Sportrak', modelo: 'sp-786', servicios: ['Válvula nueva', 'montura'] },
+    { marca: 'Otra', servicios: ['Nada'] },
+  ] })
+  ok('guarda reglas por marca y por marca + modelo', () => { assert.equal(r.s, 200); assert.equal(r.j.servicios_reglas.length, 3); assert.deepEqual(r.j.servicios_reglas[0].servicios, ['Balanceo']) })
+  r = await api('POST', '/cauchos/items', { marca: 'Sportrak', medida: '205/60R16', usd: 80, cm: 2, mc: 0, modelo: 'ZZ9', servicios: '-Balanceo\nAlineación' })
+  ok('el producto guarda sus servicios propios', () => { assert.equal(r.s, 200); assert.equal(r.j.servicios, '-Balanceo\nAlineación') })
+  const cat10 = catalogo().cauchos, sv = z => cat10.find(x => x.z === z)?.sv
+  ok('SP786 recibe generales + marca + modelo, sin repetir', () => assert.deepEqual(sv('235/75R15'), ['Montura', 'Balanceo', 'Válvula nueva']))
+  ok('otro modelo de la marca no recibe los del modelo, y quita/agrega los propios', () => assert.deepEqual(sv('205/60R16'), ['Montura', 'Alineación']))
+  r = await api('PUT', '/ajustes', { servicios_compra: [], servicios_reglas: [], mostrar_pendientes: true, combo_detalle: '' })
+  ok('sin reglas ni generales no se envía «sv» salvo los propios', () => { const c = catalogo().cauchos; assert.ok(!('sv' in c.find(x => x.z === '235/75R15'))); assert.deepEqual(c.find(x => x.z === '205/60R16').sv, ['Alineación']) })
+  await api('PUT', '/ajustes', { servicios_compra: ['Montura'], servicios_reglas: [{ marca: 'Sportrak', modelo: 'SP786', servicios: ['Válvula nueva'] }], mostrar_pendientes: true, combo_detalle: '' })
+  const res10 = await ejecutar('buscar_cauchos', { tienda: 'maracay', medida: '235/75R15' }, { conversationId: 0 }).catch(e => ({ error: e.message }))
+  ok('Nexo recibe los servicios incluidos de cada caucho', () => assert.deepEqual(res10.resultados.find(x => x.lonas === 10).servicios_incluidos, ['Montura', 'Válvula nueva']))
+  fs.writeFileSync(path.join(tmp, 'data', 'inventario.json'), JSON.stringify([
+    { sku: 'EMB-1', marca: 'Sportrak SP716', medida: '175/70R13', rin: 13, usd: 50, usd_bs: 53, stock: { tienda_1: 3, tienda_2: 0 } },
+    { sku: 'EMB-2', marca: 'Sportrakers', medida: '175/70R13', rin: 13, usd: 50, usd_bs: 53, stock: { tienda_1: 3, tienda_2: 0 } },
+  ]))
+  await api('PUT', '/ajustes', { servicios_compra: [], servicios_reglas: [{ marca: 'Sportrak', servicios: ['Balanceo'] }, { marca: 'Sportrak', modelo: 'SP716', servicios: ['Válvula'] }, { marca: 'Sportrak', modelo: 'SP999', servicios: ['No'] }], mostrar_pendientes: true, combo_detalle: '' })
+  ok('la marca con el modelo dentro («Sportrak SP716») recibe sus reglas; «Sportrakers» no', () => { const c = catalogo().cauchos; assert.deepEqual(c.find(x => x.m === 'Sportrak SP716').sv, ['Balanceo', 'Válvula']); assert.ok(!('sv' in c.find(x => x.m === 'Sportrakers'))) })
+  for (const [t, reglas, texto] of [
+    ['regla sin marca', [{ marca: '', servicios: ['A'] }], /marca/],
+    ['regla sin servicios', [{ marca: 'X', servicios: '' }], /al menos un servicio/],
+    ['servicio muy largo', [{ marca: 'X', servicios: ['y'.repeat(61)] }], /60 letras/],
+  ]) { r = await api('PUT', '/ajustes', { servicios_compra: [], servicios_reglas: reglas }); ok(`rechaza ${t}`, () => { assert.equal(r.s, 400); assert.match(r.j.error, texto) }) }
   console.log(`\n${n} comprobaciones correctas`)
 } finally { srv.close(); fs.rmSync(tmp, { recursive: true, force: true }) }

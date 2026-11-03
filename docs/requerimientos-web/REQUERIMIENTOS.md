@@ -213,3 +213,17 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Capturas:** `12-panel-inicio.jpg`, `12-panel-lista-editable.jpg`, `12-panel-formulario.jpg`.
 
 **Estado:** hecho, probado en local y desplegado en el servidor (2 nov 2026).
+
+## 13. Servicios incluidos según la marca o el modelo (panel + web + Nexo)
+
+**Qué pidió el cliente:** los servicios que vienen con la compra no aplican a todos los cauchos; pueden variar por marca o por modelo. La lista real la enviará el cliente.
+
+**Cómo quedó (estructura lista, sin datos reales):**
+- En *Ajustes de la web*: servicios generales (para todos) y **reglas** `marca` o `marca + modelo` con sus servicios. Los de una regla se suman a los generales; sin repetir.
+- En el formulario de cada caucho: *Servicios solo de este caucho*; con «-» delante se quita uno general solo para ese producto (ej. `-Balanceo`).
+- La marca coincide aunque el modelo venga dentro de ella («Sportrak SP716» recibe las reglas de «Sportrak»); «Sportrakers» no.
+- El catálogo trae `sv` (lista final) en cada caucho; la tarjeta muestra «Incluye con tu compra» con esa lista, o «Por confirmar» si no hay. Nexo recibe `servicios_incluidos` en `buscar_cauchos`.
+
+**Archivos:** `bot/src/lista.js` (`serviciosDe`, reglas en `/ajustes`), `bot/src/tools.js`, `bot/src/admin.html`, `web/plantilla_catalogo.html`, prueba `bot/scripts/probar_panel.mjs` (35 comprobaciones).
+
+**Estado:** hecho, probado en local y desplegado (2 nov 2026); falta cargar la lista del cliente.

@@ -197,9 +197,41 @@ const especDeTexto = t => {
 const especATexto = e => (e || []).map(x => `${x.k}: ${x.v}`).join('\n')
 
 // ---------- ajustes de la web (los edita el cliente en el panel; la web los lee desde catalogo.json) ----------
-const AJUSTES_BASE = { servicios_compra: [], combo_detalle: '', mostrar_pendientes: true }
+const AJUSTES_BASE = { servicios_compra: [], servicios_reglas: [], combo_detalle: '', mostrar_pendientes: true }
 export const leerAjustes = () => {
   try { return { ...AJUSTES_BASE, ...JSON.parse(fs.readFileSync(path.join(dir, 'ajustes_web.json'), 'utf8')) } } catch { return { ...AJUSTES_BASE } }
+}
+// Servicios por marca o por marca + modelo: [{ marca, modelo?, servicios: [..] }]. Se suman a los generales (servicios_compra).
+const lineas = v => (Array.isArray(v) ? v : String(v ?? '').split('\n')).map(x => String(x).trim()).filter(Boolean)
+function validarReglas(r) {
+  if (r == null || r === '') return []
+  if (!Array.isArray(r)) throw new Error('Las reglas de servicios no tienen el formato correcto.')
+  if (r.length > 60) throw new Error('Máximo 60 reglas de servicios.')
+  return r.map((x, n) => {
+    const marca = String(x?.marca ?? '').trim(), modelo = String(x?.modelo ?? '').trim(), servicios = lineas(x?.servicios)
+    if (!marca || marca.length > 40) throw new Error(`Regla ${n + 1}: escribe la marca.`)
+    if (modelo.length > 40) throw new Error(`Regla ${n + 1}: el modelo es muy largo (máximo 40 letras).`)
+    if (!servicios.length) throw new Error(`Regla ${n + 1} (${marca}): escribe al menos un servicio.`)
+    if (servicios.length > 12) throw new Error(`Regla ${n + 1} (${marca}): máximo 12 servicios.`)
+    if (servicios.some(y => y.length > 60)) throw new Error(`Regla ${n + 1} (${marca}): cada servicio debe tener máximo 60 letras.`)
+    return { marca, modelo, servicios }
+  })
+}
+// Servicios que vienen con un caucho: los generales + los de las reglas que cumple (marca, o marca + modelo) + los propios del producto.
+// En el producto, una línea que empieza con «-» quita ese servicio solo para él (ej. «-Válvula nueva»).
+export const serviciosDe = (i, aj = leerAjustes()) => {
+  const lista = [...(aj.servicios_compra || [])]
+  for (const r of aj.servicios_reglas || []) {
+    // en algunos productos el modelo viene dentro de la marca («Sportrak SP716»): la regla vale si la marca empieza por la de la regla
+    const pal = t => ` ${String(t || '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim()} `
+    if (!pal(i.marca).startsWith(pal(r.marca))) continue
+    if (r.modelo && norm(r.modelo) !== norm(i.modelo || '') && !pal(`${i.marca} ${i.modelo || ''}`).includes(pal(r.modelo))) continue
+    lista.push(...r.servicios)
+  }
+  const quitar = new Set()
+  for (const x of i.servicios || []) { if (x.startsWith('-')) quitar.add(norm(x.slice(1))); else lista.push(x) }
+  const vistos = new Set()
+  return lista.filter(x => { const k = norm(x); if (!k || quitar.has(k) || vistos.has(k)) return false; vistos.add(k); return true })
 }
 export function validarAjustes(b) {
   const servicios = (Array.isArray(b.servicios_compra) ? b.servicios_compra : String(b.servicios_compra ?? '').split('\n')).map(x => String(x).trim()).filter(Boolean)
@@ -207,7 +239,7 @@ export function validarAjustes(b) {
   if (servicios.some(x => x.length > 60)) throw new Error('Cada servicio debe tener máximo 60 letras.')
   const combo = String(b.combo_detalle ?? '').trim()
   if (combo.length > 80) throw new Error('El detalle del filtro debe tener máximo 80 letras.')
-  return { servicios_compra: servicios, combo_detalle: combo, mostrar_pendientes: b.mostrar_pendientes !== false && b.mostrar_pendientes !== 'false' }
+  return { servicios_compra: servicios, servicios_reglas: validarReglas(b.servicios_reglas), combo_detalle: combo, mostrar_pendientes: b.mostrar_pendientes !== false && b.mostrar_pendientes !== 'false' }
 }
 
 const extra = i => {
@@ -223,7 +255,7 @@ export const CATS = {
   cauchos: {
     archivo: 'inventario.json', hoja: 'CAUCHOS', leer: filasCauchos,
     nombre: i => `${i.marca} ${i.medida}`,
-    web: i => ({ ...comun(i), z: i.medida, r: i.rin, ...(i.modelo && { mo: i.modelo }), ...(i.tipo && { ti: i.tipo }), ...(i.lonas && { lo: i.lonas }), ...(i.espec?.length && { e: Object.fromEntries(i.espec.map(x => [x.k, x.v])) }) }),
+    web: (i, aj) => ({ ...comun(i), z: i.medida, r: i.rin, ...(serviciosDe(i, aj).length && { sv: serviciosDe(i, aj) }), ...(i.modelo && { mo: i.modelo }), ...(i.tipo && { ti: i.tipo }), ...(i.lonas && { lo: i.lonas }), ...(i.espec?.length && { e: Object.fromEntries(i.espec.map(x => [x.k, x.v])) }) }),
     orden: (a, b) => (a.r ?? 0) - (b.r ?? 0) || a.z.localeCompare(b.z) || a.u - b.u,
     campos: b => {
       const medida = String(b.medida ?? '').trim()
@@ -233,9 +265,12 @@ export const CATS = {
       if (tipo.length > 30) throw new Error('El tipo es muy largo (máximo 30 letras).')
       const lonas = b.lonas === '' || b.lonas == null ? 0 : Math.round(Number(b.lonas))
       if (!(lonas >= 0 && lonas <= 40)) throw new Error('Las lonas deben ser un número, por ejemplo 16.')
-      return { medida, rin: b.rin === '' || b.rin == null ? medidaYRin(medida)[1] : Number(b.rin), modelo, tipo, lonas, espec: especDeTexto(b.espec) }
+      const servicios = lineas(b.servicios)
+      if (servicios.length > 12) throw new Error('Máximo 12 servicios por producto.')
+      if (servicios.some(x => x.length > 61)) throw new Error('Cada servicio debe tener máximo 60 letras.')
+      return { medida, rin: b.rin === '' || b.rin == null ? medidaYRin(medida)[1] : Number(b.rin), modelo, tipo, lonas, espec: especDeTexto(b.espec), servicios }
     },
-    vista: i => ({ medida: i.medida, rin: i.rin, modelo: i.modelo ?? '', tipo: i.tipo ?? '', lonas: i.lonas ?? '', espec: especATexto(i.espec) }),
+    vista: i => ({ medida: i.medida, rin: i.rin, modelo: i.modelo ?? '', tipo: i.tipo ?? '', lonas: i.lonas ?? '', espec: especATexto(i.espec), servicios: (i.servicios || []).join('\n') }),
   },
   baterias: {
     archivo: 'baterias.json', hoja: 'BATERIAS', leer: filasBaterias,
@@ -305,9 +340,10 @@ const escribir = (nombre, datos) => { const f = path.join(dir, nombre); fs.write
 
 export const aCatalogo = todo => {
   const salida = { actualizado: new Date().toLocaleDateString('en-CA', { timeZone: 'America/Caracas' }) }
-  for (const [cat, c] of Object.entries(CATS)) salida[cat] = (todo[cat] ?? leer(cat)).filter(visible).map(c.web).sort(c.orden)
+  const aj = leerAjustes()
+  for (const [cat, c] of Object.entries(CATS)) salida[cat] = (todo[cat] ?? leer(cat)).filter(visible).map(i => c.web(i, aj)).sort(c.orden)
   salida.items = salida.cauchos                                            // compatibilidad con la primera versión de la web
-  salida.ajustes = leerAjustes()
+  salida.ajustes = aj
   return salida
 }
 const guardar = (cat, items) => {                                          // Nexo y la web siempre ven lo mismo
