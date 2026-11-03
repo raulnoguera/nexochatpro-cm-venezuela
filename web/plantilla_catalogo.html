@@ -39,7 +39,7 @@ select.marca{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:48p
 .sug button{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;min-height:46px;padding:0 12px;border:0;background:none;border-radius:8px;font-weight:700;font-size:16px;cursor:pointer;text-align:left;color:var(--ink)}
 .sug button:hover,.sug button:focus{background:var(--y);color:var(--y-ink)}
 .sug small{color:var(--muted);font-weight:600;font-size:13px}.sug .none{padding:12px;color:var(--muted);font-weight:600}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two.uno{grid-template-columns:1fr;margin-top:10px}
 .two label span{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em}
 /* Encuentra tu batería: mismo estilo que el buscador de la portada (tarjeta blanca, campos uno bajo otro, botón amarillo) */
 .veh{max-width:520px;margin-left:auto;margin-right:auto;border:1px solid var(--line);border-radius:20px;padding:18px;background:var(--surface);box-shadow:var(--shadow)}
@@ -233,7 +233,7 @@ function filtrosAceites() {
   return `<div class="grp"><h3>Busca por tipo y viscosidad</h3><div class="two">
     <label><select id="atipo" aria-label="Tipo de aceite"><option value="">Elige el tipo</option>${Object.keys(TIPOS_ACE).filter(k => porTipo[k]).map(k => `<option value="${k}" ${tipo === k ? 'selected' : ''}>${TIPOS_ACE[k]}</option>`).join('')}</select></label>
     <label><select id="avis" aria-label="Viscosidad" ${tipo ? '' : 'disabled'}><option value="">${tipo ? 'Elige la viscosidad' : 'Primero el tipo'}</option>${viscs.map(t => `<option value="${esc(t)}" ${F.tipo && F.tipo.toUpperCase() === t ? 'selected' : ''}>${esc(viscAce(t))}</option>`).join('')}</select></label></div>
-    ${pres.length > 1 ? `<label style="display:block;margin-top:8px"><select id="apres" aria-label="Presentación"><option value="">Elige la presentación</option>${pres.map(p => `<option value="${esc(p)}" ${F.presentacion === p ? 'selected' : ''}>${esc(presAce(p))}</option>`).join('')}</select></label>` : ''}</div>
+    ${pres.length > 1 ? `<div class="two uno"><label><select id="apres" aria-label="Presentación"><option value="">Elige la presentación</option>${pres.map(p => `<option value="${esc(p)}" ${F.presentacion === p ? 'selected' : ''}>${esc(presAce(p))}</option>`).join('')}</select></label></div>` : ''}</div>
   ${combos.length ? `<div class="grp"><h3>Combos para cambio de aceite</h3><p class="sub" style="margin:0 0 6px">Incluye filtro + servicio GRATIS</p><div class="chips">${combos.map(p => `<button class="chip" data-combo="${esc(p)}" aria-pressed="${F.presentacion === p && !F.tipo && !F.atipo}">${esc(presAce(p))}</button>`).join('')}</div></div>` : ''}`;
 }
 // Baterías: filtros para quien ya sabe qué batería usa (grupo y marca), aparte del buscador por vehículo
