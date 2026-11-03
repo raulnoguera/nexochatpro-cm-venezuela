@@ -203,6 +203,8 @@ section.blk{scroll-margin-top:72px;padding-block:48px 8px}
 .tile small{max-width:54%}
 .tile.srv .pic{filter:drop-shadow(0 14px 16px rgba(0,0,0,.25))}.tile.srv small{color:var(--muted)}
 .tile.srv svg.ic{color:var(--ink)}
+/* móvil: las tarjetas de categorías y servicios van de a 2 (la última, Servicios, ocupa todo el ancho) */
+@media(max-width:639px){.tiles{grid-template-columns:repeat(2,1fr);gap:10px}.tile{min-height:176px;padding:14px;border-radius:16px}.tile svg.ic{width:40px;height:40px;margin-top:22px}.tile b{font-size:22px}.tile small{font-size:12.5px;max-width:100%}.tile .n{right:10px;top:10px;padding:3px 8px;font-size:11px}.tile .pic{width:38%}.tile.srv{grid-column:1/-1;min-height:124px}.tile.srv svg.ic{margin-top:0}}
 .chips2{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
 .chips2 a{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:9px 15px;font-weight:700;text-decoration:none;min-height:44px;display:inline-flex;align-items:center}
 .chips2 a:hover{background:var(--y);border-color:var(--y);color:var(--y-ink)}
