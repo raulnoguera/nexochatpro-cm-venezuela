@@ -239,3 +239,13 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Archivos:** `bot/src/lista.js` (`coincide`, `opcionesMarcas`, `GET /admin/api/ajustes/opciones`, `POST /admin/api/ajustes/alcance`), `bot/src/admin.html`, prueba `bot/scripts/probar_panel.mjs` (40 comprobaciones).
 
 **Estado:** hecho, probado en local y desplegado en el servidor (2 nov 2026); la web no cambia.
+
+## 15. Filtro por modelo en el catálogo de cauchos
+
+**Qué faltaba:** además del filtro de marca, poder filtrar los cauchos por modelo.
+
+**Cómo quedó:** al elegir una marca aparece la lista «Modelo» (por ejemplo, Sportrak → SP716, SP726, SP778…). Solo trae los modelos de esa marca que hay en la ciudad elegida y con los demás filtros ya puestos (rin, medida, texto). Si la marca no tiene modelos, el filtro no aparece. Al cambiar de marca, o al pulsar «Limpiar», el modelo se borra. La lista de marcas no se reduce al elegir un modelo. Los modelos salen del campo modelo del catálogo o, si no lo hay, del nombre del producto, igual que el «Modelo» de la tarjeta.
+
+**Archivos:** `web/plantilla_catalogo.html` (`modelosDisp`, parámetro `sinModelo` en `filtrar`) y `web/catalogo.html` (generado).
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (2 nov 2026).

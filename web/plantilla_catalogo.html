@@ -98,6 +98,7 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
     <div class="grp" id="qgrp"><h3 id="qtit">Escribe la medida o la marca</h3><div class="q"><input id="q" inputmode="text" autocomplete="off" aria-label="Buscar"><button class="btn" id="qb">Buscar</button><div class="sug" id="sug" hidden></div></div></div>
     <div id="filtros"></div>
     <div class="grp" id="mgrp"><h3>Marca</h3><select class="marca" id="marca" aria-label="Marca"><option value="">Todas las marcas</option></select></div>
+    <div class="grp" id="modgrp" hidden><h3>Modelo</h3><select class="marca" id="modelo" aria-label="Modelo"><option value="">Todos los modelos</option></select></div>
     <div class="grp"><button class="chip" id="todos" aria-pressed="false">Mostrar también los agotados</button> <button class="btn ghost" id="clr" style="min-height:44px">Limpiar</button></div>
   </div>
   <div class="meta"><span id="count"></span><span class="sub" id="fecha"></span></div>
@@ -337,11 +338,12 @@ const gruposVeh = () => {                                                // grup
   const n = F.va ? Number(F.va) : null
   return new Set(COMPAT.filter(c => c.o === F.vm && c.d === F.vd && (n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999)))).flatMap(c => c.g));
 };
-function filtrar(paraMarcas) {                              // paraMarcas: ignora la marca elegida y el texto escrito (sirve para saber qué marcas ofrecer)
+function filtrar(paraMarcas, sinModelo) {                              // paraMarcas: ignora la marca elegida y el texto escrito (sirve para saber qué marcas ofrecer)
   const c = CATS[CAT], tok = CAT === 'baterias' || paraMarcas ? [] : (F.q || '').split(/\s+/).map(norm).filter(Boolean);   // baterías: sin búsqueda escrita (el amperaje solo no indica si le sirve al vehículo)
   const defs = c.filtros(DATA[CAT]);
   return DATA[CAT].filter(p => {
     if (F.marca && !paraMarcas && marcaDe(p) !== F.marca) return false;
+    if (CAT === 'cauchos' && F.modelo && !sinModelo && !paraMarcas && modeloCaucho(p) !== F.modelo) return false;
     if (CAT === 'aceites') {
       if (F.tipo && p.t.toUpperCase() !== F.tipo.toUpperCase()) return false;
       if (!F.tipo && F.atipo && (NO_ACEITE.test(p.t) || tipoAce(p.t) !== F.atipo)) return false;
@@ -360,6 +362,12 @@ const marcasDisp = d => {                                   // solo las marcas c
   if (F.marca && !m.includes(F.marca)) m.push(F.marca);
   return m.sort((a, b) => rangoMarca(CAT, a) - rangoMarca(CAT, b) || a.localeCompare(b));
 };
+const modelosDisp = () => {                                 // modelos de la marca elegida que hay en la ciudad (con los demás filtros ya puestos); la lista sale sola de los productos
+  if (CAT !== 'cauchos' || !F.marca || !ciudad() || !CIUDADES[ciudad()]) return [];
+  const m = uniq(filtrar(false, true).map(modeloCaucho).filter(Boolean));
+  if (F.modelo && !m.includes(F.modelo)) m.push(F.modelo);
+  return m.sort(num);
+};
 const hayBusqueda = () => !!(F.q || '').trim() || Object.entries(F).some(([k, v]) => k !== 'todos' && k !== 'q' && v);      // «Mostrar también los agotados» no cuenta como búsqueda
 const INDICA = {
   cauchos: 'Elige el rin y la medida, la marca, o escribe la medida (ej. 265/60R18).',
@@ -377,6 +385,9 @@ function paint() {
   $('#qgrp').hidden = CAT === 'baterias';
   const marcas = marcasDisp(d);
   $('#marca').innerHTML = '<option value="">Todas las marcas</option>' + marcas.map(m => `<option ${m === F.marca ? 'selected' : ''}>${esc(m)}</option>`).join('');
+  const mods = modelosDisp(); if (F.modelo && !mods.includes(F.modelo)) F.modelo = '';
+  $('#modgrp').hidden = !mods.length;
+  $('#modelo').innerHTML = '<option value="">Todos los modelos</option>' + mods.map(m => `<option ${m === F.modelo ? 'selected' : ''}>${esc(m)}</option>`).join('');
   $('#todos').setAttribute('aria-pressed', !!F.todos);
   $('#mgrp').hidden = !!c.sinMarca || CAT === 'baterias';
   const cid = ciudad(), ci = CIUDADES[cid];
@@ -449,7 +460,7 @@ document.addEventListener('change', e => {
   if (e.target.id === 'avis') { F.tipo = e.target.value; F.presentacion = ''; mostrar = PAGINA; paint(); }
   if (e.target.id === 'apres') { F.presentacion = e.target.value; mostrar = PAGINA; paint(); }
   if (e.target.id === 'bgrupo') { F.grupo = e.target.value; mostrar = PAGINA; paint(); }
-  if (e.target.id === 'bmarca') { F.marca = e.target.value; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'bmarca') { F.marca = e.target.value; F.modelo = ''; mostrar = PAGINA; paint(); }
   if (e.target.id === 'fmed') { F.medida = e.target.value; mostrar = PAGINA; paint(); }
   if (e.target.id === 'vm') { V = { vm: e.target.value }; paint(); }
   if (e.target.id === 'vd') { V.vd = e.target.value; V.va = ''; paint(); }
@@ -457,7 +468,7 @@ document.addEventListener('change', e => {
 });
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-cat]'); if (t) { CAT = t.dataset.cat; F = {}; V = {}; $('#q').value = ''; mostrar = PAGINA; return paint(); }
-  const mb = e.target.closest('[data-marca]'); if (mb) { F.marca = F.marca === mb.dataset.marca ? '' : mb.dataset.marca; if (F.marca && mb.closest('#cinta') && !(DATA[CAT] || []).some(p => marcaDe(p).toLowerCase() === F.marca.toLowerCase() && nivel(p) > 0)) F.todos = true; mostrar = PAGINA; paint(); if (mb.closest('#cinta')) $('#count').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  const mb = e.target.closest('[data-marca]'); if (mb) { F.marca = F.marca === mb.dataset.marca ? '' : mb.dataset.marca; F.modelo = ''; if (F.marca && mb.closest('#cinta') && !(DATA[CAT] || []).some(p => marcaDe(p).toLowerCase() === F.marca.toLowerCase() && nivel(p) > 0)) F.todos = true; mostrar = PAGINA; paint(); if (mb.closest('#cinta')) $('#count').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
   const cb = e.target.closest('[data-combo]'); if (cb) { const v = cb.dataset.combo, activo = F.presentacion === v && !F.tipo && !F.atipo; F.atipo = ''; F.tipo = ''; F.presentacion = activo ? '' : v; mostrar = PAGINA; return paint(); }
   const c = e.target.closest('[data-k]'); if (c) { const k = c.dataset.k; F[k] = F[k] === c.dataset.v ? '' : c.dataset.v; mostrar = PAGINA; return paint(); }
   if (e.target.id === 'vbus' && vehListo()) { F.vm = V.vm; F.vd = V.vd; F.va = V.va || ''; mostrar = PAGINA; paint(); document.getElementById('count').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
@@ -481,7 +492,8 @@ document.addEventListener('click', e => {
   const m = e.target.closest('[data-med]'); if (m) { const md = medDisp()[m.dataset.med]; F.medida = m.dataset.med; F.rin = md ? md.r : F.rin; F.q = ''; $('#q').value = ''; $('#sug').hidden = true; mostrar = PAGINA; paint(); return; }
   if (!e.target.closest('.q')) { const b = $('#sug'); if (b) b.hidden = true; }
 });
-$('#marca').addEventListener('change', e => { F.marca = e.target.value; mostrar = PAGINA; paint(); });
+$('#marca').addEventListener('change', e => { F.marca = e.target.value; F.modelo = ''; mostrar = PAGINA; paint(); });
+$('#modelo').addEventListener('change', e => { F.modelo = e.target.value; mostrar = PAGINA; paint(); });
 $('#ciudad').addEventListener('change', e => {
   try { localStorage.setItem('cm_ciudad', e.target.value); } catch (_) {}
   const u = new URL(location.href); e.target.value ? u.searchParams.set('ciudad', e.target.value) : u.searchParams.delete('ciudad'); history.replaceState(null, '', u);
