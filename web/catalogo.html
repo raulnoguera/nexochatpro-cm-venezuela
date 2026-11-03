@@ -155,7 +155,11 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
 .datos{margin-top:6px;display:grid;gap:2px;font-size:14px}.datos i{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px}.datos b{color:var(--ink);font-weight:800}.datos .fila{display:flex;justify-content:space-between;align-items:baseline;gap:4px 10px;flex-wrap:wrap}.datos .der{margin-left:auto;text-align:right}
 .incl{background:var(--surface2);border-radius:12px;padding:9px 12px;font-size:13.5px}.incl b{display:block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}.incl ul{margin:0;padding:0;list-style:none}.incl li{padding-left:20px;position:relative;font-weight:600}.incl li:before{content:'✓';position:absolute;left:0;color:var(--ok);font-weight:800}
 .incl li.pend:before{content:'·'}.pend{color:var(--muted);font-weight:600}.esp p.pend{margin:8px 0 0}
-.esp{font-size:13.5px}.esp summary{cursor:pointer;font-weight:700;color:var(--ink)}.esp dl{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:8px 0 0}.esp dt{color:var(--muted)}.esp dd{margin:0;font-weight:700;text-align:right}
+.espbtn{display:inline-flex;align-items:center;gap:6px;background:none;border:0;padding:6px 0;margin:0;font:inherit;font-size:13.5px;font-weight:700;color:var(--ink);cursor:pointer;text-align:left}.espbtn:hover{text-decoration:underline}.espbtn svg{width:16px;height:16px;flex:none;color:var(--muted)}
+#espdlg{border:0;border-radius:18px;padding:0;width:min(92vw,420px);max-height:86vh;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);overflow:auto}#espdlg::backdrop{background:rgba(0,0,0,.6)}
+#espdlg .esbox{padding:20px}#espdlg h3{font-family:var(--display);font-size:26px;line-height:1.05;text-transform:uppercase;margin:0 36px 2px 0}#espdlg .esub{color:var(--muted);font-size:14px;margin:0 0 12px}
+#espdlg dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:15px}#espdlg dt{color:var(--muted)}#espdlg dd{margin:0;font-weight:700;text-align:right}#espdlg p.pend{margin:0;font-size:15px}
+#espdlg .x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface2);color:var(--ink);font-size:20px;line-height:1;cursor:pointer}#espdlg .cerrar{margin-top:16px;width:100%}
 .askwrap{position:relative}.askmenu{top:auto;bottom:calc(100% + 6px);left:0;right:0;min-width:0}
 .card .ph.foto{height:150px;padding:0;overflow:hidden}.card .ph.foto img{width:100%;height:100%;object-fit:cover}
 .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.tabs .chip{flex:none}
@@ -242,6 +246,7 @@ select.marca{width:100%;min-height:48px;border-radius:12px;border:1.5px solid va
   <div id="cinta"></div>
   <p class="note" id="nota">Los precios y la existencia pueden cambiar durante el día. Confirma por WhatsApp antes de venir a la tienda.</p>
 </div></main>
+<dialog id="espdlg" aria-labelledby="estit"><div class="esbox"><button type="button" class="x" aria-label="Cerrar" data-cerrar>×</button><h3 id="estit">Especificaciones</h3><p class="esub" id="essub"></p><div id="escont"></div><button type="button" class="btn ghost cerrar" data-cerrar>Cerrar</button></div></dialog>
 
 <footer class="gut"><div class="wrap"><b>CM Maracay</b> · Av. Bolívar, diagonal al C.C. Global La Barraca, Maracay · Lunes a sábado, 8:00 a. m. a 5:30 p. m.<br><b>Master Cauchos</b> · Av. Bolívar Este #150, diagonal al C.C. Parque Aragua, Maracay · Lunes a sábado, 8:00 a. m. a 5:30 p. m.<br><b>CM Caracas</b> · Av. Rómulo Gallegos con calle El Carmen, diagonal a la iglesia Claret y Banesco, Dos Caminos, Caracas · Lunes a sábado, 8:00 a. m. a 5:00 p. m.</div></footer>
 <div class="toast" id="toast" role="status"></div>
@@ -445,7 +450,9 @@ const bloqueCaucho = p => {
   const pend = '<li class="pend">Por confirmar</li>';
   const lista = p.sv || SERVICIOS_COMPRA;       // p.sv: servicios de este caucho (generales + por marca/modelo + propios); sin eso, los generales
   const sv = lista.length || MOSTRAR_PENDIENTES ? `<div class="incl"><b>Incluye con tu compra</b><ul>${lista.length ? lista.map(x => `<li>${esc(x)}</li>`).join('') : pend}</ul></div>` : '';
-  const es = especCaucho(p), det = es.length ? `<details class="esp"><summary>Ver especificaciones</summary><dl>${es.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl></details>` : MOSTRAR_PENDIENTES ? '<details class="esp"><summary>Ver especificaciones</summary><p class="pend">Por confirmar</p></details>' : '';
+  const es = especCaucho(p), ico = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>';
+  const info = esc(JSON.stringify({ t: [marcaDe(p), modeloCaucho(p)].filter(Boolean).join(' ') + ' · ' + p.z, e: es }));     // lo que muestra la ventana (ver #espdlg)
+  const det = es.length || MOSTRAR_PENDIENTES ? `<button type="button" class="espbtn" data-esp="${info}">${ico} Ver especificaciones</button>` : '';
   return sv + det;
 };
 // Combos de aceite (4 litros o más): incluyen filtro. El detalle del filtro (marca, tipo…) lo enviará el cliente: se escribe en COMBO_DETALLE y la tarjeta lo muestra sola.
@@ -637,6 +644,15 @@ function sugerir() {                                      // al escribir en cauc
 document.addEventListener('click', e => {
   const m = e.target.closest('[data-med]'); if (m) { const md = medDisp()[m.dataset.med]; F.medida = m.dataset.med; F.rin = md ? md.r : F.rin; F.q = ''; $('#q').value = ''; $('#sug').hidden = true; mostrar = PAGINA; paint(); return; }
   if (!e.target.closest('.q')) { const b = $('#sug'); if (b) b.hidden = true; }
+});
+// «Ver especificaciones»: ventana emergente (no alarga la tarjeta); se cierra con ×, «Cerrar», tocando fuera o con Esc
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-esp]'), d = $('#espdlg');
+  if (b) { let x; try { x = JSON.parse(b.dataset.esp); } catch (_) { return; }
+    $('#essub').textContent = x.t || '';
+    $('#escont').innerHTML = x.e && x.e.length ? `<dl>${x.e.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '<p class="pend">Por confirmar</p>';
+    if (!d.open) d.showModal(); return; }
+  if (e.target === d || e.target.closest('[data-cerrar]')) d.close();
 });
 $('#marca').addEventListener('change', e => { F.marca = e.target.value; F.modelo = ''; mostrar = PAGINA; paint(); });
 $('#modelo').addEventListener('change', e => { F.modelo = e.target.value; mostrar = PAGINA; paint(); });
