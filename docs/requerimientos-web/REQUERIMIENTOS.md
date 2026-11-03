@@ -279,3 +279,15 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Archivos:** `bot/src/admin.html`, `bot/src/uso.html`.
 
 **Estado:** hecho y desplegado en el servidor (2 nov 2026).
+
+## 19. Portada en móvil: las tarjetas de categorías y servicios, de a 2
+
+**Qué pidió el cliente (reunión del 3 nov):** en la versión móvil, que las tarjetas del Home (categorías y servicios) se muestren de a 2.
+
+**Cómo quedó:** en pantallas de hasta 639 px, «¿Qué estás buscando?» muestra Cauchos y Baterías en la primera fila, Aceites y Bicicletas en la segunda, y **Servicios ocupa el ancho completo** en la tercera (son 5 tarjetas, así que no queda una suelta a medias). Las tarjetas se hicieron más compactas (título, icono, textos e insignia «N disponibles» más pequeños) para que nada se corte. En tablet (3 por fila) y escritorio (5 por fila) no cambia nada.
+
+**Archivos:** `web/plantilla_home.html` (CSS de `.tiles` y `.tile` en móvil) y `web/index.html` (generado).
+
+**Capturas:** `19-home-tarjetas-movil-antes.jpg`, `19-home-tarjetas-movil-despues.jpg`.
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
