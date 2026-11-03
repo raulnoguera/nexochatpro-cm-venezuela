@@ -454,3 +454,15 @@ Los textos no se parten ni se cortan en móvil. Se conservaron los encabezados d
 **Archivos:** `web/plantilla_catalogo.html` (`filtrosAceites`, `paint`) y `web/catalogo.html` (generado).
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 30. Aceites: el filtro de presentación con el mismo formato que los demás
+
+**Qué pidió el cliente (reunión del 3 nov):** el filtro de presentación de aceite tenía otro formato; dejarlo igual que los otros.
+
+**Antes** (`30-aceites-presentacion-antes.jpg`): la lista de presentación usaba el estilo básico del navegador (32 px de alto, borde negro fino, sin fondo, texto normal), distinto al de tipo, viscosidad y marca.
+
+**Cómo quedó** (`30-aceites-presentacion-despues.jpg`): mismo aspecto que los demás filtros: 50 px de alto, borde gris claro de 1,5 px, fondo claro, esquinas redondeadas y texto en negrita. Ocupa todo el ancho, en su propia fila bajo tipo y viscosidad, y con el mismo espacio entre filas. Sigue filtrando igual.
+
+**Archivos:** `web/plantilla_catalogo.html` (`filtrosAceites`, estilo `.two.uno`) y `web/catalogo.html` (generado).
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
