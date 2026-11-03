@@ -291,3 +291,21 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Capturas:** `19-home-tarjetas-movil-antes.jpg`, `19-home-tarjetas-movil-despues.jpg`.
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 20. Nuevo apartado «Otros» y nuevo orden de las secciones
+
+**Qué pidió el cliente (reunión del 3 nov):** agregar un apartado «Otros», dejarlo antes de Bicicletas, y poner Bicicletas después de Servicios.
+
+**Cómo quedó:**
+- **Tarjetas de la portada:** Cauchos, Baterías, Aceites, **Servicios, Otros, Bicicletas**. En móvil son 3 filas de 2 (ya no hace falta que Servicios ocupe todo el ancho); en escritorio, las 6 en una fila (título y relleno algo menores para que «Bicicletas» quepa).
+- **Menú y buscador de la portada y pestañas del catálogo:** Cauchos, Baterías, Aceites, **Otros**, Bicicletas (Servicios no es una pestaña, es un enlace a WhatsApp).
+- **«Otros» todavía sin productos:** el catálogo muestra «Estamos preparando esta sección… escríbenos por WhatsApp», sin buscador. El catálogo ya lee una lista `otros` de `catalogo.json` (campos `m` marca y `d` descripción, más precio y existencias como las demás categorías), así que cuando el cliente diga qué lleva, solo falta cargarla desde el panel.
+- Se interpretó el orden pedido como Servicios → Otros → Bicicletas.
+
+**Pendiente:** que el cliente diga qué productos van en «Otros» y, para cargarlos, agregar esa categoría al panel y al Excel.
+
+**Archivos:** `web/plantilla_home.html`, `web/plantilla_catalogo.html` y los generados `index.html` y `catalogo.html`.
+
+**Capturas (móvil):** `20-home-otros-movil-antes.jpg`, `20-home-otros-movil-despues.jpg`.
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
