@@ -141,5 +141,18 @@ try {
     ['regla sin servicios', [{ marca: 'X', servicios: '' }], /al menos un servicio/],
     ['servicio muy largo', [{ marca: 'X', servicios: ['y'.repeat(61)] }], /60 letras/],
   ]) { r = await api('PUT', '/ajustes', { servicios_compra: [], servicios_reglas: reglas }); ok(`rechaza ${t}`, () => { assert.equal(r.s, 400); assert.match(r.j.error, texto) }) }
+
+  // 11) listas de marcas/modelos y contador de alcance de las reglas
+  fs.writeFileSync(path.join(tmp, 'data', 'inventario.json'), JSON.stringify([
+    ['Sportrak SP716 HT', ''], ['Sportrak SP716', ''], ['Sportrak SP778', ''], ['Sportrak 16Pr (Mixto)', ''], ['Haida HD878 AT', ''], ['Haida', ''], ['Milemax HT', ''], ['Kumho', 'KU31'],
+  ].map(([marca, modelo], n) => ({ sku: 'OPC-' + n, marca, ...(modelo && { modelo }), medida: '175/70R13', rin: 13, usd: 50, usd_bs: 53, stock: { tienda_1: 3, tienda_2: 0 } }))))
+  r = await api('GET', '/ajustes/opciones')
+  const por = m => r.j.marcas.find(x => x.marca === m)
+  ok('lista las marcas (primera palabra) con su total', () => { assert.deepEqual(r.j.marcas.map(x => x.marca), ['Haida', 'Kumho', 'Milemax', 'Sportrak']); assert.equal(por('Sportrak').total, 4) })
+  ok('saca el modelo del nombre sin confundirlo con tipo ni lonas', () => { assert.deepEqual(por('Sportrak').modelos, ['SP716', 'SP778']); assert.deepEqual(por('Haida').modelos, ['HD878']); assert.deepEqual(por('Milemax').modelos, []) })
+  ok('usa el campo modelo cuando existe', () => assert.deepEqual(por('Kumho').modelos, ['KU31']))
+  r = await api('POST', '/ajustes/alcance', { reglas: [{ marca: 'Sportrak', modelo: '' }, { marca: 'sportrak', modelo: 'SP716' }, { marca: 'Milemax', modelo: 'SP716' }, { marca: '', modelo: '' }] })
+  ok('cuenta a cuántos cauchos alcanza cada regla (0 si no coincide)', () => assert.deepEqual(r.j.alcance, [4, 2, 0, 0]))
+  const sin2 = await fetch(base + '/admin/api/ajustes/opciones'); ok('las listas exigen la clave del panel', () => assert.equal(sin2.status, 401))
   console.log(`\n${n} comprobaciones correctas`)
 } finally { srv.close(); fs.rmSync(tmp, { recursive: true, force: true }) }
