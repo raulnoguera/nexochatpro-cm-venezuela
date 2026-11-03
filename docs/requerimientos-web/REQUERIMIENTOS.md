@@ -269,3 +269,13 @@ Solo los combos llevan el apartado (en Maracay hoy: 22 combos de 4 litros). **Pr
 **Archivos:** `bot/src/admin.html` (`abrir`).
 
 **Estado:** arreglado, probado en local (un vehículo nuevo se guarda y aparece en la lista) y desplegado en el servidor (2 nov 2026).
+
+## 18. Panel: icono de la pestaña (favicon)
+
+**Qué faltaba:** las páginas `/admin` y `/admin/uso` no tenían icono en la pestaña del navegador ni al guardarlas en la pantalla de inicio.
+
+**Cómo quedó:** usan los mismos iconos de la web (`favicon.ico`, `icon-192.png`, `apple-touch-icon.png`), cargados desde `cmvenezuela.com/assets`, como ya se hace con el logo del panel.
+
+**Archivos:** `bot/src/admin.html`, `bot/src/uso.html`.
+
+**Estado:** hecho y desplegado en el servidor (2 nov 2026).
