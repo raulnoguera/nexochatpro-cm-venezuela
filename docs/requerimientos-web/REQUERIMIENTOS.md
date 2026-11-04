@@ -466,3 +466,15 @@ Los textos no se parten ni se cortan en móvil. Se conservaron los encabezados d
 **Archivos:** `web/plantilla_catalogo.html` (`filtrosAceites`, estilo `.two.uno`) y `web/catalogo.html` (generado).
 
 **Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
+
+## 31. Bicicletas: filtro sin título, con el texto dentro de la lista
+
+**Qué se pidió:** el mismo tratamiento que en cauchos y aceites para los filtros de bicicletas.
+
+**Antes** (`31-bicicletas-filtros-antes.jpg`): el título «RIN» encima de una fila de botones redondos con los números (12, 16, 20, 24, 26, 29), que en el teléfono se salían de la pantalla y obligaban a deslizar.
+
+**Cómo quedó** (`31-bicicletas-filtros-despues.jpg`): una lista desplegable con el mismo formato que los demás filtros, sin título, que dice «Elige el rin» y, ya elegido, «Rin 20». Filtra igual (por ejemplo, rin 20: 8 resultados en Maracay), «Limpiar» la deja en «Elige el rin» y también respeta el rin cuando se llega desde un enlace de la portada. El buscador por texto no cambia.
+
+**Archivos:** `web/plantilla_catalogo.html` (`filtrosBicis`) y `web/catalogo.html` (generado).
+
+**Estado:** hecho, probado en local y publicado en cmvenezuela.com (3 nov 2026).
