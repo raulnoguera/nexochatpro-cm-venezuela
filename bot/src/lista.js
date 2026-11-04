@@ -58,21 +58,24 @@ const sinVacios = pares => pares.filter(([, v]) => v !== '' && v != null)
 const especDe = (v, columnas) => sinVacios(columnas.map(([c, nombre]) => [nombre, txt(v(c))])).map(([k, x]) => ({ k, v: x }))
 const serviciosDeCelda = t => String(t ?? '').split(/[\n;]/).map(x => x.trim()).filter(x => x && x.length <= 60).slice(0, 12)
 
-function filasConCodigo(ws, armar) {
+// op.sinCodigo (solo carga puntual por scripts/cargar_excel.mjs --sin-codigo): las filas sin código CM/MC también se cargan, con un id propio
+// (sin código, como la lista anterior) y, si ni CM, MC ni el total traen número, como «hay» en las dos tiendas de Maracay.
+function filasConCodigo(ws, armar, op = {}) {
   const items = [], omitidas = [], vistos = new Map(), h = cabecera(ws)
   ws.eachRow((row, n) => {
     if (n === 1) return
     const v = k => (h[k] ? celda(row.getCell(h[k]).value) : null)
     const cm = codigo(v('CODIGOCM')), mc = codigo(v('CODIGOMC')), r = armar(v)
     if (!r.desc && !cm && !mc) return                                                  // fila separadora
-    if (!cm && !mc) { omitidas.push(`Fila ${n}: ${r.desc} (sin código CM ni MC, no se publica)`); return }
+    if (!cm && !mc && !op.sinCodigo) { omitidas.push(`Fila ${n}: ${r.desc} (sin código CM ni MC, no se publica)`); return }
     if (r.falta) { omitidas.push(`Fila ${n}: código ${cm || mc} sin ${r.falta}`); return }
     for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc].filter(Boolean)) {
       if (vistos.has(k)) { omitidas.push(`Fila ${n}: código ${k.slice(3)} repetido (ya está en la fila ${vistos.get(k)}), no se carga`); return }
     }
     const precio = Number(v('PRECIO')) > 0 ? Number(v('PRECIO')) : 0, bs = Number(v('BS')), total = entero(v('TOTALINVENTARIO'))
-    const stock = h.CM || h.MC ? { tienda_1: entero(v('CM')), tienda_2: entero(v('MC')) } : { tienda_1: cm ? total : 0, tienda_2: cm ? 0 : total }   // sin columnas CM y MC: el total es de la tienda del código
-    const item = { sku: cm ? 'CM-' + cm : 'MC-' + mc, ...r.item, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock }
+    const sinDato = op.sinCodigo && !cm && !mc && ['CM', 'MC', 'TOTALINVENTARIO'].every(k => v(k) == null || v(k) === '')
+    const stock = sinDato ? { tienda_1: SIN_CANTIDAD, tienda_2: SIN_CANTIDAD } : h.CM || h.MC ? { tienda_1: entero(v('CM')), tienda_2: entero(v('MC')) } : { tienda_1: cm ? total : 0, tienda_2: cm ? 0 : total }   // sin columnas CM y MC: el total es de la tienda del código
+    const item = { sku: cm ? 'CM-' + cm : mc ? 'MC-' + mc : 'FILA-' + n, ...r.item, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock }
     if (cm) item.codigo_cm = cm
     if (mc) item.codigo_mc = mc
     for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc].filter(Boolean)) vistos.set(k, n)
@@ -99,10 +102,10 @@ const armarCaucho = v => {
   if (servicios.length) item.servicios = servicios
   return { desc: `${med} ${marca}`.trim(), falta: !med || !marca ? 'medida o marca' : '', item }
 }
-const filasCauchosNuevo = ws => filasConCodigo(ws, armarCaucho)
+const filasCauchosNuevo = (ws, op) => filasConCodigo(ws, armarCaucho, op)
 
-function filasCauchos(ws) {
-  if (esNuevo(ws)) return filasCauchosNuevo(ws)
+function filasCauchos(ws, op) {
+  if (esNuevo(ws)) return filasCauchosNuevo(ws, op)
   const items = [], omitidas = [], sku = unicos()
   ws.eachRow((row, n) => {
     if (n === 1) return
@@ -139,8 +142,8 @@ const armarBateria = v => {                                              // el g
   if (chatarra.usd > 0 || chatarra.bs > 0) item.chatarra = chatarra
   return { desc: `${marca} ${grupo}`.trim(), falta: !marca ? 'marca' : !grupo ? 'grupo (columna MODELO)' : '', item }
 }
-function filasBaterias(ws) {
-  if (esNuevo(ws)) return filasConCodigo(ws, armarBateria)
+function filasBaterias(ws, op) {
+  if (esNuevo(ws)) return filasConCodigo(ws, armarBateria, op)
   const items = [], omitidas = [], sku = unicos()
   ws.eachRow((row, n) => {
     if (n === 1) return
@@ -163,8 +166,8 @@ const armarAceite = v => {                                               // en e
   const tipo = txt(v('ACEITE')), presentacion = txt(v('COMBO')), marca = txt(v('MARCA'))
   return { desc: `${tipo} ${marca}`.trim(), falta: !tipo || !marca ? 'tipo o marca' : '', item: { marca, tipo, presentacion } }
 }
-function filasAceites(ws) {
-  if (esNuevo(ws)) return filasConCodigo(ws, armarAceite)
+function filasAceites(ws, op) {
+  if (esNuevo(ws)) return filasConCodigo(ws, armarAceite, op)
   const items = [], omitidas = [], sku = unicos()
   ws.eachRow((row, n) => {
     if (n === 1) return
@@ -187,8 +190,8 @@ const armarBicicleta = v => {                                            // «RI
   if (caracteristicas) item.caracteristicas = caracteristicas
   return { desc: `${rinTxt} ${modTxt}`.trim(), falta: !rin || !modelo ? 'rin o modelo' : '', item }
 }
-function filasBicicletas(ws) {                                           // «🚲RIN 20 MODELO 130 (NIÑO)» | precio | bs | # unidades en CM | colores | MC (hay en Master Cauchos)
-  if (esNuevo(ws)) return filasConCodigo(ws, armarBicicleta)
+function filasBicicletas(ws, op) {                                           // «🚲RIN 20 MODELO 130 (NIÑO)» | precio | bs | # unidades en CM | colores | MC (hay en Master Cauchos)
+  if (esNuevo(ws)) return filasConCodigo(ws, armarBicicleta, op)
   const items = [], omitidas = [], sku = unicos()
   const verdadero = v => ['TRUE', 'VERDADERO', '1', 'SI', 'SÍ'].includes(String(celda(v)).trim().toUpperCase())
   ws.eachRow((row, n) => {
@@ -449,11 +452,11 @@ const respaldar = cat => {
 // ---------- Excel ----------
 // Nombres con que el cliente puede llamar a cada pestaña («INVENTARIO CAUCHOS», «INVENTARIO DE BATERIA», «Copia de BICICLETAS»…); «DIMENSIONES DE CAUCHOS» no cuenta
 const HOJAS = { cauchos: /^(inventario\s+(de\s+)?)?caucho/i, baterias: /^(inventario\s+(de\s+)?)?bater/i, aceites: /^(inventario\s+(de\s+)?)?aceite/i, bicicletas: /bicicleta/i, compatibilidad: /compat/i }
-export async function leerExcel(buffer) {
+export async function leerExcel(buffer, op = {}) {
   const wb = new ExcelJS.Workbook()
   try { await wb.xlsx.load(buffer) } catch { throw new Error('No se pudo leer el archivo. Debe ser un Excel .xlsx.') }
   const out = {}
-  for (const [cat, c] of Object.entries(CATS)) { const ws = wb.getWorksheet(c.hoja) || wb.worksheets.find(w => HOJAS[cat]?.test(w.name.trim())); if (ws) out[cat] = c.leer(ws) }
+  for (const [cat, c] of Object.entries(CATS)) { const ws = wb.getWorksheet(c.hoja) || wb.worksheets.find(w => HOJAS[cat]?.test(w.name.trim())); if (ws) out[cat] = c.leer(ws, op) }
   const sinCodigo = Object.values(out).reduce((n, r) => n + r.omitidas.filter(o => /sin código CM ni MC/.test(o)).length, 0)
   if (!Object.values(out).some(r => r.items.length) && sinCodigo) throw new Error(`Ninguna fila tiene código: ${sinCodigo} productos se quedaron fuera porque les falta el CODIGO CM o el CODIGO MC. Llena esas columnas y vuelve a subir el archivo.`)
   if (!Object.values(out).some(r => r.items.length)) throw new Error('No se encontró ningún producto con precio. Sube la lista «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES.')
