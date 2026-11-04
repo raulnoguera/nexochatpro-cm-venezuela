@@ -355,9 +355,11 @@ function card(p) {
     ${CAT === 'cauchos' ? bloqueCaucho(p) : ''}</article>`;
 }
 
-const gruposVeh = () => {                                                // grupos de batería que sirven al vehículo elegido, según la tabla de compatibilidad
-  const n = F.va ? Number(F.va) : null
-  return new Set(COMPAT.filter(c => c.o === F.vm && c.d === F.vd && (n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999)))).flatMap(c => c.g));
+const clave = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const sirveAlVehiculo = p => {                                           // ¿esta batería le sirve al vehículo elegido? El grupo depende de la marca de la batería (columna de su marca en la tabla)
+  const n = F.va ? Number(F.va) : null, conDatos = new Set(COMPAT.flatMap(c => Object.keys(c.m || {}))), m = clave(p.m);
+  const k = [...conDatos].filter(x => m.startsWith(x)).sort((a, b) => b.length - a.length)[0];
+  return COMPAT.some(c => c.o === F.vm && c.d === F.vd && (n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999))) && ((k && c.m ? c.m[k] || [] : c.g)).some(x => (p.k || []).includes(x)));
 };
 function filtrar(paraMarcas, sinModelo) {                              // paraMarcas: ignora la marca elegida y el texto escrito (sirve para saber qué marcas ofrecer)
   const c = CATS[CAT], tok = CAT === 'baterias' || paraMarcas ? [] : (F.q || '').split(/\s+/).map(norm).filter(Boolean);   // baterías: sin búsqueda escrita (el amperaje solo no indica si le sirve al vehículo)
@@ -372,7 +374,7 @@ function filtrar(paraMarcas, sinModelo) {                              // paraMa
     }
     if (CAT === 'cauchos') { if (F.rin && String(p.r) !== F.rin) return false; if (F.medida && p.z !== F.medida) return false; }
     for (const [key, , , get] of defs) if (F[key] && get(p) !== (key === 'tipo' ? F[key].toUpperCase() : F[key])) return false;
-    if (CAT === 'baterias' && F.vm && F.vd) { const t = gruposVeh(); if (!(p.k || []).some(x => t.has(x))) return false; }
+    if (CAT === 'baterias' && F.vm && F.vd) { if (!sirveAlVehiculo(p)) return false; }
     if (!F.todos && nivel(p) === 0) return false;     // por defecto solo lo que hay en la ciudad elegida
     const t = norm(c.texto(p));
     return tok.every(x => t.includes(x));

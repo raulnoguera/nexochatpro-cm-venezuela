@@ -154,5 +154,43 @@ try {
   r = await api('POST', '/ajustes/alcance', { reglas: [{ marca: 'Sportrak', modelo: '' }, { marca: 'sportrak', modelo: 'SP716' }, { marca: 'Milemax', modelo: 'SP716' }, { marca: '', modelo: '' }] })
   ok('cuenta a cuántos cauchos alcanza cada regla (0 si no coincide)', () => assert.deepEqual(r.j.alcance, [4, 2, 0, 0]))
   const sin2 = await fetch(base + '/admin/api/ajustes/opciones'); ok('las listas exigen la clave del panel', () => assert.equal(sin2.status, 401))
+
+  // 8) inventario nuevo: una pestaña por categoría, columnas por encabezado, compatibilidad con una columna por marca de batería
+  const libro = new ExcelJS.Workbook()
+  const hoja = (nombre, filas) => { const w = libro.addWorksheet(nombre); filas.forEach(f => w.addRow(f)) }
+  hoja('INVENTARIO CAUCHOS', [['CODIGO CM', 'CODIGO MC', 'MEDIDA', 'MARCA', 'MODELO', 'TIPO', 'LONAS', 'Precio', 'Bs', 'CM', 'MC', 'TOTAL INVENTARIO', 'COSTE DE MONTURA', 'SERVICIOS', 'GARANTIA', 'CONSTRUCCION', 'INDICE DE CARGA', 'INDICE DE CARGA DUAL', 'CODIGO DE VELOCIDAD', 'PRESION MAXIMA', 'TL/TT'],
+    ['C1', '', '265/60R18', 'Habilead', 'RS21', 'AT', '10 Pr', 120, 126, 2, 0, 2, 10, 'Válvula nueva\nBalanceo', '1 año', 'Radial', 114, '', 'T', '51 psi', 'TL'],
+    ['', '', '235/75R15', 'Sportrak', '', 'HT', '', 90, 95, 1, 0, 1]])
+  hoja('DIMENSIONES DE CAUCHOS', [['MEDIDA', 'ANCHO', 'ALTO', 'DIAMETRO'], ['165/65/13', '16,5 cm', '54,5 cm', '33 cm']])
+  hoja('INVENTARIO DE BATERIA', [['CODIGO CM', 'CODIGO MC', 'MARCA', 'MODELO', 'NOMENCLATURA', 'POSICION', 'AMP', 'PRECIO', 'BS', 'CM', 'MC', 'TOTAL INVENTARIO', 'SERVICIO', 'GARANTIA', 'CHATARRA DIVISA', 'CHATARRA BS', 'ANCHO', 'LARGO', 'ALTO', 'VOLTAJE'],
+    ['B1', '', 'Fulgor Black', 24, 'BORNE', 'Derecha', 800, 100, 105, 3, 0, 3, 'Instalación gratis', 12, 10, 11, '24 cm', '17 cm', '19 cm', '12 V'],
+    ['B2', '', 'Duncan', '4D', '', '', 1300, 140, 147, 1, 0, 1], ['B3', '', 'Velko Basank', 34, '', '', 700, 90, 95, 2, 0, 2]])
+  hoja('INVENTARIO DE ACEITES', [['CODIGO CM', 'CODIGO MC', 'Aceite', 'Combo', 'Marca', 'Precio', 'Bs'], ['A1', '', '20W-50', '4 Litros', 'Mobil', 30, 32, 5], ['', 'A2', '2 Tiempos', 'Litro', 'Oilven', 8, 9]])
+  hoja('Copia de BICICLETAS', [['CODIGO MC', 'RIN', 'MODELO', 'PRECIO', 'BS', 'TOTAL INVENTARIO', 'CARACTERISTICAS'], ['K1', 'RIN 20', 'MODELO 130 (NIÑO)', 90, 95, 4, 'Aro de aluminio']])
+  hoja('COMPATIBILIDAD', [['MARCA', 'MODELO', 'AÑO DESDE', 'AÑO HASTA', 'POLARIDAD', 'DUNCAN', 'FULGOR', 'FULGOR BLACK', 'FULGOR EVERLITE', 'AMPERAJE MINIMO'],
+    ['FORD', 'F-350', 2000, 2010, 'DERECHA', '4D', 24, 34, '', 700], ['TOYOTA', 'COROLLA', 2009, 2019, 'IZQUIERDA', '', '22NF', '22NF', '', ''], ['ACURA', 'X', 2000, 2001, '', '', '', '', '', '']])
+  const nuevo = await leerExcel(Buffer.from(await libro.xlsx.writeBuffer()))
+  ok('lee las pestañas del inventario nuevo por su nombre (sin confundir DIMENSIONES con cauchos)', () => { assert.equal(nuevo.cauchos.items.length, 1); assert.equal(nuevo.baterias.items.length, 3); assert.equal(nuevo.aceites.items.length, 2); assert.equal(nuevo.bicicletas.items.length, 1) })
+  ok('un caucho sin código no se publica y se avisa', () => assert.ok(nuevo.cauchos.omitidas.some(o => /235\/75R15 Sportrak \(sin código/.test(o))))
+  const c1 = nuevo.cauchos.items[0]
+  ok('cauchos: columnas nuevas como especificaciones y servicios del producto', () => { assert.equal(c1.modelo, 'RS21'); assert.equal(c1.lonas, 10); assert.deepEqual(c1.servicios, ['Válvula nueva', 'Balanceo']); assert.deepEqual(c1.espec.map(x => x.k), ['Costo de montura', 'Garantía', 'Construcción', 'Índice de carga', 'Código de velocidad', 'Presión máxima', 'TL/TT']) })
+  const b1 = nuevo.baterias.items[0]
+  ok('baterías: el grupo sale de la columna MODELO (24 y no 24.0), con garantía, chatarra y medidas', () => { assert.equal(b1.grupo, '24'); assert.equal(b1.amp, 800); assert.equal(b1.descripcion, '800 AMP / BORNE / Derecha'); assert.equal(b1.garantia, 12); assert.deepEqual(b1.chatarra, { usd: 10, bs: 11 }); assert.equal(b1.espec.find(x => x.k === 'Voltaje').v, '12 V'); assert.deepEqual(b1.servicios, ['Instalación gratis']) })
+  ok('aceites: la presentación sale de COMBO; el código MC también sirve', () => { assert.equal(nuevo.aceites.items[0].presentacion, '4 Litros'); assert.equal(nuevo.aceites.items[1].sku, 'MC-A2'); assert.equal(nuevo.aceites.items[1].stock.tienda_2, 0) })
+  ok('bicicletas: rin, modelo y para salen del texto; el total es de la tienda del código', () => { const b = nuevo.bicicletas.items[0]; assert.equal(b.rin, 20); assert.equal(b.modelo, '130'); assert.equal(b.para, 'NIÑO'); assert.equal(b.stock.tienda_2, 4) })
+  const f350 = nuevo.compatibilidad.items.find(x => x.modelo === 'F-350')
+  ok('compatibilidad: una columna por marca de batería, con polaridad y amperaje mínimo', () => { assert.deepEqual(f350.grupos, { DUNCAN: '4D', FULGOR: '24', FULGORBLACK: '34' }); assert.equal(f350.polaridad, 'DERECHA'); assert.equal(f350.amp_min, 700); assert.equal(f350.grupo, '4D, 24, 34') })
+  ok('un vehículo sin grupo en ninguna marca se omite', () => assert.ok(nuevo.compatibilidad.omitidas.some(o => /ACURA X/.test(o))))
+  const { gruposParaBateria, marcasConGrupos } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href), conDatos = marcasConGrupos(nuevo.compatibilidad.items)
+  ok('el grupo depende de la marca de la batería (la más específica) y, sin columna, usa los del vehículo', () => {
+    assert.deepEqual(gruposParaBateria(f350, 'Fulgor Black', conDatos), ['34']); assert.deepEqual(gruposParaBateria(f350, 'Fulgor', conDatos), ['24']); assert.deepEqual(gruposParaBateria(f350, 'Duncan Quattro', conDatos), ['4D'])
+    assert.deepEqual(gruposParaBateria(f350, 'Velko Basank', conDatos), ['4D', '24', '34']) })
+  fs.writeFileSync(path.join(tmp, 'data', 'compatibilidad.json'), JSON.stringify(nuevo.compatibilidad.items))
+  fs.writeFileSync(path.join(tmp, 'data', 'baterias.json'), JSON.stringify(nuevo.baterias.items))
+  const cat = aCatalogo({ baterias: nuevo.baterias.items, compatibilidad: nuevo.compatibilidad.items })
+  ok('el catálogo de la web lleva los grupos por marca y las especificaciones de la batería', () => { assert.deepEqual(cat.compatibilidad.find(x => x.d === 'F-350').m, { DUNCAN: ['4D'], FULGOR: ['24'], FULGORBLACK: ['34'] }); assert.equal(cat.baterias.find(x => x.g === '24').e.Voltaje, '12 V') })
+  const rb = await ejecutar('buscar_baterias', { tienda: 'maracay', vehiculo_marca: 'Ford', vehiculo_modelo: 'F-350', anio: 2005 }, { conversationId: 0 }).catch(e => ({ error: e.message }))
+  ok('Nexo, para una F-350: ofrece la Duncan 4D y la Velko (marca sin datos usa los del vehículo) y no la Fulgor Black grupo 24', () => {
+    assert.ok(!rb.error, rb.error); assert.deepEqual(rb.resultados.map(x => x.marca).sort(), ['Duncan', 'Velko Basank']) })
   console.log(`\n${n} comprobaciones correctas`)
 } finally { srv.close(); fs.rmSync(tmp, { recursive: true, force: true }) }
