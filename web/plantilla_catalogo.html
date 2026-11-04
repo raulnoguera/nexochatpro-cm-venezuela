@@ -217,6 +217,10 @@ const medDisp = () => {                                     // medidas con exist
   return m;
 };
 const rinesDisp = md => uniq(Object.values(md).map(e => e.r)).sort((a, b) => a - b);
+function filtrosBicis() {
+  const rines = uniq((DATA.bicicletas || []).map(p => String(p.r)).filter(Boolean)).sort((a, b) => a - b);
+  return `<div class="grp"><div class="two uno"><label><select id="brinf" aria-label="Rin de la bicicleta"><option value="">Elige el rin</option>${rines.map(r => `<option value="${esc(r)}" ${F.rin === r ? 'selected' : ''}>Rin ${esc(r)}</option>`).join('')}</select></label></div></div>`;
+}
 function filtrosCauchos() {                                 // 1.º el rin, 2.º una lista con las medidas que hay en ese rin
   const md = medDisp(), meds = Object.keys(md).filter(z => !F.rin || md[z].r === F.rin).sort(num);
   return `<div class="grp"><h3>Busca por medida</h3><div class="two">
@@ -402,7 +406,7 @@ function paint() {
   $('#tabs').innerHTML = Object.entries(CATS).map(([k, v]) => `<button class="chip" role="tab" data-cat="${k}" aria-pressed="${k === CAT}">${v.nombre}</button>`).join('');
   $('#qtit').textContent = c.titulo; $('#q').placeholder = c.pista;
   $('#vehiculo').innerHTML = CAT === 'baterias' ? buscadorVehiculo() : '';
-  $('#filtros').innerHTML = CAT === 'baterias' ? (ciudad() && conDatos(ciudad()) ? filtrosBaterias() : '') : (CAT === 'cauchos' ? (ciudad() && conDatos(ciudad()) ? filtrosCauchos() : '') : CAT === 'aceites' ? (ciudad() && conDatos(ciudad()) ? filtrosAceites() : '') : c.filtros(d).map(([key, nombre, vals]) => `<div class="grp"><h3>${nombre}</h3><div class="chips sc">${vals.map(v => `<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${F[key] === v}">${esc(v)}</button>`).join('')}</div></div>`).join(''));
+  $('#filtros').innerHTML = CAT === 'baterias' ? (ciudad() && conDatos(ciudad()) ? filtrosBaterias() : '') : (CAT === 'cauchos' ? (ciudad() && conDatos(ciudad()) ? filtrosCauchos() : '') : CAT === 'aceites' ? (ciudad() && conDatos(ciudad()) ? filtrosAceites() : '') : CAT === 'bicicletas' ? (ciudad() && conDatos(ciudad()) ? filtrosBicis() : '') : c.filtros(d).map(([key, nombre, vals]) => `<div class="grp"><h3>${nombre}</h3><div class="chips sc">${vals.map(v => `<button class="chip" data-k="${key}" data-v="${esc(v)}" aria-pressed="${F[key] === v}">${esc(v)}</button>`).join('')}</div></div>`).join(''));
   cintaMarcas();
   const otrosVacio = CAT === 'otros' && !(DATA.otros || []).length;      // «Otros» aún sin productos: solo el aviso
   $('#qgrp').hidden = CAT === 'baterias' || otrosVacio;
@@ -487,6 +491,7 @@ document.addEventListener('change', e => {
   if (e.target.id === 'apres') { F.presentacion = e.target.value; mostrar = PAGINA; paint(); }
   if (e.target.id === 'bgrupo') { F.grupo = e.target.value; mostrar = PAGINA; paint(); }
   if (e.target.id === 'bmarca') { F.marca = e.target.value; F.modelo = ''; mostrar = PAGINA; paint(); }
+  if (e.target.id === 'brinf') { F.rin = e.target.value; mostrar = PAGINA; paint(); }
   if (e.target.id === 'fmed') { F.medida = e.target.value; mostrar = PAGINA; paint(); }
   if (e.target.id === 'vm') { V = { vm: e.target.value }; paint(); }
   if (e.target.id === 'vd') { V.vd = e.target.value; V.va = ''; paint(); }
