@@ -4,7 +4,7 @@ import { inventario, baterias, aceites, bicicletas, compatibilidad, servicios, a
 import { precio, disponibilidad, nombreTienda, horarioDe, ahoraCaracas } from './precios.js'
 import * as cw from './chatwoot.js'
 import { traspasar } from './equipos.js'
-import { gruposDe, serviciosDe } from './lista.js'
+import { gruposDe, serviciosDe, marcasConGrupos, gruposParaBateria } from './lista.js'
 
 const MAX_RESULTADOS = 6
 const MAX_CAUCHOS = 14        // el protocolo de la tienda lista TODAS las opciones de una medida
@@ -186,9 +186,9 @@ export async function ejecutar(nombre, input, ctx) {
     if (bat && (input.vehiculo_marca || input.vehiculo_modelo)) {                     // el grupo sale SOLO de la tabla de compatibilidad, nunca de la memoria del modelo
       const filas = compatibilidad().filter(c => (!input.vehiculo_marca || norm(c.marca).includes(norm(input.vehiculo_marca))) && (!input.vehiculo_modelo || norm(c.modelo).includes(norm(input.vehiculo_modelo))) && (!input.anio || (input.anio >= c.desde && input.anio <= c.hasta)))
       if (!filas.length) return { tienda: nombreTienda(tienda), sin_datos_compatibilidad: true, instruccion: 'Ese vehículo no está en la tabla de compatibilidad. No adivines el grupo: pide el grupo que dice la batería actual o pasa a un asesor (pasar_a_humano).' }
-      const grupos = new Set(filas.flatMap(c => gruposDe(c.grupo)))
+      const conDatos = marcasConGrupos(compatibilidad())
       compat = { vehiculo: [...new Set(filas.map(c => `${c.marca} ${c.modelo}`))].join(', '), grupos_compatibles: [...new Set(filas.map(c => c.grupo))] }
-      r = r.filter(x => gruposDe(x.grupo).some(g => grupos.has(g)))
+      r = r.filter(x => filas.some(c => gruposParaBateria(c, x.marca, conDatos).some(g => gruposDe(x.grupo).includes(g))))      // el grupo depende de la marca de la batería
     }
     if (bat) { if (input.grupo) r = tiene('grupo', input.grupo); if (input.amperaje) r = r.filter(x => x.amp === input.amperaje) }
     else { if (input.tipo) r = tiene('tipo', input.tipo); if (input.presentacion) r = r.filter(x => norm(x.presentacion) === norm(input.presentacion) || norm(x.presentacion).startsWith(norm(input.presentacion))) }

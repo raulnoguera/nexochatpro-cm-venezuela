@@ -44,28 +44,37 @@ const stockDe = (cm, mc, k) => {
 }
 const unicos = () => { const vistos = {}; return base => { vistos[base] = (vistos[base] || 0) + 1; return `${base}-${vistos[base]}` } }
 
-// Inventario de cauchos, formato nuevo: CODIGO CM | CODIGO MC | MEDIDA | MARCA | MODELO | TIPO | LONAS | Precio | Bs | CM | MC | TOTAL INV
-// El código es obligatorio (sin código el producto no existe) y se guarda tal cual, sin corregir mayúsculas ni espacios.
+// Inventario en el formato nuevo (una pestaña por categoría): CODIGO CM | CODIGO MC | … | Precio | Bs | CM | MC | TOTAL INVENTARIO.
+// Las columnas se buscan por su encabezado, no por su posición. El código es obligatorio (sin código el producto no existe) y se guarda
+// tal cual, sin corregir mayúsculas ni espacios. Cada pestaña pone en `armar` lo suyo: { desc, falta, item }.
 const codigo = v => String(celda(v) ?? '').trim()
-function filasCauchosNuevo(ws) {
-  const items = [], omitidas = [], vistos = new Map()
+const cabecera = ws => {
+  const h = {}
+  ws.getRow(1).eachCell((c, i) => { const k = norm(txt(c.value).normalize('NFD').replace(/[̀-ͯ]/g, '')); if (k && !h[k]) h[k] = i })
+  return h
+}
+const esNuevo = ws => /^C[OÓ]DIGO\s*(CM|MC)$/i.test(txt(ws.getRow(1).getCell(1).value))
+const sinVacios = pares => pares.filter(([, v]) => v !== '' && v != null)
+const especDe = (v, columnas) => sinVacios(columnas.map(([c, nombre]) => [nombre, txt(v(c))])).map(([k, x]) => ({ k, v: x }))
+const serviciosDeCelda = t => String(t ?? '').split(/[\n;]/).map(x => x.trim()).filter(x => x && x.length <= 60).slice(0, 12)
+
+function filasConCodigo(ws, armar) {
+  const items = [], omitidas = [], vistos = new Map(), h = cabecera(ws)
   ws.eachRow((row, n) => {
     if (n === 1) return
-    const c = i => celda(row.getCell(i).value)
-    const cm = codigo(c(1)), mc = codigo(c(2)), med = txt(c(3)), marca = txt(c(4))
-    if (!med && !marca && !cm && !mc) return                                           // fila separadora
-    if (!cm && !mc) { omitidas.push(`Fila ${n}: ${med} ${marca} (sin código CM ni MC, no se publica)`); return }
-    if (!med || !marca) { omitidas.push(`Fila ${n}: código ${cm || mc} sin medida o marca`); return }
+    const v = k => (h[k] ? celda(row.getCell(h[k]).value) : null)
+    const cm = codigo(v('CODIGOCM')), mc = codigo(v('CODIGOMC')), r = armar(v)
+    if (!r.desc && !cm && !mc) return                                                  // fila separadora
+    if (!cm && !mc) { omitidas.push(`Fila ${n}: ${r.desc} (sin código CM ni MC, no se publica)`); return }
+    if (r.falta) { omitidas.push(`Fila ${n}: código ${cm || mc} sin ${r.falta}`); return }
     for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc].filter(Boolean)) {
       if (vistos.has(k)) { omitidas.push(`Fila ${n}: código ${k.slice(3)} repetido (ya está en la fila ${vistos.get(k)}), no se carga`); return }
     }
-    const [medida, rin] = medidaYRin(med), precio = Number(c(8)) > 0 ? Number(c(8)) : 0
-    const bs = Number(c(9)), qcm = entero(c(10)), qmc = entero(c(11))
-    const lonas = Number((txt(c(7)).match(/\d+/) || [])[0])
-    const item = { sku: cm ? 'CM-' + cm : 'MC-' + mc, marca, modelo: txt(c(5)), tipo: txt(c(6)), ...(lonas > 0 && { lonas }), medida, rin, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock: { tienda_1: qcm, tienda_2: qmc } }
+    const precio = Number(v('PRECIO')) > 0 ? Number(v('PRECIO')) : 0, bs = Number(v('BS')), total = entero(v('TOTALINVENTARIO'))
+    const stock = h.CM || h.MC ? { tienda_1: entero(v('CM')), tienda_2: entero(v('MC')) } : { tienda_1: cm ? total : 0, tienda_2: cm ? 0 : total }   // sin columnas CM y MC: el total es de la tienda del código
+    const item = { sku: cm ? 'CM-' + cm : 'MC-' + mc, ...r.item, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock }
     if (cm) item.codigo_cm = cm
     if (mc) item.codigo_mc = mc
-    if (med !== medida) item.detalle = med
     for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc].filter(Boolean)) vistos.set(k, n)
     items.push(item)
   })
@@ -75,8 +84,25 @@ function filasCauchosNuevo(ws) {
   return { items, omitidas }
 }
 
+// Columnas opcionales que el cliente llena; salen como especificaciones en la ventana «Ver especificaciones» de la web
+const ESPEC_CAUCHO = [['COSTEDEMONTURA', 'Costo de montura'], ['GARANTIA', 'Garantía'], ['CONSTRUCCION', 'Construcción'], ['INDICEDECARGA', 'Índice de carga'], ['INDICEDECARGADUAL', 'Índice de carga dual'],
+  ['CODIGODEVELOCIDAD', 'Código de velocidad'], ['PRESIONMAXIMA', 'Presión máxima'], ['TLTT', 'TL/TT']]
+const ESPEC_BATERIA = [['ANCHO', 'Ancho'], ['LARGO', 'Largo'], ['ALTO', 'Alto'], ['VOLTAJE', 'Voltaje'], ['AMPERIOSDEARRANQUECA', 'Amperios de arranque (CA)'],
+  ['ARRANQUEENFRIOCCA', 'Arranque en frío (CCA)'], ['AMPERIOSPORHORAAH', 'Amperios por hora (AH)'], ['CAPACIDADDERESERVACR', 'Capacidad de reserva (CR)']]
+
+const armarCaucho = v => {
+  const med = txt(v('MEDIDA')), marca = txt(v('MARCA')), [medida, rin] = med ? medidaYRin(med) : ['', null]
+  const lonas = Number((txt(v('LONAS')).match(/\d+/) || [])[0]), espec = especDe(v, ESPEC_CAUCHO), servicios = serviciosDeCelda(v('SERVICIOS'))
+  const item = { marca, modelo: txt(v('MODELO')), tipo: txt(v('TIPO')), ...(lonas > 0 && { lonas }), medida, rin }
+  if (med !== medida) item.detalle = med
+  if (espec.length) item.espec = espec
+  if (servicios.length) item.servicios = servicios
+  return { desc: `${med} ${marca}`.trim(), falta: !med || !marca ? 'medida o marca' : '', item }
+}
+const filasCauchosNuevo = ws => filasConCodigo(ws, armarCaucho)
+
 function filasCauchos(ws) {
-  if (/^C[OÓ]DIGO\s*CM$/i.test(txt(ws.getRow(1).getCell(1).value))) return filasCauchosNuevo(ws)
+  if (esNuevo(ws)) return filasCauchosNuevo(ws)
   const items = [], omitidas = [], sku = unicos()
   ws.eachRow((row, n) => {
     if (n === 1) return
@@ -101,7 +127,20 @@ function garantias(texto) {
   }
   return g
 }
+const armarBateria = v => {                                              // el grupo de la batería va en la columna MODELO del inventario nuevo
+  const marca = txt(v('MARCA')), grupo = txt(v('MODELO')), amp = Number(v('AMP')) > 0 ? Math.round(Number(v('AMP'))) : 0
+  const garantia = Math.round(Number(v('GARANTIA'))), servicios = serviciosDeCelda(v('SERVICIO')), espec = especDe(v, ESPEC_BATERIA)
+  const chatarra = { usd: Number(v('CHATARRADIVISA')) || 0, bs: Number(v('CHATARRABS')) || 0 }
+  const item = { marca, descripcion: [amp && `${amp} AMP`, txt(v('NOMENCLATURA')), txt(v('POSICION'))].filter(Boolean).join(' / ') || grupo, grupo }
+  if (amp) item.amp = amp
+  if (garantia > 0) item.garantia = garantia
+  if (servicios.length) item.servicios = servicios
+  if (espec.length) item.espec = espec
+  if (chatarra.usd > 0 || chatarra.bs > 0) item.chatarra = chatarra
+  return { desc: `${marca} ${grupo}`.trim(), falta: !marca ? 'marca' : !grupo ? 'grupo (columna MODELO)' : '', item }
+}
 function filasBaterias(ws) {
+  if (esNuevo(ws)) return filasConCodigo(ws, armarBateria)
   const items = [], omitidas = [], sku = unicos()
   ws.eachRow((row, n) => {
     if (n === 1) return
@@ -120,7 +159,12 @@ function filasBaterias(ws) {
   })
   return { items, omitidas }
 }
+const armarAceite = v => {                                               // en el inventario nuevo la presentación va en la columna COMBO
+  const tipo = txt(v('ACEITE')), presentacion = txt(v('COMBO')), marca = txt(v('MARCA'))
+  return { desc: `${tipo} ${marca}`.trim(), falta: !tipo || !marca ? 'tipo o marca' : '', item: { marca, tipo, presentacion } }
+}
 function filasAceites(ws) {
+  if (esNuevo(ws)) return filasConCodigo(ws, armarAceite)
   const items = [], omitidas = [], sku = unicos()
   ws.eachRow((row, n) => {
     if (n === 1) return
@@ -135,7 +179,16 @@ function filasAceites(ws) {
   return { items, omitidas }
 }
 
+const armarBicicleta = v => {                                            // «RIN 20» | «MODELO 130 (NIÑO)»
+  const rinTxt = txt(v('RIN')), modTxt = txt(v('MODELO')), rin = Number((rinTxt.match(/\d+/) || [])[0]), para = ((modTxt.match(/\(([^)]*)\)/) || [])[1] || '').trim()
+  const modelo = modTxt.replace(/\(.*?\)/g, '').replace(/^MODELO\s*/i, '').trim(), caracteristicas = txt(v('CARACTERISTICAS'))
+  const item = { marca: 'Bicicleta', rin, modelo }
+  if (para) item.para = para
+  if (caracteristicas) item.caracteristicas = caracteristicas
+  return { desc: `${rinTxt} ${modTxt}`.trim(), falta: !rin || !modelo ? 'rin o modelo' : '', item }
+}
 function filasBicicletas(ws) {                                           // «🚲RIN 20 MODELO 130 (NIÑO)» | precio | bs | # unidades en CM | colores | MC (hay en Master Cauchos)
+  if (esNuevo(ws)) return filasConCodigo(ws, armarBicicleta)
   const items = [], omitidas = [], sku = unicos()
   const verdadero = v => ['TRUE', 'VERDADERO', '1', 'SI', 'SÍ'].includes(String(celda(v)).trim().toUpperCase())
   ws.eachRow((row, n) => {
@@ -162,23 +215,40 @@ const anio = v => {                                                       // «2
   const n = parseInt((String(v ?? '').match(/\d+/) || [''])[0], 10)
   return Number.isFinite(n) ? (n < 100 ? (n >= 50 ? 1900 + n : 2000 + n) : n) : null
 }
+// Una columna por marca de batería (DUNCAN, FULGOR, MARUSSI PLUS…): la celda dice el grupo que usa esa marca en ese vehículo.
+const COLUMNAS_FIJAS = new Set(['MARCA', 'VEHICULO', 'MODELO', 'DESDE', 'ANODESDE', 'INICIO', 'HASTA', 'ANOHASTA', 'FIN', 'ANO', 'ANOS', 'GRUPO', 'GRUPOS', 'GRUPODEBATERIA', 'BATERIA', 'POLARIDAD', 'AMPERAJEMINIMO'])
+// Marcas de batería que traen algún grupo en la tabla. Una batería cuya marca no tiene datos usa los grupos del vehículo de cualquier marca.
+export const marcasConGrupos = filas => new Set(filas.flatMap(c => Object.keys(c.grupos || {})))
+// Grupos que le sirven a este vehículo con una batería de esa marca: la columna de su marca (la más larga que empieza igual: «Marussi Plus Limit» -> MARUSSIPLUS)
+export const gruposParaBateria = (c, marcaBateria, conDatos) => {
+  if (!c.grupos) return gruposDe(c.grupo)
+  const m = norm(marcaBateria), k = [...conDatos].filter(x => m.startsWith(x)).sort((a, b) => b.length - a.length)[0]
+  return k ? gruposDe(c.grupos[k]) : gruposDe(c.grupo)
+}
 function filasCompat(ws) {
   const items = [], omitidas = [], sku = unicos()
-  const cab = {}
-  ws.getRow(1).eachCell((c, i) => { const h = norm(txt(c.value).normalize('NFD').replace(/[\u0300-\u036f]/g, '')); if (h) cab[h] = i })
+  const cab = cabecera(ws)
   const col = (...ns) => { for (const n of ns) if (cab[n]) return cab[n] }
   const cMarca = col('MARCA', 'VEHICULO'), cModelo = col('MODELO'), cDesde = col('DESDE', 'ANODESDE', 'INICIO'), cHasta = col('HASTA', 'ANOHASTA', 'FIN'), cAnio = col('ANO', 'ANOS'), cGrupo = col('GRUPO', 'GRUPOS', 'GRUPODEBATERIA', 'BATERIA')
-  if (!cMarca || !cModelo || !cGrupo) throw new Error('La hoja COMPATIBILIDAD necesita las columnas MARCA, MODELO y GRUPO (y los años: DESDE y HASTA, o AÑO).')
+  const porMarca = Object.entries(cab).filter(([k]) => !COLUMNAS_FIJAS.has(k)), cPolaridad = col('POLARIDAD'), cAmp = col('AMPERAJEMINIMO')
+  if (!cMarca || !cModelo || (!cGrupo && !porMarca.length)) throw new Error('La hoja COMPATIBILIDAD necesita las columnas MARCA y MODELO, el grupo (columna GRUPO, o una columna por marca de batería) y los años (DESDE y HASTA, o AÑO).')
   ws.eachRow((row, n) => {
     if (n === 1) return
     const g = i => (i ? celda(row.getCell(i).value) : null)
-    const marca = txt(g(cMarca)).toUpperCase(), modelo = txt(g(cModelo)).toUpperCase(), grupo = txt(g(cGrupo))
+    const marca = txt(g(cMarca)).toUpperCase(), modelo = txt(g(cModelo)).toUpperCase()
+    const grupos = {}
+    for (const [k, i] of cGrupo ? [] : porMarca) { const t = txt(g(i)); if (gruposDe(t).length) grupos[k] = t }
+    const grupo = cGrupo ? txt(g(cGrupo)) : [...new Set(Object.values(grupos).flatMap(gruposDe))].join(', ')
     if (!marca && !modelo && !grupo) return
     if (!marca || !modelo || !gruposDe(grupo).length) { omitidas.push(`Fila ${n}: ${marca} ${modelo} (falta marca, modelo o grupo)`); return }
     let desde = anio(g(cDesde)), hasta = anio(g(cHasta))
     const rango = txt(g(cAnio)) || (/[-–]/.test(txt(g(cDesde))) ? txt(g(cDesde)) : '')    // «2008-2014», «08-14» o «2010»
     if (rango && (desde == null || /[-–]/.test(txt(g(cDesde))))) { const [a, b] = rango.split(/\s*[-–]\s*/); desde = anio(a); hasta = anio(b ?? a) }
-    items.push({ sku: sku('CMP' + norm(marca).slice(0, 6) + norm(modelo).slice(0, 8)), marca, modelo, desde: desde ?? 0, hasta: hasta ?? 9999, grupo })
+    const item = { sku: sku('CMP' + norm(marca).slice(0, 6) + norm(modelo).slice(0, 8)), marca, modelo, desde: desde ?? 0, hasta: hasta ?? 9999, grupo }
+    if (Object.keys(grupos).length) item.grupos = grupos
+    if (cPolaridad && txt(g(cPolaridad))) item.polaridad = txt(g(cPolaridad)).toUpperCase()
+    if (cAmp && Number(g(cAmp)) > 0) item.amp_min = Number(g(cAmp))
+    items.push(item)
   })
   return { items, omitidas }
 }
@@ -295,7 +365,7 @@ export const CATS = {
   baterias: {
     archivo: 'baterias.json', hoja: 'BATERIAS', leer: filasBaterias,
     nombre: i => `${i.marca} ${i.descripcion}`,
-    web: i => ({ ...comun(i), d: i.descripcion, g: i.grupo, k: gruposDe(i.grupo), ...(i.amp && { a: i.amp }), ...(i.garantia && { w: i.garantia }) }),
+    web: i => ({ ...comun(i), d: i.descripcion, g: i.grupo, k: gruposDe(i.grupo), ...(i.amp && { a: i.amp }), ...(i.garantia && { w: i.garantia }), ...(i.espec?.length && { e: Object.fromEntries(i.espec.map(x => [x.k, x.v])) }) }),
     orden: (a, b) => a.g.localeCompare(b.g, 'es', { numeric: true }) || a.u - b.u,
     campos: b => {
       const descripcion = String(b.descripcion ?? '').trim(), grupo = String(b.grupo ?? '').trim()
@@ -341,7 +411,7 @@ CATS.bicicletas = {
 CATS.compatibilidad = {
   archivo: 'compatibilidad.json', hoja: 'COMPATIBILIDAD', leer: filasCompat, sinProductos: true,
   nombre: i => `${i.marca} ${i.modelo} ${i.desde || ''}-${i.hasta === 9999 ? '' : i.hasta}`,
-  web: i => ({ o: i.marca, d: i.modelo, a: i.desde, b: i.hasta, g: gruposDe(i.grupo), r: i.grupo }),
+  web: i => ({ o: i.marca, d: i.modelo, a: i.desde, b: i.hasta, g: gruposDe(i.grupo), r: i.grupo, ...(i.grupos && { m: Object.fromEntries(Object.entries(i.grupos).map(([k, t]) => [k, gruposDe(t)])) }) }),
   orden: (a, b) => a.o.localeCompare(b.o) || a.d.localeCompare(b.d, 'es', { numeric: true }) || a.a - b.a,
   validar: (b, previo = {}) => {
     const marca = String(b.marca ?? '').trim().toUpperCase(), modelo = String(b.modelo ?? '').trim().toUpperCase(), grupo = String(b.grupo ?? '').trim()
@@ -377,11 +447,15 @@ const respaldar = cat => {
 }
 
 // ---------- Excel ----------
+// Nombres con que el cliente puede llamar a cada pestaña («INVENTARIO CAUCHOS», «INVENTARIO DE BATERIA», «Copia de BICICLETAS»…); «DIMENSIONES DE CAUCHOS» no cuenta
+const HOJAS = { cauchos: /^(inventario\s+(de\s+)?)?caucho/i, baterias: /^(inventario\s+(de\s+)?)?bater/i, aceites: /^(inventario\s+(de\s+)?)?aceite/i, bicicletas: /bicicleta/i, compatibilidad: /compat/i }
 export async function leerExcel(buffer) {
   const wb = new ExcelJS.Workbook()
   try { await wb.xlsx.load(buffer) } catch { throw new Error('No se pudo leer el archivo. Debe ser un Excel .xlsx.') }
   const out = {}
-  for (const [cat, c] of Object.entries(CATS)) { const ws = wb.getWorksheet(c.hoja) || (cat === 'cauchos' ? wb.worksheets.find(w => /caucho/i.test(w.name)) : null); if (ws) out[cat] = c.leer(ws) }
+  for (const [cat, c] of Object.entries(CATS)) { const ws = wb.getWorksheet(c.hoja) || wb.worksheets.find(w => HOJAS[cat]?.test(w.name.trim())); if (ws) out[cat] = c.leer(ws) }
+  const sinCodigo = Object.values(out).reduce((n, r) => n + r.omitidas.filter(o => /sin código CM ni MC/.test(o)).length, 0)
+  if (!Object.values(out).some(r => r.items.length) && sinCodigo) throw new Error(`Ninguna fila tiene código: ${sinCodigo} productos se quedaron fuera porque les falta el CODIGO CM o el CODIGO MC. Llena esas columnas y vuelve a subir el archivo.`)
   if (!Object.values(out).some(r => r.items.length)) throw new Error('No se encontró ningún producto con precio. Sube la lista «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES.')
   return out
 }
