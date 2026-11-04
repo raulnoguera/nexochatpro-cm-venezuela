@@ -160,7 +160,7 @@ try {
   const hoja = (nombre, filas) => { const w = libro.addWorksheet(nombre); filas.forEach(f => w.addRow(f)) }
   hoja('INVENTARIO CAUCHOS', [['CODIGO CM', 'CODIGO MC', 'MEDIDA', 'MARCA', 'MODELO', 'TIPO', 'LONAS', 'Precio', 'Bs', 'CM', 'MC', 'TOTAL INVENTARIO', 'COSTE DE MONTURA', 'SERVICIOS', 'GARANTIA', 'CONSTRUCCION', 'INDICE DE CARGA', 'INDICE DE CARGA DUAL', 'CODIGO DE VELOCIDAD', 'PRESION MAXIMA', 'TL/TT'],
     ['C1', '', '265/60R18', 'Habilead', 'RS21', 'AT', '10 Pr', 120, 126, 2, 0, 2, 10, 'Válvula nueva\nBalanceo', '1 año', 'Radial', 114, '', 'T', '51 psi', 'TL'],
-    ['', '', '235/75R15', 'Sportrak', '', 'HT', '', 90, 95, 1, 0, 1]])
+    ['', '', '235/75R15', 'Sportrak', '', 'HT', '', 90, 95]])
   hoja('DIMENSIONES DE CAUCHOS', [['MEDIDA', 'ANCHO', 'ALTO', 'DIAMETRO'], ['165/65/13', '16,5 cm', '54,5 cm', '33 cm']])
   hoja('INVENTARIO DE BATERIA', [['CODIGO CM', 'CODIGO MC', 'MARCA', 'MODELO', 'NOMENCLATURA', 'POSICION', 'AMP', 'PRECIO', 'BS', 'CM', 'MC', 'TOTAL INVENTARIO', 'SERVICIO', 'GARANTIA', 'CHATARRA DIVISA', 'CHATARRA BS', 'ANCHO', 'LARGO', 'ALTO', 'VOLTAJE'],
     ['B1', '', 'Fulgor Black', 24, 'BORNE', 'Derecha', 800, 100, 105, 3, 0, 3, 'Instalación gratis', 12, 10, 11, '24 cm', '17 cm', '19 cm', '12 V'],
@@ -178,6 +178,8 @@ try {
   ok('baterías: el grupo sale de la columna MODELO (24 y no 24.0), con garantía, chatarra y medidas', () => { assert.equal(b1.grupo, '24'); assert.equal(b1.amp, 800); assert.equal(b1.descripcion, '800 AMP / BORNE / Derecha'); assert.equal(b1.garantia, 12); assert.deepEqual(b1.chatarra, { usd: 10, bs: 11 }); assert.equal(b1.espec.find(x => x.k === 'Voltaje').v, '12 V'); assert.deepEqual(b1.servicios, ['Instalación gratis']) })
   ok('aceites: la presentación sale de COMBO; el código MC también sirve', () => { assert.equal(nuevo.aceites.items[0].presentacion, '4 Litros'); assert.equal(nuevo.aceites.items[1].sku, 'MC-A2'); assert.equal(nuevo.aceites.items[1].stock.tienda_2, 0) })
   ok('bicicletas: rin, modelo y para salen del texto; el total es de la tienda del código', () => { const b = nuevo.bicicletas.items[0]; assert.equal(b.rin, 20); assert.equal(b.modelo, '130'); assert.equal(b.para, 'NIÑO'); assert.equal(b.stock.tienda_2, 4) })
+  const sinCod = await leerExcel(Buffer.from(await libro.xlsx.writeBuffer()), { sinCodigo: true })
+  ok('con sinCodigo las filas sin código se cargan como «hay» y sin código, y las de antes no cambian', () => { const x = sinCod.cauchos.items.find(i => i.marca === 'Sportrak'); assert.ok(x && !x.codigo_cm && x.sku.startsWith('FILA-')); assert.equal(x.stock.tienda_1, 5); assert.equal(sinCod.cauchos.items.find(i => i.marca === 'Habilead').stock.tienda_1, 2) })
   const f350 = nuevo.compatibilidad.items.find(x => x.modelo === 'F-350')
   ok('compatibilidad: una columna por marca de batería, con polaridad y amperaje mínimo', () => { assert.deepEqual(f350.grupos, { DUNCAN: '4D', FULGOR: '24', FULGORBLACK: '34' }); assert.equal(f350.polaridad, 'DERECHA'); assert.equal(f350.amp_min, 700); assert.equal(f350.grupo, '4D, 24, 34') })
   ok('un vehículo sin grupo en ninguna marca se omite', () => assert.ok(nuevo.compatibilidad.omitidas.some(o => /ACURA X/.test(o))))
