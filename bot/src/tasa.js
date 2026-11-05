@@ -26,9 +26,10 @@ export const esCoherente = (euro, dolar) => (dolar > 0 ? euro >= dolar * 0.8 && 
 export const ajustarEuro = (euro, dolar) => (esCoherente(euro, dolar) ? euro : esCoherente(euro * 1000, dolar) ? euro * 1000 : null)
 
 // Lo que dice la API del BCV (nunca la tasa fijada a mano ni el respaldo)
-async function tasaApi(moneda) {
+const VIGENCIA = 5 * 60 * 1000                                  // la tasa de la API se vuelve a consultar cada 5 minutos: si cambia, se refleja sola
+export async function consultarTasaApi(moneda) {
   const c = cache[moneda]
-  if (c && Date.now() - c.ts < 30 * 60 * 1000) return c
+  if (c && Date.now() - c.ts < VIGENCIA) return c
   try {
     const r = await fetch(`https://ve.dolarapi.com/v1/${FUENTE[moneda]}`, { signal: AbortSignal.timeout(6000) })
     const j = await r.json()
@@ -40,17 +41,20 @@ async function tasaApi(moneda) {
 
 export async function tasaPara(moneda) {
   const m = manual(moneda); if (m) return m
-  const a = await tasaApi(moneda); if (a) return a
+  const a = await consultarTasaApi(moneda); if (a) return a
   const c = cache[moneda]
-  if (c) return { ...c, ts: Date.now() - 25 * 60 * 1000 }   // última buena, reintenta pronto
-  return (cache[moneda] = { rate: RESPALDO[moneda], fecha: null, fuente: 'respaldo', ts: Date.now() - 25 * 60 * 1000 })
+  if (c) return { ...c, ts: Date.now() - VIGENCIA + 60 * 1000 }   // última buena, reintenta en un minuto
+  return (cache[moneda] = { rate: RESPALDO[moneda], fecha: null, fuente: 'respaldo', ts: Date.now() - VIGENCIA + 60 * 1000 })
 }
+
+// Descarta lo guardado de la API para volver a consultarla en la próxima lectura (botón «Actualizar del BCV» del panel)
+export const olvidarTasasApi = () => { for (const k of Object.keys(cache)) delete cache[k] }
 
 // Para el panel: la tasa en uso, lo que dice la API y la fijada a mano (si vale hoy)
 export async function estadoTasas() {
   const salida = {}
   for (const [k, moneda] of [['euro', 'EUR'], ['dolar', 'USD']]) {
-    const uso = await tasaPara(moneda), api = await tasaApi(moneda), m = leerManuales()[moneda]
+    const uso = await tasaPara(moneda), api = await consultarTasaApi(moneda), m = leerManuales()[moneda]
     salida[k] = { en_uso: { rate: uso.rate, fuente: uso.fuente, fecha: uso.fecha }, api: api ? { rate: api.rate, fecha: api.fecha } : null, manual: m && m.valor > 0 && m.fecha === hoy() ? { valor: m.valor, fecha: m.fecha } : null, respaldo: RESPALDO[moneda] || null }
   }
   return salida
