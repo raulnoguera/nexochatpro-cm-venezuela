@@ -54,7 +54,7 @@ const cabecera = ws => {
   ws.getRow(1).eachCell((c, i) => { const k = norm(txt(c.value).normalize('NFD').replace(/[̀-ͯ]/g, '')); if (k && !h[k]) h[k] = i })
   return h
 }
-const esNuevo = ws => /^C[OÓ]DIGO\s*(CM|MC)$/i.test(txt(ws.getRow(1).getCell(1).value))
+const esNuevo = ws => /^C[OÓ]DIGO\s*(CM|MC|CCS|CARACAS)$/i.test(txt(ws.getRow(1).getCell(1).value))
 const sinVacios = pares => pares.filter(([, v]) => v !== '' && v != null)
 const especDe = (v, columnas) => sinVacios(columnas.map(([c, nombre]) => [nombre, txt(v(c))])).map(([k, x]) => ({ k, v: x }))
 const serviciosDeCelda = t => String(t ?? '').split(/[\n;]/).map(x => x.trim()).filter(x => x && x.length <= 60).slice(0, 12)
@@ -62,28 +62,30 @@ const serviciosDeCelda = t => String(t ?? '').split(/[\n;]/).map(x => x.trim()).
 // op.sinCodigo (solo carga puntual por scripts/cargar_excel.mjs --sin-codigo): las filas sin código CM/MC también se cargan, con un id propio
 // (sin código, como la lista anterior) y, si ni CM, MC ni el total traen número, como «hay» en las dos tiendas de Maracay.
 function filasConCodigo(ws, armar, op = {}) {
-  const items = [], omitidas = [], vistos = new Map(), h = cabecera(ws)
+  const items = [], omitidas = [], vistos = new Map(), h = cabecera(ws), car = op.tienda === 'caracas'      // car: archivo de CM Caracas (mismo formato; código CODIGO CCS y existencia en la columna CCS)
   ws.eachRow((row, n) => {
     if (n === 1) return
     const v = k => (h[k] ? celda(row.getCell(h[k]).value) : null)
-    const cm = codigo(v('CODIGOCM')), mc = codigo(v('CODIGOMC')), r = armar(v)
-    if (!r.desc && !cm && !mc) return                                                  // fila separadora
-    if (!cm && !mc && !op.sinCodigo) { omitidas.push(`Fila ${n}: ${r.desc} (sin código CM ni MC, no se publica)`); return }
-    if (r.falta) { omitidas.push(`Fila ${n}: código ${cm || mc} sin ${r.falta}`); return }
-    for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc].filter(Boolean)) {
-      if (vistos.has(k)) { omitidas.push(`Fila ${n}: código ${k.slice(3)} repetido (ya está en la fila ${vistos.get(k)}), no se carga`); return }
+    const cm = car ? '' : codigo(v('CODIGOCM')), mc = car ? '' : codigo(v('CODIGOMC')), ccs = car ? codigo(v('CODIGOCCS') ?? v('CODIGOCARACAS')) : '', id = cm || mc || ccs, r = armar(v)
+    if (!r.desc && !id) return                                                         // fila separadora
+    if (!id && !op.sinCodigo) { omitidas.push(`Fila ${n}: ${r.desc} (sin código ${car ? 'CCS' : 'CM ni MC'}, no se publica)`); return }
+    if (r.falta) { omitidas.push(`Fila ${n}: código ${id} sin ${r.falta}`); return }
+    for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc, ccs && 'CCS:' + ccs].filter(Boolean)) {
+      if (vistos.has(k)) { omitidas.push(`Fila ${n}: código ${k.slice(k.indexOf(':') + 1)} repetido (ya está en la fila ${vistos.get(k)}), no se carga`); return }
     }
     const precio = Number(v('PRECIO')) > 0 ? Number(v('PRECIO')) : 0, bs = Number(v('BS')), total = entero(v('TOTALINVENTARIO'))
-    const sinDato = op.sinCodigo && !cm && !mc && ['CM', 'MC', 'TOTALINVENTARIO'].every(k => v(k) == null || v(k) === '')
-    const stock = sinDato ? { tienda_1: SIN_CANTIDAD, tienda_2: SIN_CANTIDAD } : h.CM || h.MC ? { tienda_1: entero(v('CM')), tienda_2: entero(v('MC')) } : { tienda_1: cm ? total : 0, tienda_2: cm ? 0 : total }   // sin columnas CM y MC: el total es de la tienda del código
-    const item = { sku: cm ? 'CM-' + cm : mc ? 'MC-' + mc : 'FILA-' + n, ...r.item, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock }
+    const sinDato = op.sinCodigo && !id && (car ? ['CCS', 'CARACAS', 'TOTALINVENTARIO'] : ['CM', 'MC', 'TOTALINVENTARIO']).every(k => v(k) == null || v(k) === '')
+    const stock = car ? { tienda_1: 0, tienda_2: 0, caracas: sinDato ? SIN_CANTIDAD : entero(h.CCS ? v('CCS') : h.CARACAS ? v('CARACAS') : v('TOTALINVENTARIO')) }
+      : sinDato ? { tienda_1: SIN_CANTIDAD, tienda_2: SIN_CANTIDAD } : h.CM || h.MC ? { tienda_1: entero(v('CM')), tienda_2: entero(v('MC')) } : { tienda_1: cm ? total : 0, tienda_2: cm ? 0 : total }   // sin columnas CM y MC: el total es de la tienda del código
+    const item = { sku: car ? 'CCS-' + (ccs || 'FILA-' + n) : cm ? 'CM-' + cm : mc ? 'MC-' + mc : 'FILA-' + n, ...r.item, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock }
     if (cm) item.codigo_cm = cm
     if (mc) item.codigo_mc = mc
-    for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc].filter(Boolean)) vistos.set(k, n)
+    if (ccs) item.codigo_ccs = ccs
+    for (const k of [cm && 'CM:' + cm, mc && 'MC:' + mc, ccs && 'CCS:' + ccs].filter(Boolean)) vistos.set(k, n)
     items.push(item)
   })
   const parecidos = new Map()                                                          // códigos que solo se diferencian en espacios o mayúsculas: se avisa, no se unen
-  for (const i of items) for (const k of [i.codigo_cm && 'CM' + norm(i.codigo_cm), i.codigo_mc && 'MC' + norm(i.codigo_mc)].filter(Boolean)) parecidos.set(k, [...(parecidos.get(k) || []), i.codigo_cm || i.codigo_mc])
+  for (const i of items) for (const k of [i.codigo_cm && 'CM' + norm(i.codigo_cm), i.codigo_mc && 'MC' + norm(i.codigo_mc), i.codigo_ccs && 'CCS' + norm(i.codigo_ccs)].filter(Boolean)) parecidos.set(k, [...(parecidos.get(k) || []), i.codigo_cm || i.codigo_mc || i.codigo_ccs])
   for (const l of parecidos.values()) if (l.length > 1) omitidas.push(`Aviso (sí se cargaron): los códigos «${l.join('», «')}» solo se diferencian en espacios o mayúsculas; revisa que sean productos distintos`)
   return { items, omitidas }
 }
@@ -369,7 +371,7 @@ const extra = i => {
   if ((i.nota || '').startsWith('Diseño')) t.push(i.nota)
   return t.map(x => (x === x.toUpperCase() ? x[0] + x.slice(1).toLowerCase() : x)).join(' · ')
 }
-const comun = i => ({ m: i.marca, u: i.usd, b: i.usd_bs, t1: nivel(i.stock.tienda_1), t2: nivel(i.stock.tienda_2), ...(i.stock.caracas != null && { c: nivel(i.stock.caracas) }), x: extra(i), ...(i.imagen && { i: `${PUBLICO}/img/${i.imagen}` }) })
+const comun = i => ({ m: i.marca, u: i.usd, b: i.usd_bs, ...(i.usd_c > 0 && { uc: i.usd_c, bc: i.usd_bs_c }), ...(i.solo === 'caracas' && { sc: 1 }), t1: nivel(i.stock.tienda_1), t2: nivel(i.stock.tienda_2), ...(i.stock.caracas != null && { c: nivel(i.stock.caracas) }), x: extra(i), ...(i.imagen && { i: `${PUBLICO}/img/${i.imagen}` }) })
 
 // Cada categoría: archivo, hoja del Excel, cómo se lee, cómo se muestra y qué campos tiene el formulario
 export const CATS = {
@@ -498,33 +500,35 @@ export async function leerExcel(buffer, op = {}) {
   const wb = new ExcelJS.Workbook()
   try { await wb.xlsx.load(buffer) } catch { throw new Error('No se pudo leer el archivo. Debe ser un Excel .xlsx.') }
   const out = {}
-  for (const [cat, c] of Object.entries(CATS)) { const ws = wb.getWorksheet(c.hoja) || wb.worksheets.find(w => HOJAS[cat]?.test(w.name.trim())); if (ws) out[cat] = c.leer(ws, op) }
+  for (const [cat, c] of Object.entries(CATS)) { if (op.tienda === 'caracas' && c.sinProductos) continue; const ws = wb.getWorksheet(c.hoja) || wb.worksheets.find(w => HOJAS[cat]?.test(w.name.trim())); if (ws) out[cat] = c.leer(ws, op) }
   const dims = leerDimensiones(wb)
   if (out.cauchos && dims.size) {
     out.cauchos.items = conDimensiones(out.cauchos.items, dims)
     const sin = [...new Set(out.cauchos.items.filter(i => i.medida && !dims.has(claveMedida(i.medida))).map(i => i.medida))]
     if (sin.length) out.cauchos.omitidas.push(`Aviso (sí se cargaron): ${sin.length} medidas sin dimensiones en la hoja DIMENSIONES DE CAUCHOS: ${sin.join(', ')}`)
   }
-  const sinCodigo = Object.values(out).reduce((n, r) => n + r.omitidas.filter(o => /sin código CM ni MC/.test(o)).length, 0)
-  if (!Object.values(out).some(r => r.items.length) && sinCodigo) throw new Error(`Ninguna fila tiene código: ${sinCodigo} productos se quedaron fuera porque les falta el CODIGO CM o el CODIGO MC. Llena esas columnas y vuelve a subir el archivo.`)
+  const sinCodigo = Object.values(out).reduce((n, r) => n + r.omitidas.filter(o => /sin código (CM ni MC|CCS)/.test(o)).length, 0)
+  if (!Object.values(out).some(r => r.items.length) && sinCodigo) throw new Error(`Ninguna fila tiene código: ${sinCodigo} productos se quedaron fuera porque les falta el ${op.tienda === 'caracas' ? 'CODIGO CCS' : 'CODIGO CM o el CODIGO MC'}. Llena esas columnas y vuelve a subir el archivo.`)
   if (!Object.values(out).some(r => r.items.length)) throw new Error('No se encontró ningún producto con precio. Sube la lista «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES.')
   return out
 }
 // Lo que se compara de cada producto al volver a cargar un Excel (por código): todo lo que la carga reemplaza, incluido lo que el administrador
 // pudo poner a mano en el panel (existencia de Caracas, etiqueta, especificaciones…)
-const valoresComparables = (cat, i) => ({
+// En un archivo de Caracas solo cambian los datos propios de Caracas (el resto del producto sigue siendo el de Maracay)
+const valoresCaracas = i => ({ 'Código CCS': i.codigo_ccs, 'Precio en Caracas': precioTxt(i), 'Precio en Caracas pagando en bolívares (equivale a)': i.usd_bs > 0 ? 'REF ' + i.usd_bs : '', 'Existencia Caracas': i.stock?.caracas })
+const valoresComparables = (cat, i, tienda = 'maracay') => tienda === 'caracas' ? valoresCaracas(i) : ({
   Marca: i.marca, Modelo: i.modelo, Tipo: i.tipo, Lonas: i.lonas, Medida: i.medida, Rin: i.rin, Descripción: i.descripcion, Grupo: i.grupo, Amperaje: i.amp, 'Garantía (meses)': i.garantia,
   Presentación: i.presentacion, Para: i.para, Colores: i.colores, 'Código CM': i.codigo_cm, 'Código MC': i.codigo_mc,
   ...(CATS[cat].sinProductos ? { 'Grupos por marca de batería': Object.entries(i.grupos || {}).map(([k, g]) => `${k}: ${g}`).join(' · ') }
-    : { Precio: precioTxt(i), 'Precio pagando en bolívares (equivale a)': i.usd_bs > 0 ? 'REF ' + i.usd_bs : '', 'Existencia CM': i.stock?.tienda_1, 'Existencia MC': i.stock?.tienda_2, 'Existencia Caracas': i.stock?.caracas }),
+    : { Precio: precioTxt(i), 'Precio pagando en bolívares (equivale a)': i.usd_bs > 0 ? 'REF ' + i.usd_bs : '', 'Existencia CM': i.stock?.tienda_1, 'Existencia MC': i.stock?.tienda_2 }),
   Especificaciones: especTxt(i), Servicios: (i.servicios || []).join(' · '), 'Etiqueta (texto manual)': i.etiqueta, 'Chatarra': i.chatarra ? `REF ${i.chatarra.usd} / ${i.chatarra.bs} Bs` : '',
 })
 // Para cada producto que ya estaba publicado y sigue en el archivo: qué campos cambian y si el administrador lo había editado a mano en el panel
-function cambiosDe(cat, antes, despues) {
+function cambiosDe(cat, antes, despues, tienda = 'maracay') {
   const a = new Map(antes.map(i => [i.sku, i])), salida = new Map()
   for (const i of despues) {
     const x = a.get(i.sku); if (!x) continue
-    const va = valoresComparables(cat, x), vd = valoresComparables(cat, i), vacio = v => (v === undefined || v === null || v === '' ? '(vacío)' : String(v))
+    const va = valoresComparables(cat, x, tienda), vd = valoresComparables(cat, i, tienda), vacio = v => (v === undefined || v === null || v === '' ? '(vacío)' : String(v))
     const cambios = Object.keys(vd).filter(k => vacio(va[k]) !== vacio(vd[k])).map(k => `${k}: ${vacio(va[k])} → ${vacio(vd[k])}`)
     salida.set(i.sku, { nombre: CATS[cat].nombre(i), codigo: i.codigo_cm || i.codigo_mc || i.sku, cambios, aMano: Boolean(x.modificado_panel) && cambios.length > 0, fecha: x.modificado_panel })
   }
@@ -540,6 +544,58 @@ function comparar(cat, antes, despues, diff = cambiosDe(cat, antes, despues)) {
     cambiados: conCambios.map(x => ({ nombre: x.nombre, codigo: x.codigo, cambios: x.cambios, a_mano: x.aMano, fecha: x.fecha })),
     a_mano: conCambios.filter(x => x.aMano).length,
   }
+}
+
+// ---------- precios y existencias de Caracas ----------
+// Un producto puede tener precio propio en Caracas (usd_c y usd_bs_c), su existencia (stock.caracas) y su código CCS. El archivo de Caracas se une con
+// lo ya publicado por ese código o, si no hay, por los datos del producto; los productos que solo se venden en Caracas llevan solo: 'caracas'.
+const CLAVE_NATURAL = {
+  cauchos: i => [i.medida, i.marca, i.modelo, i.tipo], baterias: i => [i.marca, i.grupo, i.amp], aceites: i => [i.tipo, i.presentacion, i.marca],
+  bicicletas: i => [i.rin, i.modelo], otros: i => [i.marca, i.descripcion],
+}
+const claveNat = (cat, i) => (CLAVE_NATURAL[cat] ? CLAVE_NATURAL[cat](i).map(x => norm(x ?? '')).join('|') : null)
+const tieneCaracas = i => Boolean(i.codigo_ccs || i.usd_c > 0 || i.stock?.caracas != null || i.solo === 'caracas')
+const sinCaracas = i => { const { usd_c, usd_bs_c, codigo_ccs, ...x } = i; const { caracas, ...stock } = i.stock || {}; return { ...x, stock } }
+const vistaCaracas = i => ({ ...i, usd: i.usd_c || 0, usd_bs: i.usd_bs_c || 0, stock: { tienda_1: 0, tienda_2: 0, caracas: i.stock?.caracas } })
+function emparejarCaracas(cat, actual, nuevos) {
+  const porCcs = new Map(actual.filter(i => i.codigo_ccs).map(i => [i.codigo_ccs, i])), porNat = new Map(), usados = new Set(), pares = []
+  for (const i of actual) { const k = claveNat(cat, i); if (k && !porNat.has(k)) porNat.set(k, i) }
+  for (const n of nuevos) {
+    let e = (n.codigo_ccs && porCcs.get(n.codigo_ccs)) || porNat.get(claveNat(cat, n)) || null
+    if (e && usados.has(e.sku)) e = null
+    if (e) usados.add(e.sku)
+    pares.push({ nuevo: n, existente: e })
+  }
+  return { pares, sinPar: actual.filter(i => !usados.has(i.sku) && tieneCaracas(i)) }
+}
+function fusionarCaracas(cat, actual, nuevos) {
+  const manuales = actual.filter(i => i.sku.startsWith('MAN-')), base = actual.filter(i => !i.sku.startsWith('MAN-'))
+  const { pares, sinPar } = emparejarCaracas(cat, base, nuevos), unidos = new Map(), creados = [], sueltos = new Set(sinPar.map(i => i.sku))
+  for (const { nuevo: n, existente: e } of pares) {
+    if (e) {
+      const x = { ...e, stock: { ...e.stock, caracas: n.stock.caracas } }
+      if (n.usd > 0) { x.usd_c = n.usd; x.usd_bs_c = n.usd_bs } else { delete x.usd_c; delete x.usd_bs_c }
+      if (n.codigo_ccs) x.codigo_ccs = n.codigo_ccs
+      unidos.set(e.sku, x)
+    } else {
+      const { usd, usd_bs, stock, sku, ...resto } = n
+      creados.push({ sku, ...resto, usd: 0, usd_bs: 0, ...(usd > 0 && { usd_c: usd, usd_bs_c: usd_bs }), stock: { tienda_1: 0, tienda_2: 0, caracas: stock.caracas }, solo: 'caracas' })
+    }
+  }
+  const lista = []
+  for (const i of base) {
+    if (unidos.has(i.sku)) lista.push(unidos.get(i.sku))
+    else if (sueltos.has(i.sku)) { if (i.solo !== 'caracas') lista.push(sinCaracas(i)) }          // ya no está en el archivo de Caracas: pierde lo de Caracas (si solo existía allí, desaparece)
+    else lista.push(i)
+  }
+  return [...lista, ...creados, ...manuales]
+}
+// Publica el archivo de Caracas: pone precio y existencia de Caracas sin tocar Maracay. También la usa scripts/cargar_excel.mjs --tienda=caracas.
+export function aplicarListaCaracas(porCategoria) {
+  const totales = {}
+  for (const [c, nuevos] of Object.entries(porCategoria)) { const actual = leer(c); respaldar(c); guardar(c, fusionarCaracas(c, actual, nuevos)); totales[c] = nuevos.length }
+  console.log('Lista de Caracas publicada:', JSON.stringify(totales))
+  return totales
 }
 
 // ---------- acceso ----------
@@ -563,10 +619,13 @@ function validar(cat, b, previo = {}) {
   const stock = { tienda_1: entero(b.cm), tienda_2: entero(b.mc) }
   if (b.cc !== '' && b.cc != null) stock.caracas = entero(b.cc)               // vacío = todavía sin dato de Caracas
   const item = { ...previo, marca, ...propios, usd, usd_bs, stock }
+  const usdc = b.usd_c === '' || b.usd_c == null ? 0 : Number(b.usd_c)                  // precio propio de Caracas (vacío o 0 = sin precio en Caracas)
+  if (!(usdc >= 0)) throw new Error('Escribe el precio de Caracas en dólares (vacío si todavía no tiene).')
+  if (usdc > 0) { item.usd_c = usdc; item.usd_bs_c = Number(b.usd_bs_c) > 0 ? Number(b.usd_bs_c) : Math.ceil(usdc * 1.05 - 1e-6) } else { delete item.usd_c; delete item.usd_bs_c }
   item.etiqueta = String(b.etiqueta ?? '').trim().slice(0, 60)
   return item
 }
-const vista = (cat, i) => CATS[cat].vistaCompleta?.(i) ?? ({ sku: i.sku, marca: i.marca, ...(conCodigo(i) && { codigo_cm: i.codigo_cm ?? '', codigo_mc: i.codigo_mc ?? '' }), usd: i.usd, usd_bs: i.usd_bs, cm: i.stock.tienda_1, mc: i.stock.tienda_2, cc: i.stock.caracas ?? '', etiqueta: extra(i), imagen: i.imagen || null, manual: i.sku.startsWith('MAN-'), ...CATS[cat].vista(i) })
+const vista = (cat, i) => CATS[cat].vistaCompleta?.(i) ?? ({ sku: i.sku, marca: i.marca, ...(conCodigo(i) && { codigo_cm: i.codigo_cm ?? '', codigo_mc: i.codigo_mc ?? '', ...(i.codigo_ccs && { codigo_ccs: i.codigo_ccs }) }), usd: i.usd, usd_bs: i.usd_bs, usd_c: i.usd_c ?? '', usd_bs_c: i.usd_bs_c ?? '', ...(i.solo && { solo: i.solo }), cm: i.stock.tienda_1, mc: i.stock.tienda_2, cc: i.stock.caracas ?? '', etiqueta: extra(i), imagen: i.imagen || null, manual: i.sku.startsWith('MAN-'), ...CATS[cat].vista(i) })
 
 const TIPOS = [[[0xff, 0xd8, 0xff], 'jpg'], [[0x89, 0x50, 0x4e, 0x47], 'png'], [[0x52, 0x49, 0x46, 0x46], 'webp']]
 const extension = b => TIPOS.find(([m]) => m.every((x, i) => b[i] === x))?.[1]
@@ -580,9 +639,16 @@ export function aplicarLista(porCategoria) {
     const actual = leer(c)
     const imagenes = new Map(actual.filter(i => i.imagen).map(i => [i.sku, i.imagen]))
     const manuales = actual.filter(i => i.sku.startsWith('MAN-'))                // los productos creados a mano no los toca el Excel
+    const conC = new Map(actual.filter(i => !i.sku.startsWith('MAN-') && tieneCaracas(i)).map(i => [i.sku, i])), skus = new Set(nuevos.map(i => i.sku))
+    const unir = i => {                                                          // el archivo de Maracay no trae Caracas: se conservan su precio, su existencia y su código CCS
+      const x = imagenes.has(i.sku) ? { ...i, imagen: imagenes.get(i.sku) } : i, e = conC.get(i.sku)
+      return e ? { ...x, ...(e.usd_c > 0 && { usd_c: e.usd_c, usd_bs_c: e.usd_bs_c }), ...(e.codigo_ccs && { codigo_ccs: e.codigo_ccs }), stock: { ...x.stock, ...(e.stock?.caracas != null && { caracas: e.stock.caracas }) } } : x
+    }
+    const soloC = actual.filter(i => !i.sku.startsWith('MAN-') && !skus.has(i.sku) && tieneCaracas(i))     // ya no están en Maracay pero sí en Caracas: quedan como productos de Caracas
+      .map(i => (i.solo === 'caracas' ? i : (({ codigo_cm, codigo_mc, ...r }) => ({ ...r, solo: 'caracas', usd: 0, usd_bs: 0, stock: { tienda_1: 0, tienda_2: 0, caracas: i.stock?.caracas } }))(i)))
     respaldar(c)
-    guardar(c, [...nuevos.map(i => (imagenes.has(i.sku) ? { ...i, imagen: imagenes.get(i.sku) } : i)), ...manuales])
-    totales[c] = nuevos.length + manuales.length
+    guardar(c, [...nuevos.map(unir), ...soloC, ...manuales])
+    totales[c] = nuevos.length + soloC.length + manuales.length
   }
   fs.mkdirSync(carpetaImg, { recursive: true })
   for (const f of fs.readdirSync(carpetaImg)) borrarSiSobra(f)
@@ -604,23 +670,23 @@ export async function cargarDimensiones(buffer) {
 // Archivo que se está revisando en «Cargar Excel»: lo leído y las filas omitidas por categoría. previa = solo vista previa (sin códigos): no se puede publicar.
 let revision = null
 const precioTxt = i => (i.usd > 0 ? 'REF ' + i.usd : 'por consultar')
-const existencia = st => `CM ${st?.tienda_1 === SIN_CANTIDAD ? 'hay' : st?.tienda_1 ?? 0} · MC ${st?.tienda_2 === SIN_CANTIDAD ? 'hay' : st?.tienda_2 ?? 0}`
-const codigoDe = i => i.codigo_cm || i.codigo_mc || '—'
+const existencia = (st, tienda) => (tienda === 'caracas' ? `Caracas ${st?.caracas === SIN_CANTIDAD ? 'hay' : st?.caracas ?? 0}` : `CM ${st?.tienda_1 === SIN_CANTIDAD ? 'hay' : st?.tienda_1 ?? 0} · MC ${st?.tienda_2 === SIN_CANTIDAD ? 'hay' : st?.tienda_2 ?? 0}`)
+const codigoDe = i => i.codigo_cm || i.codigo_mc || i.codigo_ccs || '—'
 const especTxt = i => (i.espec || []).map(x => `${x.k}: ${x.v}`).join(' · ')
 // Columnas de la tabla de revisión de cada categoría
 const TABLA_REVISION = {
   cauchos: { cab: ['Código', 'Medida', 'Marca', 'Modelo', 'Tipo', 'Precio', 'Existencia', 'Especificaciones', 'Servicios'],
-    fila: i => [codigoDe(i), i.medida, i.marca, i.modelo || '', [i.tipo, i.lonas && i.lonas + ' lonas'].filter(Boolean).join(' '), precioTxt(i), existencia(i.stock), especTxt(i), (i.servicios || []).join(' · ')] },
+    fila: (i, tienda) => [codigoDe(i), i.medida, i.marca, i.modelo || '', [i.tipo, i.lonas && i.lonas + ' lonas'].filter(Boolean).join(' '), precioTxt(i), existencia(i.stock, tienda), especTxt(i), (i.servicios || []).join(' · ')] },
   baterias: { cab: ['Código', 'Marca', 'Grupo', 'Descripción', 'Precio', 'Existencia', 'Garantía', 'Especificaciones'],
-    fila: i => [codigoDe(i), i.marca, i.grupo, i.descripcion, precioTxt(i), existencia(i.stock), i.garantia ? i.garantia + ' meses' : '', especTxt(i)] },
-  aceites: { cab: ['Código', 'Tipo', 'Presentación', 'Marca', 'Precio', 'Existencia'], fila: i => [codigoDe(i), i.tipo, i.presentacion, i.marca, precioTxt(i), existencia(i.stock)] },
-  bicicletas: { cab: ['Código', 'Rin', 'Modelo', 'Para', 'Precio', 'Existencia'], fila: i => [codigoDe(i), i.rin, i.modelo, i.para || '', precioTxt(i), existencia(i.stock)] },
-  otros: { cab: ['Código', 'Artículo', 'Descripción', 'Precio', 'Existencia'], fila: i => [codigoDe(i), i.marca, i.descripcion, precioTxt(i), existencia(i.stock)] },
+    fila: (i, tienda) => [codigoDe(i), i.marca, i.grupo, i.descripcion, precioTxt(i), existencia(i.stock, tienda), i.garantia ? i.garantia + ' meses' : '', especTxt(i)] },
+  aceites: { cab: ['Código', 'Tipo', 'Presentación', 'Marca', 'Precio', 'Existencia'], fila: (i, tienda) => [codigoDe(i), i.tipo, i.presentacion, i.marca, precioTxt(i), existencia(i.stock, tienda)] },
+  bicicletas: { cab: ['Código', 'Rin', 'Modelo', 'Para', 'Precio', 'Existencia'], fila: (i, tienda) => [codigoDe(i), i.rin, i.modelo, i.para || '', precioTxt(i), existencia(i.stock, tienda)] },
+  otros: { cab: ['Código', 'Artículo', 'Descripción', 'Precio', 'Existencia'], fila: (i, tienda) => [codigoDe(i), i.marca, i.descripcion, precioTxt(i), existencia(i.stock, tienda)] },
   compatibilidad: { cab: ['Vehículo', 'Años', 'Grupos', 'Por marca de batería'],
-    fila: i => [`${i.marca} ${i.modelo}`, `${i.desde || 'todos'}${i.hasta && i.hasta !== 9999 ? '–' + i.hasta : i.desde ? ' en adelante' : ''}`, i.grupo, Object.entries(i.grupos || {}).map(([k, g]) => `${k}: ${g}`).join(' · ')] },
+    fila: (i, tienda) => [`${i.marca} ${i.modelo}`, `${i.desde || 'todos'}${i.hasta && i.hasta !== 9999 ? '–' + i.hasta : i.desde ? ' en adelante' : ''}`, i.grupo, Object.entries(i.grupos || {}).map(([k, g]) => `${k}: ${g}`).join(' · ')] },
 }
 const FILTROS_REVISION = {
-  sin_precio: i => !(i.usd > 0), sin_espec: i => !i.espec?.length, sin_codigo: i => !i.codigo_cm && !i.codigo_mc,
+  sin_precio: i => !(i.usd > 0), sin_espec: i => !i.espec?.length, sin_codigo: i => !i.codigo_cm && !i.codigo_mc && !i.codigo_ccs,
   cambiados: (i, d) => Boolean(d.get(i.sku)?.cambios.length), a_mano: (i, d) => Boolean(d.get(i.sku)?.aMano),
 }
 const pagina = fs.readFileSync(new URL('./admin.html', import.meta.url), 'utf8')
@@ -695,6 +761,7 @@ export function montarLista(app) {
         sin_precio: items.filter(i => !(i.usd > 0)).length,
         agotados: items.filter(i => (i.stock?.tienda_1 ?? 0) + (i.stock?.tienda_2 ?? 0) + (i.stock?.caracas ?? 0) <= 0).length,
         sin_caracas: items.filter(i => i.stock?.caracas == null).length,
+        sin_precio_caracas: items.filter(i => !(i.usd_c > 0)).length,
       }
     }
     let actualizado = null; try { actualizado = JSON.parse(fs.readFileSync(path.join(dir, 'catalogo.json'), 'utf8')).actualizado } catch {}
@@ -705,15 +772,24 @@ export function montarLista(app) {
   // ?sincodigo=1: solo vista previa de un archivo que todavía no trae los códigos CM/MC. No guarda nada, así que no se puede publicar.
   api.post('/excel/revisar', express.raw({ type: () => true, limit: '15mb' }), async (req, res) => {
     try {
-      const prev = req.query.sincodigo === '1'
-      const leido = await leerExcel(req.body, { sinCodigo: prev })
-      const diff = Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, cambiosDe(c, leer(c).filter(i => !i.sku.startsWith('MAN-')), r.items)]))
-      revision = { items: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items])), omitidas: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.omitidas])), diff, previa: prev }
+      const prev = req.query.sincodigo === '1', tienda = req.query.tienda === 'caracas' ? 'caracas' : 'maracay'     // ?tienda=caracas: archivo de CM Caracas
+      const leido = await leerExcel(req.body, { sinCodigo: prev, tienda })
+      const comp = {}
+      for (const [c, r] of Object.entries(leido)) {                              // qué cambia respecto a lo publicado, según la tienda del archivo
+        const actual = leer(c).filter(i => !i.sku.startsWith('MAN-') && (tienda === 'caracas' || i.solo !== 'caracas'))
+        if (tienda === 'caracas') {
+          const { pares, sinPar } = emparejarCaracas(c, actual, r.items)
+          const antes = pares.filter(p => p.existente).map(p => ({ ...vistaCaracas(p.existente), sku: p.nuevo.sku })), diff = cambiosDe(c, antes, r.items, 'caracas')
+          comp[c] = { diff, antes: actual.filter(tieneCaracas).length, cmp: { ...comparar(c, antes, r.items, diff), quitados: sinPar.map(CATS[c].nombre) } }
+        } else { const diff = cambiosDe(c, actual, r.items); comp[c] = { diff, antes: actual.length, cmp: comparar(c, actual, r.items, diff) } }
+      }
+      const diff = Object.fromEntries(Object.entries(comp).map(([c, x]) => [c, x.diff]))
+      revision = { tienda, items: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items])), omitidas: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.omitidas])), diff, previa: prev }
       res.json(Object.fromEntries(Object.entries(leido).map(([c, r]) => {
-        const actual = leer(c).filter(i => !i.sku.startsWith('MAN-'))
+        const actual = { length: comp[c].antes }
         const precio = i => (CATS[c].sinProductos ? i.grupo : i.usd > 0 ? 'REF ' + i.usd : 'precio por consultar')
-        return [c, { total: r.items.length, antes: actual.length, omitidas: r.omitidas, vista_previa: prev, sin_precio: CATS[c].sinProductos ? 0 : r.items.filter(i => !(i.usd > 0)).length,
-          con_espec: r.items.filter(i => i.espec?.length).length, muestra: r.items.slice(0, 8).map(i => `${CATS[c].nombre(i)} · ${precio(i)}${i.espec?.length ? ' · ' + i.espec.map(x => x.k + ' ' + x.v).join(', ') : ''}`), ...comparar(c, actual, r.items, diff[c]) }]
+        return [c, { total: r.items.length, antes: actual.length, omitidas: r.omitidas, vista_previa: prev, tienda, sin_precio: CATS[c].sinProductos ? 0 : r.items.filter(i => !(i.usd > 0)).length,
+          con_espec: r.items.filter(i => i.espec?.length).length, muestra: r.items.slice(0, 8).map(i => `${CATS[c].nombre(i)} · ${precio(i)}${i.espec?.length ? ' · ' + i.espec.map(x => x.k + ' ' + x.v).join(', ') : ''}`), ...comp[c].cmp }]
       })))
     } catch (e) { res.status(400).json({ error: e.message }) }
   })
@@ -724,7 +800,7 @@ export function montarLista(app) {
     const { q = '', filtro = 'todas' } = req.query, pagina = Math.max(1, Number(req.query.pagina) || 1), POR = 50
     if (filtro === 'omitidas') return res.json({ cab: ['Fila omitida'], filas: revision.omitidas[c].map(x => [x]), total: revision.omitidas[c].length, filtradas: revision.omitidas[c].length, pagina: 1, paginas: 1 })
     const f = FILTROS_REVISION[filtro], buscar = String(q).toLowerCase().trim(), diff = revision.diff?.[c] || new Map(), hayCambios = [...diff.values()].some(x => x.cambios.length)
-    const fila = i => (hayCambios ? [...t.fila(i), (diff.get(i.sku)?.cambios || []).join(' · ')] : t.fila(i))        // la última columna dice qué cambia respecto a lo publicado
+    const fila = i => (hayCambios ? [...t.fila(i, revision.tienda), (diff.get(i.sku)?.cambios || []).join(' · ')] : t.fila(i, revision.tienda))        // la última columna dice qué cambia respecto a lo publicado
     const filas = revision.items[c].filter(i => (!f || f(i, diff)) && (!buscar || fila(i).join(' ').toLowerCase().includes(buscar)))
     res.json({ cab: hayCambios ? [...t.cab, 'Qué cambia'] : t.cab, filas: filas.slice((pagina - 1) * POR, pagina * POR).map(fila), total: revision.items[c].length, filtradas: filas.length, pagina, paginas: Math.max(1, Math.ceil(filas.length / POR)) })
   })
@@ -735,8 +811,8 @@ export function montarLista(app) {
     const pedidas = Array.isArray(req.body?.categorias) ? req.body.categorias : Object.keys(revision.items)
     if (!pedidas.length || pedidas.some(c => !revision.items[c])) return res.status(400).json({ error: 'Elige categorías que estén en el archivo revisado.' })
     const vacias = pedidas.filter(c => !revision.items[c].length)                   // nunca se publica una lista vacía: vaciaría lo que hay publicado
-    if (vacias.length) return res.status(400).json({ error: `No se publica ${vacias.join(', ')}: ninguna fila del archivo se puede publicar (revisa «Filas que no se publican»; casi siempre falta el CODIGO CM o CODIGO MC). Así no se vacía la lista actual.` })
-    const totales = aplicarLista(Object.fromEntries(pedidas.map(c => [c, revision.items[c]])))
+    if (vacias.length) return res.status(400).json({ error: `No se publica ${vacias.join(', ')}: ninguna fila del archivo se puede publicar (revisa «Filas que no se publican»; casi siempre falta el código). Así no se vacía la lista actual.` })
+    const totales = (revision.tienda === 'caracas' ? aplicarListaCaracas : aplicarLista)(Object.fromEntries(pedidas.map(c => [c, revision.items[c]])))
     for (const c of pedidas) { delete revision.items[c]; delete revision.omitidas[c] }
     const restantes = Object.keys(revision.items); if (!restantes.length) revision = null
     res.json({ ok: true, totales, restantes })
@@ -774,6 +850,14 @@ export function montarLista(app) {
         const bs = b.usd_bs === '' || b.usd_bs == null ? NaN : Number(b.usd_bs)
         if (!(bs >= 0)) throw new Error('Escribe el equivalente en dólares si paga en bolívares.')
         it.usd_bs = bs
+      }
+      if ('usd_c' in b) {                                                      // precio propio de Caracas
+        if (b.usd_c === '' || b.usd_c == null || Number(b.usd_c) === 0) { delete it.usd_c; delete it.usd_bs_c }
+        else { const u = Number(b.usd_c); if (!(u > 0)) throw new Error('Escribe el precio de Caracas en dólares (vacío si todavía no tiene).'); it.usd_c = u; it.usd_bs_c = Number(b.usd_bs_c) > 0 ? Number(b.usd_bs_c) : Math.ceil(u * 1.05 - 1e-6) }
+      } else if ('usd_bs_c' in b) {
+        if (!(it.usd_c > 0)) throw new Error('Primero escribe el precio de Caracas.')
+        const bs = b.usd_bs_c === '' || b.usd_bs_c == null ? NaN : Number(b.usd_bs_c); if (!(bs >= 0)) throw new Error('Escribe el equivalente de Caracas en dólares si paga en bolívares.')
+        it.usd_bs_c = bs
       }
       for (const [campo, tienda] of [['cm', 'tienda_1'], ['mc', 'tienda_2']]) if (campo in b) it.stock[tienda] = entero(b[campo])
       if ('cc' in b) { if (b.cc === '' || b.cc == null) delete it.stock.caracas; else it.stock.caracas = entero(b.cc) }
