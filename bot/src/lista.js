@@ -93,6 +93,26 @@ const ESPEC_CAUCHO = [['COSTEDEMONTURA', 'Costo de montura'], ['GARANTIA', 'Gara
 const ESPEC_BATERIA = [['ANCHO', 'Ancho'], ['LARGO', 'Largo'], ['ALTO', 'Alto'], ['VOLTAJE', 'Voltaje'], ['AMPERIOSDEARRANQUECA', 'Amperios de arranque (CA)'],
   ['ARRANQUEENFRIOCCA', 'Arranque en frío (CCA)'], ['AMPERIOSPORHORAAH', 'Amperios por hora (AH)'], ['CAPACIDADDERESERVACR', 'Capacidad de reserva (CR)']]
 
+// Hoja «DIMENSIONES DE CAUCHOS»: MEDIDA | ANCHO | ALTO | DIAMETRO. Se suman a las especificaciones del caucho de esa medida (al principio de la lista).
+const DIMENSIONES = [['ANCHO', 'Ancho'], ['ALTO', 'Alto'], ['DIAMETRO', 'Diámetro']]
+const claveMedida = m => String(m ?? '').toUpperCase().replace(/R/g, '/').replace(/[^0-9./]/g, '')            // «265/50R20» y «265/50/20» son la misma medida
+function leerDimensiones(wb) {
+  const ws = wb.worksheets.find(w => /dimension/i.test(w.name)), dims = new Map()
+  if (!ws) return dims
+  const h = cabecera(ws)
+  ws.eachRow((row, n) => {
+    if (n === 1 || !h.MEDIDA) return
+    const v = k => (h[k] ? celda(row.getCell(h[k]).value) : null), clave = claveMedida(v('MEDIDA'))
+    const espec = especDe(v, DIMENSIONES)
+    if (clave && espec.length) dims.set(clave, espec)
+  })
+  return dims
+}
+const NOMBRES_DIMENSION = new Set(DIMENSIONES.map(([, n]) => n))
+export const conDimensiones = (items, dims) => items.map(i => {
+  const d = dims.get(claveMedida(i.medida))
+  return d ? { ...i, espec: [...d, ...(i.espec || []).filter(e => !NOMBRES_DIMENSION.has(e.k))] } : i
+})
 const armarCaucho = v => {
   const med = txt(v('MEDIDA')), marca = txt(v('MARCA')), [medida, rin] = med ? medidaYRin(med) : ['', null]
   const lonas = Number((txt(v('LONAS')).match(/\d+/) || [])[0]), espec = especDe(v, ESPEC_CAUCHO), servicios = serviciosDeCelda(v('SERVICIOS'))
@@ -457,6 +477,12 @@ export async function leerExcel(buffer, op = {}) {
   try { await wb.xlsx.load(buffer) } catch { throw new Error('No se pudo leer el archivo. Debe ser un Excel .xlsx.') }
   const out = {}
   for (const [cat, c] of Object.entries(CATS)) { const ws = wb.getWorksheet(c.hoja) || wb.worksheets.find(w => HOJAS[cat]?.test(w.name.trim())); if (ws) out[cat] = c.leer(ws, op) }
+  const dims = leerDimensiones(wb)
+  if (out.cauchos && dims.size) {
+    out.cauchos.items = conDimensiones(out.cauchos.items, dims)
+    const sin = [...new Set(out.cauchos.items.filter(i => i.medida && !dims.has(claveMedida(i.medida))).map(i => i.medida))]
+    if (sin.length) out.cauchos.omitidas.push(`Aviso (sí se cargaron): ${sin.length} medidas sin dimensiones en la hoja DIMENSIONES DE CAUCHOS: ${sin.join(', ')}`)
+  }
   const sinCodigo = Object.values(out).reduce((n, r) => n + r.omitidas.filter(o => /sin código CM ni MC/.test(o)).length, 0)
   if (!Object.values(out).some(r => r.items.length) && sinCodigo) throw new Error(`Ninguna fila tiene código: ${sinCodigo} productos se quedaron fuera porque les falta el CODIGO CM o el CODIGO MC. Llena esas columnas y vuelve a subir el archivo.`)
   if (!Object.values(out).some(r => r.items.length)) throw new Error('No se encontró ningún producto con precio. Sube la lista «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES.')
@@ -518,6 +544,17 @@ export function aplicarLista(porCategoria) {
   for (const f of fs.readdirSync(carpetaImg)) borrarSiSobra(f)
   console.log('Lista publicada:', JSON.stringify(totales))
   return totales
+}
+
+// Pone las dimensiones de la hoja DIMENSIONES DE CAUCHOS en los cauchos ya publicados, sin tocar precios, existencias ni fotos
+export async function cargarDimensiones(buffer) {
+  const wb = new ExcelJS.Workbook()
+  try { await wb.xlsx.load(buffer) } catch { throw new Error('No se pudo leer el archivo. Debe ser un Excel .xlsx.') }
+  const dims = leerDimensiones(wb)
+  if (!dims.size) throw new Error('No se encontró la hoja DIMENSIONES DE CAUCHOS con las columnas MEDIDA, ANCHO, ALTO y DIAMETRO.')
+  const items = leer('cauchos'), nuevos = conDimensiones(items, dims)
+  respaldar('cauchos'); guardar('cauchos', nuevos)
+  return { cauchos: items.length, con_dimensiones: nuevos.filter((i, n) => i !== items[n]).length }
 }
 
 let pendiente = null
