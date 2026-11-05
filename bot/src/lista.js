@@ -9,6 +9,7 @@ import ExcelJS from 'exceljs'
 import { usoPorDia, usoPorConversacion } from './uso.js'
 import { estadoPresupuesto, LIMITE_HORA, LIMITE_DIA } from './limites.js'
 import { visible, conCodigo } from './store.js'
+import { tasaPara } from './tasa.js'
 
 const dir = path.resolve('data')
 const carpetaImg = path.join(dir, 'imagenes')
@@ -609,6 +610,12 @@ export function montarLista(app) {
   app.use('/img', (_req, res, next) => { res.set({ 'Access-Control-Allow-Origin': '*', 'Cross-Origin-Resource-Policy': 'cross-origin' }); next() },
     express.static(carpetaImg, { maxAge: '30d', immutable: true, index: false }))
 
+  // Tasas del BCV ya validadas (la web las usa para los precios en bolívares); sin tasa fiable no se muestran
+  app.get('/tasas', async (_req, res) => {
+    const [euro, dolar] = await Promise.all([tasaPara('EUR'), tasaPara('USD')])
+    const ok = t => (t.rate > 0 && t.fuente !== 'respaldo' ? { rate: t.rate, fecha: t.fecha } : null)
+    res.set({ 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=300' }).json({ euro: ok(euro), dolar: ok(dolar) })
+  })
   app.get('/lista', (_req, res) => res.redirect('/admin'))
   app.get('/admin', autenticar, (_req, res) => res.type('html').send(pagina))
   app.get('/admin/uso', autenticar, (_req, res) => res.type('html').send(paginaUso))
