@@ -161,7 +161,7 @@ try {
   hoja('INVENTARIO CAUCHOS', [['CODIGO CM', 'CODIGO MC', 'MEDIDA', 'MARCA', 'MODELO', 'TIPO', 'LONAS', 'Precio', 'Bs', 'CM', 'MC', 'TOTAL INVENTARIO', 'COSTE DE MONTURA', 'SERVICIOS', 'GARANTIA', 'CONSTRUCCION', 'INDICE DE CARGA', 'INDICE DE CARGA DUAL', 'CODIGO DE VELOCIDAD', 'PRESION MAXIMA', 'TL/TT'],
     ['C1', '', '265/60R18', 'Habilead', 'RS21', 'AT', '10 Pr', 120, 126, 2, 0, 2, 10, 'Válvula nueva\nBalanceo', '1 año', 'Radial', 114, '', 'T', '51 psi', 'TL'],
     ['', '', '235/75R15', 'Sportrak', '', 'HT', '', 90, 95]])
-  hoja('DIMENSIONES DE CAUCHOS', [['MEDIDA', 'ANCHO', 'ALTO', 'DIAMETRO'], ['165/65/13', '16,5 cm', '54,5 cm', '33 cm']])
+  hoja('DIMENSIONES DE CAUCHOS', [['MEDIDA', 'ANCHO', 'ALTO', 'DIAMETRO'], ['165/65/13', '16,5 cm', '54,5 cm', '33 cm (13 in)'], ['265/60/18', '26,5 cm', '79,5 cm', '45,7 cm (18 in)']])
   hoja('INVENTARIO DE BATERIA', [['CODIGO CM', 'CODIGO MC', 'MARCA', 'MODELO', 'NOMENCLATURA', 'POSICION', 'AMP', 'PRECIO', 'BS', 'CM', 'MC', 'TOTAL INVENTARIO', 'SERVICIO', 'GARANTIA', 'CHATARRA DIVISA', 'CHATARRA BS', 'ANCHO', 'LARGO', 'ALTO', 'VOLTAJE'],
     ['B1', '', 'Fulgor Black', 24, 'BORNE', 'Derecha', 800, 100, 105, 3, 0, 3, 'Instalación gratis', 12, 10, 11, '24 cm', '17 cm', '19 cm', '12 V'],
     ['B2', '', 'Duncan', '4D', '', '', 1300, 140, 147, 1, 0, 1], ['B3', '', 'Velko Basank', 34, '', '', 700, 90, 95, 2, 0, 2]])
@@ -173,7 +173,8 @@ try {
   ok('lee las pestañas del inventario nuevo por su nombre (sin confundir DIMENSIONES con cauchos)', () => { assert.equal(nuevo.cauchos.items.length, 1); assert.equal(nuevo.baterias.items.length, 3); assert.equal(nuevo.aceites.items.length, 2); assert.equal(nuevo.bicicletas.items.length, 1) })
   ok('un caucho sin código no se publica y se avisa', () => assert.ok(nuevo.cauchos.omitidas.some(o => /235\/75R15 Sportrak \(sin código/.test(o))))
   const c1 = nuevo.cauchos.items[0]
-  ok('cauchos: columnas nuevas como especificaciones y servicios del producto', () => { assert.equal(c1.modelo, 'RS21'); assert.equal(c1.lonas, 10); assert.deepEqual(c1.servicios, ['Válvula nueva', 'Balanceo']); assert.deepEqual(c1.espec.map(x => x.k), ['Costo de montura', 'Garantía', 'Construcción', 'Índice de carga', 'Código de velocidad', 'Presión máxima', 'TL/TT']) })
+  ok('cauchos: columnas nuevas como especificaciones y servicios del producto', () => { assert.equal(c1.modelo, 'RS21'); assert.equal(c1.lonas, 10); assert.deepEqual(c1.servicios, ['Válvula nueva', 'Balanceo']); assert.deepEqual(c1.espec.map(x => x.k), ['Ancho', 'Alto', 'Diámetro', 'Costo de montura', 'Garantía', 'Construcción', 'Índice de carga', 'Código de velocidad', 'Presión máxima', 'TL/TT']) })
+  ok('cauchos: las dimensiones de su medida van primero en las especificaciones (265/60R18 = 265/60/18)', () => { assert.deepEqual(c1.espec.slice(0, 3), [{ k: 'Ancho', v: '26,5 cm' }, { k: 'Alto', v: '79,5 cm' }, { k: 'Diámetro', v: '45,7 cm (18 in)' }]); assert.equal(c1.espec[3].k, 'Costo de montura') })
   const b1 = nuevo.baterias.items[0]
   ok('baterías: el grupo sale de la columna MODELO (24 y no 24.0), con garantía, chatarra y medidas', () => { assert.equal(b1.grupo, '24'); assert.equal(b1.amp, 800); assert.equal(b1.descripcion, '800 AMP / BORNE / Derecha'); assert.equal(b1.garantia, 12); assert.deepEqual(b1.chatarra, { usd: 10, bs: 11 }); assert.equal(b1.espec.find(x => x.k === 'Voltaje').v, '12 V'); assert.deepEqual(b1.servicios, ['Instalación gratis']) })
   ok('aceites: la presentación sale de COMBO; el código MC también sirve', () => { assert.equal(nuevo.aceites.items[0].presentacion, '4 Litros'); assert.equal(nuevo.aceites.items[1].sku, 'MC-A2'); assert.equal(nuevo.aceites.items[1].stock.tienda_2, 0) })
