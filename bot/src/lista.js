@@ -734,6 +734,8 @@ export function montarLista(app) {
     if (revision.previa) return res.status(400).json({ error: 'Esto es solo una vista previa: el archivo no tiene códigos y no se puede publicar.' })
     const pedidas = Array.isArray(req.body?.categorias) ? req.body.categorias : Object.keys(revision.items)
     if (!pedidas.length || pedidas.some(c => !revision.items[c])) return res.status(400).json({ error: 'Elige categorías que estén en el archivo revisado.' })
+    const vacias = pedidas.filter(c => !revision.items[c].length)                   // nunca se publica una lista vacía: vaciaría lo que hay publicado
+    if (vacias.length) return res.status(400).json({ error: `No se publica ${vacias.join(', ')}: ninguna fila del archivo se puede publicar (revisa «Filas que no se publican»; casi siempre falta el CODIGO CM o CODIGO MC). Así no se vacía la lista actual.` })
     const totales = aplicarLista(Object.fromEntries(pedidas.map(c => [c, revision.items[c]])))
     for (const c of pedidas) { delete revision.items[c]; delete revision.omitidas[c] }
     const restantes = Object.keys(revision.items); if (!restantes.length) revision = null
