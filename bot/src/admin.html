@@ -452,18 +452,21 @@ async function cargarTasas() {
       return `<div class="tfila" data-t="${k}"><div><b>${nombre}</b> · ${ciudad}<br><span class="muted">${fuente}${x.en_uso.fecha && !m ? ' · ' + esc(x.en_uso.fecha) : ''}</span></div>
         <div><span style="font-size:22px;font-weight:800">${x.en_uso.rate ? nBs(x.en_uso.rate) : 'sin tasa'}</span> <span class="muted">Bs</span><br><span class="muted">${x.api ? 'BCV (API): ' + nBs(x.api.rate) : 'La API del BCV no responde'}</span></div>
         <input type="text" inputmode="decimal" placeholder="Fijar ${nombre.toLowerCase()} de hoy" aria-label="Tasa del ${nombre.toLowerCase()}" data-v>
-        <div style="display:flex;gap:6px"><button data-fijar>Fijar hoy</button>${m ? '<button class="sec" data-quitar>Usar la del BCV</button>' : ''}</div></div>`
+        <div style="display:flex;gap:6px;flex-wrap:wrap"><button data-fijar>Fijar hoy</button><button class="sec" data-actualizar title="Vuelve a leer la tasa del BCV${m ? ' y quita la que fijaste' : ''}">↻ Actualizar del BCV</button></div></div>`
     }).join('')
   } catch (er) { $('#tasa-msg').className = 'err'; $('#tasa-msg').textContent = er.message }
 }
 $('#tasa-filas').onclick = async e => {
   const fila = e.target.closest('[data-t]'); if (!fila || !e.target.closest('button')) return
-  const k = fila.dataset.t, quitar = !!e.target.closest('[data-quitar]'), v = fila.querySelector('[data-v]').value.trim()
+  const k = fila.dataset.t, quitar = !!e.target.closest('[data-actualizar]'), v = fila.querySelector('[data-v]').value.trim()
   if (!quitar && !v) { $('#tasa-msg').className = 'err'; $('#tasa-msg').textContent = 'Escribe la tasa, por ejemplo 1006,03.'; return }
-  try { await api('PUT', '/tasas', { [k]: quitar ? null : v }); $('#tasa-msg').className = 'ok'; $('#tasa-msg').textContent = quitar ? 'Listo: se vuelve a usar la tasa del BCV.' : 'Listo: la nueva tasa ya la usa Nexo; la web la toma en menos de un minuto.' }
-  catch (er) { $('#tasa-msg').className = 'err'; $('#tasa-msg').textContent = er.message }
+  const boton = e.target.closest('button'), txt = boton.textContent; boton.disabled = true; boton.textContent = quitar ? 'Actualizando…' : 'Guardando…'
+  try { const t = await api('PUT', '/tasas', quitar ? { [k]: null, actualizar: true } : { [k]: v }); $('#tasa-msg').className = 'ok'; $('#tasa-msg').textContent = quitar ? `Listo: se usa la tasa del BCV (${nBs(t[k].en_uso.rate)} Bs).` : 'Listo: la nueva tasa ya la usa Nexo; la web la toma en menos de un minuto.' }
+  catch (er) { $('#tasa-msg').className = 'err'; $('#tasa-msg').textContent = er.message; boton.disabled = false; boton.textContent = txt }
   cargarTasas()
 }
+
+setInterval(() => { if (!document.hidden && $('#v-inicio').classList.contains('on')) cargarTasas() }, 60000)      // la tarjeta se refresca sola mientras está a la vista
 
 // ---------- Excel ----------
 const lista = (t, a) => a.length ? `<details><summary>${t} (${a.length})</summary><ul>${a.slice(0, 200).map(x => `<li>${esc(x)}</li>`).join('')}${a.length > 200 ? `<li class="muted">… y ${a.length - 200} más (están en «Ver todas las filas»)</li>` : ''}</ul></details>` : ''

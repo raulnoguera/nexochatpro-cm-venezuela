@@ -9,7 +9,7 @@ import ExcelJS from 'exceljs'
 import { usoPorDia, usoPorConversacion } from './uso.js'
 import { estadoPresupuesto, LIMITE_HORA, LIMITE_DIA } from './limites.js'
 import { visible, conCodigo } from './store.js'
-import { estadoTasas, fijarTasas, manualesVigentes } from './tasa.js'
+import { estadoTasas, fijarTasas, manualesVigentes, olvidarTasasApi, consultarTasaApi } from './tasa.js'
 
 const dir = path.resolve('data')
 const carpetaImg = path.join(dir, 'imagenes')
@@ -648,6 +648,15 @@ export function montarLista(app) {
   api.get('/tasas', async (_req, res) => res.json(await estadoTasas()))
   api.put('/tasas', express.json(), async (req, res) => {
     try {
+      if (req.body?.actualizar) {                                              // «Actualizar del BCV»: vuelve a consultar la API ahora; si no responde, avisa y no toca la tasa fijada
+        olvidarTasasApi()
+        for (const [k, moneda] of [['euro', 'EUR'], ['dolar', 'USD']]) {
+          if (req.body[k] === null && !(await consultarTasaApi(moneda))) {
+            const e = (await estadoTasas())[k].en_uso
+            throw new Error(`No se pudo leer la tasa del ${k === 'euro' ? 'euro' : 'dólar'} desde la API del BCV: no responde o dio un dato inválido. Se mantiene la tasa en uso (${e.rate ? e.rate.toLocaleString('es-VE', { maximumFractionDigits: 4 }) + ' Bs' : 'sin tasa'}, ${e.fuente}). Inténtalo de nuevo en unos minutos o fija la tasa a mano.`)
+          }
+        }
+      }
       const estado = await fijarTasas(req.body || {})
       const f = path.join(dir, 'catalogo.json')
       if (fs.existsSync(f)) { const c = JSON.parse(fs.readFileSync(f, 'utf8')); c.tasas = manualesVigentes(); escribir('catalogo.json', c) }   // la web lee la tasa fijada desde aquí
