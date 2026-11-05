@@ -152,7 +152,7 @@ details summary{cursor:pointer;font-weight:700}
 <section class="vista" id="v-excel">
   <div class="cab"><div><h1>Cargar lista de precios</h1><p class="sub">Sube «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES (y COMPATIBILIDAD si ya la tienes).</p></div></div>
   <div class="card" style="max-width:820px">
-    <p class="muted">Antes de publicar te mostramos qué cambia. Las fotos se conservan y los productos creados a mano no se tocan. Los cambios hechos aquí a un producto que viene del Excel se reemplazan con la próxima carga.</p>
+    <p class="muted">Antes de publicar te mostramos qué cambia en cada producto (por código): precio, existencias, especificaciones y demás. Las fotos se conservan y los productos creados a mano no se tocan. Los cambios hechos aquí a un producto que viene del Excel se reemplazan con la próxima carga: te avisamos cuáles son.</p>
     <p><input type="file" id="xf" accept=".xlsx"></p>
     <p><label style="display:flex;gap:8px;align-items:flex-start;font-weight:600"><input type="checkbox" id="xprev" style="margin-top:3px"> <span>Solo ver qué trae el archivo, aunque no tenga códigos CM/MC. <span class="muted" style="font-weight:400">No se carga nada: es solo una vista previa.</span></span></label></p>
     <p><button id="xrev" disabled>Revisar archivo</button></p><p id="xmsg"></p>
@@ -469,10 +469,11 @@ $('#tasa-filas').onclick = async e => {
 setInterval(() => { if (!document.hidden && $('#v-inicio').classList.contains('on')) cargarTasas() }, 60000)      // la tarjeta se refresca sola mientras está a la vista
 
 // ---------- Excel ----------
-const lista = (t, a) => a.length ? `<details><summary>${t} (${a.length})</summary><ul>${a.slice(0, 200).map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>` : ''
+const lista = (t, a) => a.length ? `<details><summary>${t} (${a.length})</summary><ul>${a.slice(0, 200).map(x => `<li>${esc(x)}</li>`).join('')}${a.length > 200 ? `<li class="muted">… y ${a.length - 200} más (están en «Ver todas las filas»)</li>` : ''}</ul></details>` : ''
+const fmtCambio = x => `${x.nombre} (${x.codigo}): ${x.cambios.join(' · ')}`
 $('#xf').onchange = () => { $('#xrev').disabled = !$('#xf').files[0]; $('#xres').hidden = true; $('#xmsg').textContent = '' }
 let REV = {}                                                   // por categoría: { r: resumen, conf: confirmada, f: { q, filtro, pagina } }
-const FILTROS_REV = [['todas', 'Todas las filas'], ['sin_precio', 'Sin precio'], ['sin_espec', 'Sin especificaciones'], ['sin_codigo', 'Sin código'], ['omitidas', 'Filas que no se publican']]
+const FILTROS_REV = [['todas', 'Todas las filas'], ['cambiados', 'Con cambios respecto a lo publicado'], ['a_mano', 'Editados a mano en el panel'], ['sin_precio', 'Sin precio'], ['sin_espec', 'Sin especificaciones'], ['sin_codigo', 'Sin código'], ['omitidas', 'Filas que no se publican']]
 $('#xrev').onclick = async () => {
   $('#xrev').disabled = true; $('#xmsg').className = 'muted'; $('#xmsg').textContent = 'Revisando…'
   try {
@@ -481,10 +482,11 @@ $('#xrev').onclick = async () => {
     REV = Object.fromEntries(Object.entries(j).map(([c, r]) => [c, { r, conf: false, f: { q: '', filtro: 'todas', pagina: 1 } }]))
     $('#xban').innerHTML = prev ? '<p class="ok"><b>Vista previa: no se cargó nada.</b> Así quedaría la lista si se cargara este archivo; sin códigos los productos se muestran como disponibles hasta que lleguen las existencias. Puedes revisar todas las filas, pero no publicar.</p>' : '<p class="muted">Revisa cada categoría y confírmala. Solo se publican las que confirmes; las demás quedan como están.</p>'
     $('#xcats').innerHTML = Object.entries(REV).map(([c, { r }]) => `<div class="card rcat" data-c="${c}"><div class="cab"><h2>${NOMBRES[c]}</h2><span class="rest">Pendiente</span></div>
-      <div class="n"><div><b>${r.total}</b>en la lista</div><div><b>${r.sin_precio}</b>sin precio</div><div><b>${r.con_espec}</b>con especificaciones</div><div><b>${r.nuevos.length}</b>nuevos</div><div><b>${r.precios.length}</b>con precio distinto</div><div><b>${r.omitidas.length}</b>no se publican</div></div>
+      <div class="n"><div><b>${r.total}</b>en la lista</div><div><b>${r.sin_precio}</b>sin precio</div><div><b>${r.con_espec}</b>con especificaciones</div><div><b>${r.nuevos.length}</b>nuevos</div><div><b>${r.cambiados.length}</b>con cambios</div><div><b>${r.precios.length}</b>con precio distinto</div><div><b>${r.omitidas.length}</b>no se publican</div></div>
+      ${r.a_mano ? `<p class="err">⚠ ${r.a_mano} producto${r.a_mano === 1 ? '' : 's'} se editó${r.a_mano === 1 ? '' : 'ron'} a mano en el panel y esta carga ${r.a_mano === 1 ? 'lo sobrescribe' : 'los sobrescribe'} con lo del Excel. Revísa${r.a_mano === 1 ? 'lo' : 'los'} antes de confirmar.</p>` : ''}
       <p class="muted">${r.quitados.length ? `Salen de la lista ${r.quitados.length} productos que estaban antes.` : 'No sale ningún producto.'}${r.antes && r.total < r.antes * 0.7 ? ' <span class="err">Atención: la lista nueva es mucho más corta que la actual. Revisa que sea el archivo correcto.</span>' : ''}</p>
       <div class="acc" style="display:flex;gap:8px;flex-wrap:wrap"><button class="sec" data-ver>Ver todas las filas</button>${prev ? '' : `<button data-conf>Confirmar ${NOMBRES[c].toLowerCase()}</button>`}</div>
-      <div class="rdet" hidden></div>${lista('Productos nuevos', r.nuevos)}${lista('Precios que cambian', r.precios)}${lista('Productos que salen', r.quitados)}</div>`).join('')
+      <div class="rdet" hidden></div>${lista('⚠ Editados a mano en el panel que se sobrescriben', r.cambiados.filter(x => x.a_mano).map(x => fmtCambio(x) + (x.fecha ? ` (editado el ${new Date(x.fecha).toLocaleDateString('es-VE')})` : '')))}${lista('Productos que cambian respecto a lo publicado', r.cambiados.map(fmtCambio))}${lista('Productos nuevos', r.nuevos)}${lista('Precios que cambian', r.precios)}${lista('Productos que salen', r.quitados)}</div>`).join('')
     $('#xpub').hidden = prev; $('#xres').hidden = false; cuentaRev()
   } catch (er) { $('#xmsg').className = 'err'; $('#xmsg').textContent = er.message }
   $('#xrev').disabled = false
@@ -523,7 +525,8 @@ $('#xcan').onclick = () => { $('#xres').hidden = true; $('#xf').value = ''; $('#
 $('#xpub').onclick = async () => {
   const cats = Object.entries(REV).filter(([, x]) => x.conf).map(([c]) => c)
   if (!cats.length) return
-  if (!confirm(`Se van a publicar: ${cats.map(c => NOMBRES[c]).join(', ')}.\n\nLa web y Nexo usarán estas listas ahora mismo. ¿Continuar?`)) return
+  const cambian = cats.reduce((n, c) => n + REV[c].r.cambiados.length, 0), aMano = cats.reduce((n, c) => n + REV[c].r.a_mano, 0), precios = cats.reduce((n, c) => n + REV[c].r.precios.length, 0)
+  if (!confirm(`Se van a publicar: ${cats.map(c => NOMBRES[c]).join(', ')}.\n\nCambian ${cambian} productos ya publicados (${precios} con precio distinto).${aMano ? `\n⚠ ${aMano} fueron editados a mano en el panel y se sobrescriben.` : ''}\n\nLa web y Nexo usarán estas listas ahora mismo. ¿Continuar?`)) return
   $('#xpub').disabled = true
   try {
     const j = await api('POST', '/excel/publicar', { categorias: cats })
