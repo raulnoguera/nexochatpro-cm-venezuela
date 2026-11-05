@@ -57,6 +57,20 @@ button.del{background:transparent;border:1.5px solid var(--bad);color:var(--bad)
 .acciones{display:flex;gap:10px;flex-wrap:wrap}
 /* ---- lista ---- */
 .barra-h{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:12px}@media(min-width:760px){.barra-h{grid-template-columns:2fr 1.1fr 1.1fr}}
+.vsel{display:inline-flex;background:var(--s2);border:1.5px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.vsel button{min-height:34px;padding:0 14px;border-radius:9px;background:transparent;color:inherit;font-weight:700;border:0;font-size:14px}
+.vsel button:hover{background:var(--s)}.vsel button[aria-pressed=true]{background:var(--y);color:#141414}
+.cab .acciones{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.xl{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:10px;background:var(--s)}
+.xl table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:13px;font-variant-numeric:tabular-nums}
+.xl th{position:sticky;top:0;z-index:2;background:var(--s2);text-align:left;padding:7px 10px;white-space:nowrap;font-size:12px;letter-spacing:.03em;border-bottom:2px solid var(--line);border-right:1px solid var(--line)}
+.xl td{padding:0 10px;height:32px;line-height:30px;white-space:nowrap;border-bottom:1px solid var(--line);border-right:1px solid var(--line);max-width:320px;overflow:hidden;text-overflow:ellipsis}
+.xl td.num,.xl th.num{text-align:right}.xl td.n,.xl th.n{position:sticky;left:0;z-index:1;background:var(--s2);color:var(--muted);text-align:center;font-size:11px;padding:0 6px;min-width:38px;line-height:30px}.xl th.n{z-index:3}
+.xl tr:hover td{background:var(--s2)}.xl td.ed{padding:0}
+.xl td input{width:92px;min-height:30px;height:30px;border:0;border-radius:0;background:transparent;text-align:right;padding:0 8px;font-weight:600}
+.xl td input:focus{background:var(--s);outline:2px solid var(--yd);outline-offset:-2px;box-shadow:none}
+.xl tr.pr td{opacity:.6}.xl tr.gu td{background:var(--okbg)}
+.xl td.ac{padding:0 6px;white-space:nowrap}.xl td.ac button{min-height:26px;padding:0 10px;font-size:12px;margin-right:4px}
 .fila{display:grid;grid-template-columns:52px minmax(0,1fr) 92px 92px 64px 64px 96px 92px 72px auto;gap:10px;align-items:center;padding:10px 4px;border-top:1px solid var(--line);border-radius:8px;transition:background .3s}
 .fila:first-child{border-top:0}.fila.gu{background:var(--okbg)}.fila.pr{opacity:.55}
 .fila.sinx{grid-template-columns:minmax(0,1fr) auto}
@@ -122,7 +136,7 @@ details summary{cursor:pointer;font-weight:700}
 
 <!-- ===== LISTA DE PRODUCTOS ===== -->
 <section class="vista" id="v-lista">
-  <div class="cab"><div><h1 id="l-tit">Cauchos</h1><p class="sub" id="l-sub"></p></div><button id="nuevo">＋ Nuevo producto</button></div>
+  <div class="cab"><div><h1 id="l-tit">Cauchos</h1><p class="sub" id="l-sub"></p></div><div class="acciones"><div class="vsel" role="group" aria-label="Estilo de vista de la lista"><button type="button" data-vista="tarjetas" aria-pressed="true">Tarjetas</button><button type="button" data-vista="tabla" aria-pressed="false">Tabla tipo Excel</button></div><button id="nuevo">＋ Nuevo producto</button></div></div>
   <div class="card">
     <div class="barra-h">
       <input id="q" placeholder="Buscar por marca, medida, grupo o tipo" aria-label="Buscar">
@@ -304,11 +318,32 @@ function fila(i, c) {
     ${cel('usd', 'Precio $', i.usd, '0.01')}${cel('usd_bs', 'Equiv. Bs', i.usd_bs, '0.01')}${cel('cm', 'CM', i.cm, '1')}${cel('mc', 'Master', i.mc, '1')}${cel('usd_c', 'Precio Caracas $', i.usd_c, '0.01', '—')}${cel('usd_bs_c', 'Equiv. Bs Caracas', i.usd_bs_c, '0.01', '—')}${cel('cc', 'Caracas', i.cc, '1', '—')}
     <div class="acc"><button class="sec" data-e="${i.sku}">Editar</button><button class="del" data-d="${i.sku}" title="Eliminar">Eliminar</button></div></div>`
 }
+// Vista «tabla tipo Excel»: las mismas columnas que el archivo, con el precio y las existencias editables en la celda
+let VISTA = 'tarjetas'; try { VISTA = localStorage.getItem('vista_lista') === 'tabla' ? 'tabla' : 'tarjetas' } catch (_) {}
+const TAM = () => (VISTA === 'tabla' ? 100 : PAG)
+const codigoDeFila = i => i.codigo_cm || i.codigo_mc || i.codigo_ccs || ''
+const COLS_PRECIO = [{ t: 'Precio $', f: 'usd', step: '0.01', v: i => i.usd }, { t: 'Bs', f: 'usd_bs', step: '0.01', v: i => i.usd_bs }, { t: 'CM', f: 'cm', step: '1', v: i => i.cm }, { t: 'MC', f: 'mc', step: '1', v: i => i.mc },
+  { t: 'Precio Caracas $', f: 'usd_c', step: '0.01', v: i => i.usd_c, ph: '—' }, { t: 'Bs Caracas', f: 'usd_bs_c', step: '0.01', v: i => i.usd_bs_c, ph: '—' }, { t: 'CCS', f: 'cc', step: '1', v: i => i.cc, ph: '—' }]
+const COLS = {
+  cauchos: [{ t: 'Código', v: codigoDeFila }, { t: 'Medida', v: i => i.medida }, { t: 'Marca', v: i => i.marca }, { t: 'Modelo', v: i => i.modelo }, { t: 'Tipo', v: i => i.tipo }, { t: 'Lonas', n: 1, v: i => i.lonas }, ...COLS_PRECIO],
+  baterias: [{ t: 'Código', v: codigoDeFila }, { t: 'Marca', v: i => i.marca }, { t: 'Grupo', v: i => i.grupo }, { t: 'Descripción', v: i => i.descripcion }, { t: 'AMP', n: 1, v: i => i.amp }, { t: 'Garantía (m)', n: 1, v: i => i.garantia }, ...COLS_PRECIO],
+  aceites: [{ t: 'Código', v: codigoDeFila }, { t: 'Aceite', v: i => i.tipo }, { t: 'Combo', v: i => i.presentacion }, { t: 'Marca', v: i => i.marca }, ...COLS_PRECIO],
+  bicicletas: [{ t: 'Código', v: codigoDeFila }, { t: 'Rin', n: 1, v: i => i.rin }, { t: 'Modelo', v: i => i.modelo }, { t: 'Para', v: i => i.para }, { t: 'Colores', v: i => i.colores }, ...COLS_PRECIO],
+  otros: [{ t: 'Código', v: codigoDeFila }, { t: 'Nombre', v: i => i.marca }, { t: 'Descripción', v: i => i.descripcion }, ...COLS_PRECIO],
+  compatibilidad: [{ t: 'Marca', v: i => i.marca }, { t: 'Modelo', v: i => i.modelo }, { t: 'Año desde', n: 1, v: i => i.desde }, { t: 'Año hasta', n: 1, v: i => i.hasta }, { t: 'Grupo(s)', v: i => i.grupo }],
+}
+const celdaTabla = (c, i) => c.f ? `<td class="ed num"><input data-f="${c.f}" type="number" min="0" step="${c.step}" inputmode="decimal" value="${esc(num(c.v(i)))}" placeholder="${c.ph || ''}" aria-label="${c.t} de ${esc(i.marca)}"></td>` : `<td class="${c.n ? 'num' : ''}" title="${esc(c.v(i) ?? '')}">${esc(c.v(i) ?? '')}</td>`
+const filaTabla = (i, cols, n) => `<tr data-sku="${i.sku}" data-n="${n}"><td class="n">${n}</td>${cols.map(c => celdaTabla(c, i)).join('')}<td class="ac"><button class="sec" data-e="${i.sku}">Editar</button><button class="del" data-d="${i.sku}">Eliminar</button></td></tr>`
+const tablaHtml = (rows, desde) => !rows.length ? '<p class="muted">No hay productos con ese filtro.</p>'
+  : `<div class="xl"><table><thead><tr><th class="n">#</th>${COLS[CAT].map(c => `<th class="${c.n || c.f ? 'num' : ''}">${esc(c.t)}</th>`).join('')}<th></th></tr></thead><tbody>${rows.map((i, k) => filaTabla(i, COLS[CAT], desde + k + 1)).join('')}</tbody></table></div>`
+const pintarVista = () => $$('.vsel button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.vista === VISTA)))
+$$('.vsel button').forEach(b => b.onclick = () => { VISTA = b.dataset.vista; try { localStorage.setItem('vista_lista', VISTA) } catch (_) {} pag = 0; pintar() })
 function pintar() {
-  const r = filtrados(), max = Math.max(0, Math.ceil(r.length / PAG) - 1); pag = Math.min(pag, max); const c = CFG[CAT]
+  pintarVista()
+  const r = filtrados(), tam = TAM(), max = Math.max(0, Math.ceil(r.length / tam) - 1); pag = Math.min(pag, max); const c = CFG[CAT]
   $('#chips').innerHTML = esCompat() ? '' : [['', 'Todos', ITEMS.length], ...Object.entries(FILTROS).map(([k, x]) => [k, x.t, ITEMS.filter(x.fn).length])].map(([k, t, n]) => `<button class="chip" data-fl="${k}" aria-pressed="${FILTRO === k}">${t}<small>${n}</small></button>`).join('')
   $('#l-sub').textContent = `${ITEMS.length} ${esc(esCompat() ? 'vehículos' : 'productos')}${r.length !== ITEMS.length ? ` · ${r.length} con este filtro` : ''}`
-  $('#cont').innerHTML = esCompat() ? r.slice(pag * PAG, pag * PAG + PAG).map(i => `<div class="fila sinx"><div class="nm"><b>${esc(i.marca)} · ${esc(i.modelo)}${i.manual ? '<span class="tag">a mano</span>' : ''}</b><small>${esc(c.detalle(i))}</small></div>
+  $('#cont').innerHTML = VISTA === 'tabla' ? tablaHtml(r.slice(pag * tam, pag * tam + tam), pag * tam) : esCompat() ? r.slice(pag * PAG, pag * PAG + PAG).map(i => `<div class="fila sinx"><div class="nm"><b>${esc(i.marca)} · ${esc(i.modelo)}${i.manual ? '<span class="tag">a mano</span>' : ''}</b><small>${esc(c.detalle(i))}</small></div>
     <div class="acc"><button class="sec" data-e="${i.sku}">Editar</button><button class="del" data-d="${i.sku}">Eliminar</button></div></div>`).join('') || '<p class="muted">Todavía no hay vehículos cargados. Sube la hoja COMPATIBILIDAD del Excel o crea uno con «Nuevo vehículo».</p>'
     : r.slice(pag * PAG, pag * PAG + PAG).map(i => fila(i, c)).join('') || '<p class="muted">No hay productos con ese filtro.</p>'
   $('#pgi').textContent = `Página ${pag + 1} de ${max + 1}`
@@ -326,17 +361,17 @@ for (const id of ['#q', '#fm', '#ord']) $(id).oninput = () => { pag = 0; pintar(
 $('#prev').onclick = () => { pag--; pintar(); window.scrollTo(0, 0) }; $('#next').onclick = () => { pag++; pintar(); window.scrollTo(0, 0) }
 
 // edición rápida: precio y existencias se guardan al salir de la casilla
-document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('.fila input[data-f]')) e.target.blur() })
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('[data-sku] input[data-f]')) e.target.blur() })
 document.addEventListener('change', async e => {
-  const inp = e.target.closest('.fila input[data-f]'); if (!inp) return
-  const row = inp.closest('.fila'), it = ITEMS.find(x => x.sku === row.dataset.sku), campo = inp.dataset.f
+  const inp = e.target.closest('[data-sku] input[data-f]'); if (!inp) return
+  const row = inp.closest('[data-sku]'), it = ITEMS.find(x => x.sku === row.dataset.sku), campo = inp.dataset.f
   if (String(it[campo] ?? '') === inp.value) return
   row.classList.add('pr')
   try {
     const nuevo = await api('PATCH', `/${CAT}/items/${it.sku}`, { [campo]: inp.value })
     Object.assign(it, { usd: nuevo.usd, usd_bs: nuevo.usd_bs, usd_c: nuevo.usd_c, usd_bs_c: nuevo.usd_bs_c, cm: nuevo.cm, mc: nuevo.mc, cc: nuevo.cc })
-    row.outerHTML = fila(it, CFG[CAT])
-    const nf = $$('.fila').find(x => x.dataset.sku === it.sku); nf.classList.add('gu'); setTimeout(() => nf.classList.remove('gu'), 1200)
+    row.outerHTML = row.tagName === 'TR' ? filaTabla(it, COLS[CAT], Number(row.dataset.n)) : fila(it, CFG[CAT])
+    const nf = $$('[data-sku]').find(x => x.dataset.sku === it.sku); nf.classList.add('gu'); setTimeout(() => nf.classList.remove('gu'), 1200)
     $$('#chips .chip').forEach(b => { const k = b.dataset.fl; b.querySelector('small').textContent = k ? ITEMS.filter(FILTROS[k].fn).length : ITEMS.length })
   } catch (er) { row.classList.remove('pr'); inp.value = it[campo] ?? ''; toast(er.message) }
 })
