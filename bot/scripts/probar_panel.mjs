@@ -166,6 +166,7 @@ try {
     ['B1', '', 'Fulgor Black', 24, 'BORNE', 'Derecha', 800, 100, 105, 3, 0, 3, 'Instalación gratis', 12, 10, 11, '24 cm', '17 cm', '19 cm', '12 V'],
     ['B2', '', 'Duncan', '4D', '', '', 1300, 140, 147, 1, 0, 1], ['B3', '', 'Velko Basank', 34, '', '', 700, 90, 95, 2, 0, 2]])
   hoja('INVENTARIO DE ACEITES', [['CODIGO CM', 'CODIGO MC', 'Aceite', 'Combo', 'Marca', 'Precio', 'Bs'], ['A1', '', '20W-50', '4 Litros', 'Mobil', 30, 32, 5], ['', 'A2', '2 Tiempos', 'Litro', 'Oilven', 8, 9]])
+  hoja('OTROS ARTICULOS', [['CODIGO CM', 'CODIGO MC', 'NOMBRE', 'DESCRIPCION', 'Precio', 'Bs', 'CM', 'MC', 'TOTAL INVENTARIO'], ['O1', '', 'Bujias', 'Champion', 3, 4, 5, 0, 5], [null, null, null, null, null, null], ['O2', '', 'Tuercas de seguridad', 'Set de 4 Tuercas + 1 llave', 20, 21, 2, 0, 2], ['', '', 'Bornes', 'Plomo ', 4, 5]])
   hoja('Copia de BICICLETAS', [['CODIGO MC', 'RIN', 'MODELO', 'PRECIO', 'BS', 'TOTAL INVENTARIO', 'CARACTERISTICAS'], ['K1', 'RIN 20', 'MODELO 130 (NIÑO)', 90, 95, 4, 'Aro de aluminio']])
   hoja('COMPATIBILIDAD', [['MARCA', 'MODELO', 'AÑO DESDE', 'AÑO HASTA', 'POLARIDAD', 'DUNCAN', 'FULGOR', 'FULGOR BLACK', 'FULGOR EVERLITE', 'AMPERAJE MINIMO'],
     ['FORD', 'F-350', 2000, 2010, 'DERECHA', '4D', 24, 34, '', 700], ['TOYOTA', 'COROLLA', 2009, 2019, 'IZQUIERDA', '', '22NF', '22NF', '', ''], ['ACURA', 'X', 2000, 2001, '', '', '', '', '', '']])
@@ -175,6 +176,9 @@ try {
   const c1 = nuevo.cauchos.items[0]
   ok('cauchos: columnas nuevas como especificaciones y servicios del producto', () => { assert.equal(c1.modelo, 'RS21'); assert.equal(c1.lonas, 10); assert.deepEqual(c1.servicios, ['Válvula nueva', 'Balanceo']); assert.deepEqual(c1.espec.map(x => x.k), ['Ancho', 'Alto', 'Diámetro', 'Costo de montura', 'Garantía', 'Construcción', 'Índice de carga', 'Código de velocidad', 'Presión máxima', 'TL/TT']) })
   ok('cauchos: las dimensiones de su medida van primero en las especificaciones (265/60R18 = 265/60/18)', () => { assert.deepEqual(c1.espec.slice(0, 3), [{ k: 'Ancho', v: '26,5 cm' }, { k: 'Alto', v: '79,5 cm' }, { k: 'Diámetro', v: '45,7 cm (18 in)' }]); assert.equal(c1.espec[3].k, 'Costo de montura') })
+  ok('otros artículos: NOMBRE queda como artículo y DESCRIPCION como descripción; separadores y filas sin código no cuentan', () => { assert.equal(nuevo.otros.items.length, 2); assert.deepEqual([nuevo.otros.items[0].marca, nuevo.otros.items[0].descripcion, nuevo.otros.items[0].sku], ['Bujias', 'Champion', 'CM-O1']); assert.ok(nuevo.otros.omitidas.some(o => /Bornes Plomo \(sin código/.test(o))) })
+  const cw = aCatalogo({ otros: nuevo.otros.items }).otros
+  ok('el catálogo de la web lleva «otros» con artículo (m) y descripción (d)', () => { assert.equal(cw.length, 2); assert.deepEqual(cw.map(x => [x.m, x.d, x.u]).sort(), [['Bujias', 'Champion', 3], ['Tuercas de seguridad', 'Set de 4 Tuercas + 1 llave', 20]]) })
   const b1 = nuevo.baterias.items[0]
   ok('baterías: el grupo sale de la columna MODELO (24 y no 24.0), con garantía, chatarra y medidas', () => { assert.equal(b1.grupo, '24'); assert.equal(b1.amp, 800); assert.equal(b1.descripcion, '800 AMP / BORNE / Derecha'); assert.equal(b1.garantia, 12); assert.deepEqual(b1.chatarra, { usd: 10, bs: 11 }); assert.equal(b1.espec.find(x => x.k === 'Voltaje').v, '12 V'); assert.deepEqual(b1.servicios, ['Instalación gratis']) })
   ok('aceites: la presentación sale de COMBO; el código MC también sirve', () => { assert.equal(nuevo.aceites.items[0].presentacion, '4 Litros'); assert.equal(nuevo.aceites.items[1].sku, 'MC-A2'); assert.equal(nuevo.aceites.items[1].stock.tienda_2, 0) })
@@ -198,7 +202,7 @@ try {
   const antesAceites = (await api('GET', '/aceites/items')).j.length
   const pc = await api('POST', '/excel/publicar', { categorias: ['cauchos'] }), mal = await api('POST', '/excel/publicar', { categorias: ['noexiste'] })
   ok('publica solo la categoría confirmada y las demás siguen pendientes', async () => {})
-  assert.equal(pc.s, 200); assert.deepEqual(pc.j.restantes.sort(), ['aceites', 'baterias', 'bicicletas', 'compatibilidad']); assert.equal((await api('GET', '/cauchos/items')).j.length >= 1, true)
+  assert.equal(pc.s, 200); assert.deepEqual(pc.j.restantes.sort(), ['aceites', 'baterias', 'bicicletas', 'compatibilidad', 'otros']); assert.equal((await api('GET', '/cauchos/items')).j.length >= 1, true)
   assert.equal((await api('GET', '/aceites/items')).j.length, antesAceites); assert.equal(mal.s, 400)
   const f2 = await api('GET', '/excel/filas/aceites'), f3 = await api('GET', '/excel/filas/cauchos')
   ok('lo publicado sale de la revisión; lo demás sigue disponible para revisar', () => { assert.equal(f2.s, 200); assert.equal(f3.s, 404) })

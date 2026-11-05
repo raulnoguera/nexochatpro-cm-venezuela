@@ -97,6 +97,7 @@ details summary{cursor:pointer;font-weight:700}
   <a href="#cauchos" data-v="cauchos"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/></svg>Cauchos<span class="n" id="n-cauchos"></span></a>
   <a href="#baterias" data-v="baterias"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M6 7V4h3v3M15 7V4h3v3M6 13.5h4M16 11.5v4M14 13.5h4"/></svg>Baterías<span class="n" id="n-baterias"></span></a>
   <a href="#aceites" data-v="aceites"><svg viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/></svg>Aceites<span class="n" id="n-aceites"></span></a>
+  <a href="#otros" data-v="otros"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>Otros<span class="n" id="n-otros"></span></a>
   <a href="#bicicletas" data-v="bicicletas"><svg viewBox="0 0 24 24"><circle cx="6" cy="16" r="4"/><circle cx="18" cy="16" r="4"/><path d="M6 16l4-8h5l3 8M10 8H8"/></svg>Bicicletas<span class="n" id="n-bicicletas"></span></a>
   <a href="#compatibilidad" data-v="compatibilidad"><svg viewBox="0 0 24 24"><path d="M5 16l1.5-5.5A2 2 0 018.4 9h7.2a2 2 0 011.9 1.5L19 16M4 16h16v3H4zM7 19v1.5M17 19v1.5"/></svg>Vehículos → batería<span class="n" id="n-compatibilidad"></span></a>
   <div class="nav-t">Web y datos</div>
@@ -167,7 +168,7 @@ details summary{cursor:pointer;font-weight:700}
     <label class="c c-cauchos"><span class="l">Lonas (opcional)</span><input id="clonas" type="number" min="0" max="40" step="1" inputmode="numeric" placeholder="16"></label>
     <label class="c c-cauchos w"><span class="l">Servicios solo de este caucho (opcional, uno por línea; con «-» delante se quita uno general, ej. «-Balanceo»)</span><textarea id="cservicios" rows="3" placeholder="Alineación gratis"></textarea></label>
     <label class="c c-cauchos w"><span class="l">Especificaciones (opcional, una por línea: «Nombre: valor»)</span><textarea id="cespec" rows="4" placeholder="Índice de carga: 91&#10;Índice de velocidad: H"></textarea></label>
-    <label class="c c-baterias"><span class="l">Descripción</span><input id="descripcion" maxlength="80" placeholder="1000 AMP / 24R" autocomplete="off"></label>
+    <label class="c c-baterias c-otros"><span class="l">Descripción</span><input id="descripcion" maxlength="80" placeholder="1000 AMP / 24R" autocomplete="off"></label>
     <label class="c c-baterias"><span class="l">Grupo</span><input id="grupo" maxlength="40" list="grupos" placeholder="GRUPO 24" autocomplete="off"></label>
     <label class="c c-baterias"><span class="l">Amperaje (opcional)</span><input id="amp" type="number" min="0" step="1" inputmode="numeric"></label>
     <label class="c c-baterias"><span class="l">Garantía en meses (opcional)</span><input id="garantia" type="number" min="0" step="1" inputmode="numeric"></label>
@@ -207,8 +208,8 @@ const api = async (m, p, body, raw) => {
   const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || 'No se pudo completar la acción.'); return j
 }
 const toast = t => { const e = $('#toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 3500) }
-const NOMBRES = { cauchos: 'Cauchos', baterias: 'Baterías', aceites: 'Aceites', bicicletas: 'Bicicletas', compatibilidad: 'Vehículos → batería' }
-const ICONOS = { cauchos: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/>', baterias: '<rect x="2" y="7" width="20" height="13" rx="2"/><path d="M6 7V4h3v3M15 7V4h3v3M6 13.5h4M16 11.5v4M14 13.5h4"/>', aceites: '<path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/>', bicicletas: '<circle cx="6" cy="16" r="4"/><circle cx="18" cy="16" r="4"/><path d="M6 16l4-8h5l3 8M10 8H8"/>', compatibilidad: '<path d="M5 16l1.5-5.5A2 2 0 018.4 9h7.2a2 2 0 011.9 1.5L19 16M4 16h16v3H4zM7 19v1.5M17 19v1.5"/>' }
+const NOMBRES = { cauchos: 'Cauchos', baterias: 'Baterías', aceites: 'Aceites', bicicletas: 'Bicicletas', otros: 'Otros', compatibilidad: 'Vehículos → batería' }
+const ICONOS = { otros: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>', cauchos: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/>', baterias: '<rect x="2" y="7" width="20" height="13" rx="2"/><path d="M6 7V4h3v3M15 7V4h3v3M6 13.5h4M16 11.5v4M14 13.5h4"/>', aceites: '<path d="M12 3s6 6.5 6 11a6 6 0 01-12 0c0-4.5 6-11 6-11z"/>', bicicletas: '<circle cx="6" cy="16" r="4"/><circle cx="18" cy="16" r="4"/><path d="M6 16l4-8h5l3 8M10 8H8"/>', compatibilidad: '<path d="M5 16l1.5-5.5A2 2 0 018.4 9h7.2a2 2 0 011.9 1.5L19 16M4 16h16v3H4zM7 19v1.5M17 19v1.5"/>' }
 const PAG = 40, IMG = 'https://crm.nexochatpro.cloud/img/'
 let CAT = 'cauchos', ITEMS = [], pag = 0, edit = null, quitar = false, FILTRO = '', NUEVO_AL_ABRIR = false
 const esCompat = () => CAT === 'compatibilidad'
@@ -217,6 +218,7 @@ const CFG = {   // campos propios de cada categoría, cómo se titula cada fila 
   baterias: { campos: ['descripcion', 'grupo', 'amp', 'garantia'], titulo: i => i.descripcion, detalle: i => [i.grupo, i.garantia && 'garantía ' + i.garantia + ' m'].filter(Boolean).join(' · '), buscar: i => i.marca + i.descripcion + i.grupo },
   compatibilidad: { campos: ['modelo', 'desde', 'hasta', 'grupo'], titulo: i => i.modelo, detalle: i => `${i.desde || 'cualquier año'}${i.hasta ? '–' + i.hasta : i.desde ? ' en adelante' : ''} · batería: ${i.grupo}`, buscar: i => i.marca + i.modelo + i.grupo },
   bicicletas: { campos: ['rin', 'modelo', 'para', 'colores'], titulo: i => `Rin ${i.rin} · Modelo ${i.modelo}${i.para ? ' (' + i.para + ')' : ''}`, detalle: i => i.colores || '', buscar: i => 'rin' + i.rin + i.modelo + i.para + i.colores },
+  otros: { campos: ['descripcion'], titulo: i => i.descripcion, detalle: i => '', buscar: i => i.marca + i.descripcion },
   aceites: { campos: ['tipo', 'presentacion'], titulo: i => `${i.tipo} · ${i.presentacion}`, detalle: i => '', buscar: i => i.marca + i.tipo + i.presentacion },
 }
 
@@ -256,7 +258,7 @@ async function cargarInicio() {
   const fecha = r.actualizado ? new Date(r.actualizado + 'T12:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'
   $('#ini-sub').textContent = `${r.actualizado ? `Catálogo actualizado el ${fecha}. ` : ''}Todo lo que cambias aquí se ve enseguida en la web y en Nexo.`
   const chip = (c, f, n, malo) => `<button class="${n ? (malo ? 'mal' : '') : 'bien'}" data-go="${c}/${f}">${n ? `${n} ${FILTROS[f].corto}` : `0 ${FILTROS[f].corto} ✓`}</button>`
-  $('#ini-cats').innerHTML = ['cauchos', 'baterias', 'aceites', 'bicicletas'].map(c => { const k = r.categorias[c]; return `<div class="k"><div class="t"><svg viewBox="0 0 24 24">${ICONOS[c]}</svg>${NOMBRES[c]}</div>
+  $('#ini-cats').innerHTML = ['cauchos', 'baterias', 'aceites', 'otros', 'bicicletas'].map(c => { const k = r.categorias[c]; return `<div class="k"><div class="t"><svg viewBox="0 0 24 24">${ICONOS[c]}</svg>${NOMBRES[c]}</div>
     <div class="g">${k.total}<small>productos</small></div>
     <div class="av">${k.total ? chip(c, 'sin_foto', k.sin_foto, true) + chip(c, 'sin_precio', k.sin_precio, true) + chip(c, 'agotados', k.agotados, false) + chip(c, 'sin_caracas', k.sin_caracas, false) : '<span class="muted">Todavía sin productos</span>'}</div>
     <div class="av"><button data-go="${c}/">Ver todos</button></div></div>` }).join('')
@@ -347,6 +349,7 @@ function abrir(i) {
   $$('.p').forEach(x => x.classList.toggle('off', esCompat()))
   $('#usd').required = !esCompat()                                  // los vehículos no llevan precio: un campo oculto y obligatorio bloquearía el guardado sin avisar
   for (const k of camposDe()) $('#' + idc(k)).value = i ? (i[k] ?? '') : (k === 'cm' || k === 'mc' ? 0 : '')
+  $('#marca').closest('label').querySelector('.l').textContent = CAT === 'otros' ? 'Artículo (bujías, bornes, tuercas…)' : 'Marca'
   const bici = CAT === 'bicicletas'; $('#marca').closest('label').hidden = bici; $('#marca').required = !bici; if (bici && !$('#marca').value) $('#marca').value = 'Bicicleta'   // las bicicletas no llevan marca
   $('#pv').src = i?.imagen ? IMG + i.imagen : 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#ddd"/></svg>')
   $('#qfoto').hidden = !i?.imagen; actualizarMarca(); $('#dlg').showModal()

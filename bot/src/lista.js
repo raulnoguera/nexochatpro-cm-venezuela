@@ -210,6 +210,11 @@ const armarBicicleta = v => {                                            // «RI
   if (caracteristicas) item.caracteristicas = caracteristicas
   return { desc: `${rinTxt} ${modTxt}`.trim(), falta: !rin || !modelo ? 'rin o modelo' : '', item }
 }
+const armarOtro = v => {                                                 // pestaña «OTROS ARTICULOS»: NOMBRE (bujías, bornes…) y DESCRIPCION (marca, presentación…)
+  const nombre = txt(v('NOMBRE')), descripcion = txt(v('DESCRIPCION'))
+  return { desc: `${nombre} ${descripcion}`.trim(), falta: !nombre ? 'nombre' : '', item: { marca: nombre, descripcion } }
+}
+const filasOtros = (ws, op) => (esNuevo(ws) ? filasConCodigo(ws, armarOtro, op) : { items: [], omitidas: ['La pestaña de otros artículos necesita las columnas CODIGO CM, CODIGO MC, NOMBRE, DESCRIPCION, Precio, Bs, CM y MC.'] })
 function filasBicicletas(ws, op) {                                           // «🚲RIN 20 MODELO 130 (NIÑO)» | precio | bs | # unidades en CM | colores | MC (hay en Master Cauchos)
   if (esNuevo(ws)) return filasConCodigo(ws, armarBicicleta, op)
   const items = [], omitidas = [], sku = unicos()
@@ -431,6 +436,19 @@ CATS.bicicletas = {
   vista: i => ({ rin: i.rin, modelo: i.modelo, para: i.para ?? '', colores: i.colores ?? '' }),
 }
 
+CATS.otros = {                                                             // bornes, bujías, tuercas…: «marca» guarda el nombre del artículo
+  archivo: 'otros.json', hoja: 'OTROS', leer: filasOtros,
+  nombre: i => `${i.marca} ${i.descripcion}`,
+  web: i => ({ ...comun(i), d: i.descripcion }),
+  orden: (a, b) => a.m.localeCompare(b.m, 'es') || String(a.d).localeCompare(String(b.d), 'es') || a.u - b.u,
+  campos: b => {
+    const descripcion = String(b.descripcion ?? '').trim()
+    if (!descripcion || descripcion.length > 80) throw new Error('Escribe la descripción, por ejemplo Champion o Set de 4 tuercas + 1 llave.')
+    return { descripcion }
+  },
+  vista: i => ({ descripcion: i.descripcion }),
+}
+
 CATS.compatibilidad = {
   archivo: 'compatibilidad.json', hoja: 'COMPATIBILIDAD', leer: filasCompat, sinProductos: true,
   nombre: i => `${i.marca} ${i.modelo} ${i.desde || ''}-${i.hasta === 9999 ? '' : i.hasta}`,
@@ -471,7 +489,7 @@ const respaldar = cat => {
 
 // ---------- Excel ----------
 // Nombres con que el cliente puede llamar a cada pestaña («INVENTARIO CAUCHOS», «INVENTARIO DE BATERIA», «Copia de BICICLETAS»…); «DIMENSIONES DE CAUCHOS» no cuenta
-const HOJAS = { cauchos: /^(inventario\s+(de\s+)?)?caucho/i, baterias: /^(inventario\s+(de\s+)?)?bater/i, aceites: /^(inventario\s+(de\s+)?)?aceite/i, bicicletas: /bicicleta/i, compatibilidad: /compat/i }
+const HOJAS = { cauchos: /^(inventario\s+(de\s+)?)?caucho/i, baterias: /^(inventario\s+(de\s+)?)?bater/i, aceites: /^(inventario\s+(de\s+)?)?aceite/i, bicicletas: /bicicleta/i, otros: /^otros?\b/i, compatibilidad: /compat/i }
 export async function leerExcel(buffer, op = {}) {
   const wb = new ExcelJS.Workbook()
   try { await wb.xlsx.load(buffer) } catch { throw new Error('No se pudo leer el archivo. Debe ser un Excel .xlsx.') }
@@ -571,6 +589,7 @@ const TABLA_REVISION = {
     fila: i => [codigoDe(i), i.marca, i.grupo, i.descripcion, precioTxt(i), existencia(i.stock), i.garantia ? i.garantia + ' meses' : '', especTxt(i)] },
   aceites: { cab: ['Código', 'Tipo', 'Presentación', 'Marca', 'Precio', 'Existencia'], fila: i => [codigoDe(i), i.tipo, i.presentacion, i.marca, precioTxt(i), existencia(i.stock)] },
   bicicletas: { cab: ['Código', 'Rin', 'Modelo', 'Para', 'Precio', 'Existencia'], fila: i => [codigoDe(i), i.rin, i.modelo, i.para || '', precioTxt(i), existencia(i.stock)] },
+  otros: { cab: ['Código', 'Artículo', 'Descripción', 'Precio', 'Existencia'], fila: i => [codigoDe(i), i.marca, i.descripcion, precioTxt(i), existencia(i.stock)] },
   compatibilidad: { cab: ['Vehículo', 'Años', 'Grupos', 'Por marca de batería'],
     fila: i => [`${i.marca} ${i.modelo}`, `${i.desde || 'todos'}${i.hasta && i.hasta !== 9999 ? '–' + i.hasta : i.desde ? ' en adelante' : ''}`, i.grupo, Object.entries(i.grupos || {}).map(([k, g]) => `${k}: ${g}`).join(' · ')] },
 }
