@@ -34,6 +34,7 @@ textarea{padding:10px 12px;resize:vertical;line-height:1.4}
 .regla input,.regla textarea{background:var(--s)}
 .regla .alc{grid-column:1/-1;font-size:13px;min-height:0}.regla .alc:empty{display:none}
 @media(max-width:700px){.regla{grid-template-columns:1fr}}
+.tfila{display:grid;grid-template-columns:1fr 1.4fr 1fr auto;gap:10px;align-items:center;margin:8px 0;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--s2)}.tfila input{background:var(--s)}@media(max-width:900px){.tfila{grid-template-columns:1fr}}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--yd);box-shadow:0 0 0 3px rgba(245,217,10,.3)}
 input[type=checkbox]{width:auto;min-height:0}input[type=file]{padding:9px}
 button{border:0;border-radius:10px;background:var(--y);color:#141414;font-weight:800;min-height:42px;padding:0 18px;cursor:pointer}
@@ -114,6 +115,9 @@ details summary{cursor:pointer;font-weight:700}
     <div class="acciones"><button id="ini-nuevo">＋ Nuevo producto</button><button class="sec" data-ir="excel">Cargar Excel</button><button class="sec" data-ir="ajustes">Ajustes de la web</button></div></div>
   <div class="grid" id="ini-cats"></div>
   <div class="grid" id="ini-otros"></div>
+  <div class="card" id="tasa-card"><h2>Tasa de cambio del día</h2>
+    <p class="muted">Es la que usan Nexo y la web para los precios en bolívares. Se lee del BCV; si la API falla o se equivoca, puedes fijarla tú. <b>Una tasa fijada vale solo hoy</b>: mañana se vuelve a usar la del BCV.</p>
+    <div id="tasa-filas"></div><p id="tasa-msg"></p></div>
 </section>
 
 <!-- ===== LISTA DE PRODUCTOS ===== -->
@@ -253,6 +257,7 @@ document.addEventListener('click', e => {
 
 // ---------- inicio ----------
 async function cargarInicio() {
+  cargarTasas()
   const [r, p] = await Promise.all([api('GET', '/resumen'), api('GET', '/uso/presupuesto').catch(() => null)])
   for (const c of Object.keys(NOMBRES)) $('#n-' + c).textContent = r.categorias[c].total
   const fecha = r.actualizado ? new Date(r.actualizado + 'T12:00').toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'
@@ -435,6 +440,29 @@ $('#ajgu').onclick = async () => {
     $('#ajmsg').className = 'ok'; $('#ajmsg').textContent = 'Guardado. Ya se ve en la web.'; await cargarAjustes()
   } catch (er) { $('#ajmsg').className = 'err'; $('#ajmsg').textContent = er.message }
   $('#ajgu').disabled = false
+}
+
+// ---------- tasa del día ----------
+const nBs = n => Number(n).toLocaleString('es-VE', { maximumFractionDigits: 4 })
+const TASAS_UI = [['euro', 'Euro', 'Maracay'], ['dolar', 'Dólar', 'Caracas']]
+async function cargarTasas() {
+  try {
+    const t = await api('GET', '/tasas')
+    $('#tasa-filas').innerHTML = TASAS_UI.map(([k, nombre, ciudad]) => { const x = t[k], m = x.manual, fuente = m ? 'Fijada a mano para hoy' : x.en_uso.fuente === 'respaldo' ? 'Respaldo del servidor (la API no responde)' : x.en_uso.fuente
+      return `<div class="tfila" data-t="${k}"><div><b>${nombre}</b> · ${ciudad}<br><span class="muted">${fuente}${x.en_uso.fecha && !m ? ' · ' + esc(x.en_uso.fecha) : ''}</span></div>
+        <div><span style="font-size:22px;font-weight:800">${x.en_uso.rate ? nBs(x.en_uso.rate) : 'sin tasa'}</span> <span class="muted">Bs</span><br><span class="muted">${x.api ? 'BCV (API): ' + nBs(x.api.rate) : 'La API del BCV no responde'}</span></div>
+        <input type="text" inputmode="decimal" placeholder="Fijar ${nombre.toLowerCase()} de hoy" aria-label="Tasa del ${nombre.toLowerCase()}" data-v>
+        <div style="display:flex;gap:6px"><button data-fijar>Fijar hoy</button>${m ? '<button class="sec" data-quitar>Usar la del BCV</button>' : ''}</div></div>`
+    }).join('')
+  } catch (er) { $('#tasa-msg').className = 'err'; $('#tasa-msg').textContent = er.message }
+}
+$('#tasa-filas').onclick = async e => {
+  const fila = e.target.closest('[data-t]'); if (!fila || !e.target.closest('button')) return
+  const k = fila.dataset.t, quitar = !!e.target.closest('[data-quitar]'), v = fila.querySelector('[data-v]').value.trim()
+  if (!quitar && !v) { $('#tasa-msg').className = 'err'; $('#tasa-msg').textContent = 'Escribe la tasa, por ejemplo 1006,03.'; return }
+  try { await api('PUT', '/tasas', { [k]: quitar ? null : v }); $('#tasa-msg').className = 'ok'; $('#tasa-msg').textContent = quitar ? 'Listo: se vuelve a usar la tasa del BCV.' : 'Listo: la nueva tasa ya la usa Nexo; la web la toma en menos de un minuto.' }
+  catch (er) { $('#tasa-msg').className = 'err'; $('#tasa-msg').textContent = er.message }
+  cargarTasas()
 }
 
 // ---------- Excel ----------

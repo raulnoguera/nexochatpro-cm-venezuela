@@ -209,7 +209,12 @@ try {
   const { esCoherente, ajustarEuro } = await import(pathToFileURL(path.join(aqui, '../src/tasa.js')).href)
   ok('la tasa del euro se descarta si no es coherente con el dólar (1,006 con dólar a 894)', () => { assert.equal(esCoherente(1.006, 894.89), false); assert.equal(esCoherente(1040, 894.89), true); assert.equal(esCoherente(999.77, 894.89), true); assert.equal(esCoherente(1000, 0), true) })
   ok('el euro sin separador de miles (1,006) se corrige a 1.006; un dato absurdo se descarta', () => { assert.equal(ajustarEuro(1.006, 894.89), 1006); assert.equal(ajustarEuro(1040, 894.89), 1040); assert.equal(ajustarEuro(5, 894.89), null); assert.equal(ajustarEuro(1.006, 0), 1006) })
-  const tr = await fetch(base + '/tasas'); ok('/tasas es público, con CORS, y responde euro y dólar', async () => {}); assert.equal(tr.status, 200); assert.equal(tr.headers.get('access-control-allow-origin'), '*'); assert.ok('euro' in (await tr.json()))
+  const t1 = await api('PUT', '/tasas', { euro: '1006,03', dolar: 894.89 }), cj = catalogo()
+  ok('el administrador fija la tasa de hoy: queda en uso, vale para Nexo y viaja a la web en catalogo.json', () => { assert.equal(t1.s, 200); assert.equal(t1.j.euro.en_uso.rate, 1006.03); assert.equal(t1.j.euro.en_uso.fuente, 'fijada a mano'); assert.equal(t1.j.dolar.manual.valor, 894.89); assert.equal(cj.tasas.euro.valor, 1006.03); assert.equal(cj.tasas.euro.fecha, new Date().toLocaleDateString('en-CA', { timeZone: 'America/Caracas' })) })
+  const t2 = await api('PUT', '/tasas', { euro: 5 }), t3 = await api('GET', '/tasas'), t5 = await api('PUT', '/tasas', { euro: 'abc' })
+  ok('una tasa incoherente o inválida se rechaza y no cambia nada', () => { assert.equal(t2.s, 400); assert.match(t2.j.error, /coherentes/); assert.equal(t3.j.euro.en_uso.rate, 1006.03); assert.equal(t5.s, 400) })
+  const t4 = await api('PUT', '/tasas', { euro: null, dolar: null })
+  ok('quitar la tasa fijada vuelve a la del BCV y la web ya no la recibe', () => { assert.equal(t4.s, 200); assert.equal(t4.j.euro.manual, null); assert.equal(catalogo().tasas.euro, null) })
   const { gruposParaBateria, marcasConGrupos } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href), conDatos = marcasConGrupos(nuevo.compatibilidad.items)
   ok('el grupo depende de la marca de la batería (la más específica) y, sin columna, usa los del vehículo', () => {
     assert.deepEqual(gruposParaBateria(f350, 'Fulgor Black', conDatos), ['34']); assert.deepEqual(gruposParaBateria(f350, 'Fulgor', conDatos), ['24']); assert.deepEqual(gruposParaBateria(f350, 'Duncan Quattro', conDatos), ['4D'])
