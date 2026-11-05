@@ -9,7 +9,7 @@ import ExcelJS from 'exceljs'
 import { usoPorDia, usoPorConversacion } from './uso.js'
 import { estadoPresupuesto, LIMITE_HORA, LIMITE_DIA } from './limites.js'
 import { visible, conCodigo } from './store.js'
-import { tasaPara } from './tasa.js'
+import { estadoTasas, fijarTasas, manualesVigentes } from './tasa.js'
 
 const dir = path.resolve('data')
 const carpetaImg = path.join(dir, 'imagenes')
@@ -476,6 +476,7 @@ export const aCatalogo = todo => {
   for (const [cat, c] of Object.entries(CATS)) salida[cat] = (todo[cat] ?? leer(cat)).filter(visible).map(i => c.web(i, aj)).sort(c.orden)
   salida.items = salida.cauchos                                            // compatibilidad con la primera versión de la web
   salida.ajustes = aj
+  salida.tasas = manualesVigentes()                                           // tasa fijada a mano en el panel (si vale hoy); la web la prefiere a la de la API
   return salida
 }
 const guardar = (cat, items) => {                                          // Nexo y la web siempre ven lo mismo
@@ -610,12 +611,6 @@ export function montarLista(app) {
   app.use('/img', (_req, res, next) => { res.set({ 'Access-Control-Allow-Origin': '*', 'Cross-Origin-Resource-Policy': 'cross-origin' }); next() },
     express.static(carpetaImg, { maxAge: '30d', immutable: true, index: false }))
 
-  // Tasas del BCV ya validadas (la web las usa para los precios en bolívares); sin tasa fiable no se muestran
-  app.get('/tasas', async (_req, res) => {
-    const [euro, dolar] = await Promise.all([tasaPara('EUR'), tasaPara('USD')])
-    const ok = t => (t.rate > 0 && t.fuente !== 'respaldo' ? { rate: t.rate, fecha: t.fecha } : null)
-    res.set({ 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'public, max-age=300' }).json({ euro: ok(euro), dolar: ok(dolar) })
-  })
   app.get('/lista', (_req, res) => res.redirect('/admin'))
   app.get('/admin', autenticar, (_req, res) => res.type('html').send(pagina))
   app.get('/admin/uso', autenticar, (_req, res) => res.type('html').send(paginaUso))
@@ -625,6 +620,17 @@ export function montarLista(app) {
   api.get('/uso', (_req, res) => res.json(usoPorDia()))
   api.get('/uso/conversaciones', (_req, res) => res.json(usoPorConversacion()))
   api.get('/uso/presupuesto', (_req, res) => res.json({ ...estadoPresupuesto(), limite_hora: LIMITE_HORA, limite_dia: LIMITE_DIA }))
+
+  // ---- tasa del día: la que usan Nexo y la web, lo que dice la API del BCV y la que el administrador fija a mano para hoy
+  api.get('/tasas', async (_req, res) => res.json(await estadoTasas()))
+  api.put('/tasas', express.json(), async (req, res) => {
+    try {
+      const estado = await fijarTasas(req.body || {})
+      const f = path.join(dir, 'catalogo.json')
+      if (fs.existsSync(f)) { const c = JSON.parse(fs.readFileSync(f, 'utf8')); c.tasas = manualesVigentes(); escribir('catalogo.json', c) }   // la web lee la tasa fijada desde aquí
+      res.json(estado)
+    } catch (e) { res.status(400).json({ error: e.message }) }
+  })
 
   // ---- ajustes de la web: servicios incluidos con los cauchos, detalle del filtro de los combos y los «Por confirmar»
   api.get('/ajustes', (_req, res) => res.json(leerAjustes()))
