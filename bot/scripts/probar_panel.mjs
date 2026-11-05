@@ -184,6 +184,8 @@ try {
   const f350 = nuevo.compatibilidad.items.find(x => x.modelo === 'F-350')
   ok('compatibilidad: una columna por marca de batería, con polaridad y amperaje mínimo', () => { assert.deepEqual(f350.grupos, { DUNCAN: '4D', FULGOR: '24', FULGORBLACK: '34' }); assert.equal(f350.polaridad, 'DERECHA'); assert.equal(f350.amp_min, 700); assert.equal(f350.grupo, '4D, 24, 34') })
   ok('un vehículo sin grupo en ninguna marca se omite', () => assert.ok(nuevo.compatibilidad.omitidas.some(o => /ACURA X/.test(o))))
+  const { esCoherente } = await import(pathToFileURL(path.join(aqui, '../src/tasa.js')).href)
+  ok('la tasa del euro se descarta si no es coherente con el dólar (1,006 con dólar a 894)', () => { assert.equal(esCoherente(1.006, 894.89), false); assert.equal(esCoherente(1040, 894.89), true); assert.equal(esCoherente(999.77, 894.89), true); assert.equal(esCoherente(1000, 0), true) })
   const { gruposParaBateria, marcasConGrupos } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href), conDatos = marcasConGrupos(nuevo.compatibilidad.items)
   ok('el grupo depende de la marca de la batería (la más específica) y, sin columna, usa los del vehículo', () => {
     assert.deepEqual(gruposParaBateria(f350, 'Fulgor Black', conDatos), ['34']); assert.deepEqual(gruposParaBateria(f350, 'Fulgor', conDatos), ['24']); assert.deepEqual(gruposParaBateria(f350, 'Duncan Quattro', conDatos), ['4D'])

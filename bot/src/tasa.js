@@ -16,6 +16,14 @@ function manual(moneda) {
   return null
 }
 
+// El euro vale entre 0,8 y 2 veces el dólar; fuera de ese rango el dato de la API no sirve
+export const esCoherente = (euro, dolar) => !(dolar > 0) || (euro >= dolar * 0.8 && euro <= dolar * 2)
+async function coherente(moneda, rate) {
+  if (moneda !== 'EUR') return rate > 0
+  const usd = await tasaPara('USD')
+  return esCoherente(rate, usd.rate)
+}
+
 export async function tasaPara(moneda) {
   const m = manual(moneda); if (m) return m
   const c = cache[moneda]
@@ -23,7 +31,8 @@ export async function tasaPara(moneda) {
   try {
     const r = await fetch(`https://ve.dolarapi.com/v1/${FUENTE[moneda]}`, { signal: AbortSignal.timeout(6000) })
     const j = await r.json()
-    if (j.promedio) return (cache[moneda] = { rate: j.promedio, fecha: j.fechaActualizacion?.slice(0, 10), fuente: 'BCV', ts: Date.now() })
+    // La API a veces devuelve el euro en otra escala (1,006 en vez de ~1.000 Bs): si no es coherente con el dólar, se descarta
+    if (j.promedio && await coherente(moneda, j.promedio)) return (cache[moneda] = { rate: j.promedio, fecha: j.fechaActualizacion?.slice(0, 10), fuente: 'BCV', ts: Date.now() })
   } catch { /* usa respaldo */ }
   if (c) return { ...c, ts: Date.now() - 25 * 60 * 1000 }   // última buena, reintenta pronto
   return (cache[moneda] = { rate: RESPALDO[moneda], fecha: null, fuente: 'respaldo', ts: Date.now() - 25 * 60 * 1000 })
