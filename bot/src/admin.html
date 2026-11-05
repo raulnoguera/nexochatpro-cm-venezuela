@@ -144,7 +144,9 @@ details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20
   <div class="cab"><div><h1>Cargar lista de precios</h1><p class="sub">Sube «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES (y COMPATIBILIDAD si ya la tienes).</p></div></div>
   <div class="card" style="max-width:820px">
     <p class="muted">Antes de publicar te mostramos qué cambia. Las fotos se conservan y los productos creados a mano no se tocan. Los cambios hechos aquí a un producto que viene del Excel se reemplazan con la próxima carga.</p>
-    <p><input type="file" id="xf" accept=".xlsx"></p><p><button id="xrev" disabled>Revisar archivo</button></p><p id="xmsg"></p>
+    <p><input type="file" id="xf" accept=".xlsx"></p>
+    <p><label style="display:flex;gap:8px;align-items:flex-start;font-weight:600"><input type="checkbox" id="xprev" style="margin-top:3px"> <span>Solo ver qué trae el archivo, aunque no tenga códigos CM/MC. <span class="muted" style="font-weight:400">No se carga nada: es solo una vista previa.</span></span></label></p>
+    <p><button id="xrev" disabled>Revisar archivo</button></p><p id="xmsg"></p>
     <div id="xres" hidden><div id="xdet"></div><p style="margin-top:12px"><button id="xpub">Publicar ahora</button> <button class="sec" id="xcan">Cancelar</button></p></div>
   </div>
 </section>
@@ -434,12 +436,13 @@ $('#xf').onchange = () => { $('#xrev').disabled = !$('#xf').files[0]; $('#xres')
 $('#xrev').onclick = async () => {
   $('#xrev').disabled = true; $('#xmsg').className = 'muted'; $('#xmsg').textContent = 'Revisando…'
   try {
-    const j = await api('POST', '/excel/revisar', $('#xf').files[0], 'application/octet-stream'), cats = Object.entries(j)
+    const prev = $('#xprev').checked, j = await api('POST', '/excel/revisar' + (prev ? '?sincodigo=1' : ''), $('#xf').files[0], 'application/octet-stream'), cats = Object.entries(j)
     $('#xmsg').textContent = ''
-    $('#xdet').innerHTML = cats.map(([c, r]) => `<h2 style="margin-top:14px">${NOMBRES[c]}</h2><div class="n"><div><b>${r.total}</b>en la lista</div><div><b>${r.nuevos.length}</b>nuevos</div><div><b>${r.precios.length}</b>con precio distinto</div></div>
+    $('#xdet').innerHTML = (prev ? '<p class="ok"><b>Vista previa: no se cargó nada.</b> Así quedaría la lista si se cargara este archivo; sin códigos los productos se muestran como disponibles hasta que lleguen las existencias.</p>' : '')
+      + cats.map(([c, r]) => `<h2 style="margin-top:14px">${NOMBRES[c]}</h2><div class="n"><div><b>${r.total}</b>en la lista</div><div><b>${r.sin_precio}</b>sin precio</div><div><b>${r.con_espec}</b>con especificaciones</div><div><b>${r.nuevos.length}</b>nuevos</div><div><b>${r.precios.length}</b>con precio distinto</div></div>
       <p class="muted">${r.quitados.length ? `Salen de la lista ${r.quitados.length} productos que estaban antes.` : 'No sale ningún producto.'}${r.antes && r.total < r.antes * 0.7 ? ' <span class="err">Atención: la lista nueva es mucho más corta que la actual. Revisa que sea el archivo correcto.</span>' : ''}</p>`
-      + lista('Productos nuevos', r.nuevos) + lista('Precios que cambian', r.precios) + lista('Productos que salen', r.quitados) + lista('Filas que no se publican', r.omitidas)).join('')
-    $('#xres').hidden = false
+      + lista('Ejemplos de cómo quedan', r.muestra) + lista('Productos nuevos', r.nuevos) + lista('Precios que cambian', r.precios) + lista('Productos que salen', r.quitados) + lista('Filas que no se publican', r.omitidas)).join('')
+    $('#xres').hidden = false; $('#xpub').hidden = prev
   } catch (er) { $('#xmsg').className = 'err'; $('#xmsg').textContent = er.message }
   $('#xrev').disabled = false
 }

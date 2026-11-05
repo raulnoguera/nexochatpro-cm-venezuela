@@ -617,13 +617,17 @@ export function montarLista(app) {
   })
 
   // ---- carga masiva desde el Excel (todas las hojas a la vez)
+  // ?sincodigo=1: solo vista previa de un archivo que todavía no trae los códigos CM/MC. No guarda nada, así que no se puede publicar.
   api.post('/excel/revisar', express.raw({ type: () => true, limit: '15mb' }), async (req, res) => {
     try {
-      const leido = await leerExcel(req.body)
-      pendiente = Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items]))
+      const prev = req.query.sincodigo === '1'
+      const leido = await leerExcel(req.body, { sinCodigo: prev })
+      pendiente = prev ? null : Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items]))
       res.json(Object.fromEntries(Object.entries(leido).map(([c, r]) => {
         const actual = leer(c).filter(i => !i.sku.startsWith('MAN-'))
-        return [c, { total: r.items.length, antes: actual.length, omitidas: r.omitidas, ...comparar(c, actual, r.items) }]
+        const precio = i => (CATS[c].sinProductos ? i.grupo : i.usd > 0 ? 'REF ' + i.usd : 'precio por consultar')
+        return [c, { total: r.items.length, antes: actual.length, omitidas: r.omitidas, vista_previa: prev, sin_precio: CATS[c].sinProductos ? 0 : r.items.filter(i => !(i.usd > 0)).length,
+          con_espec: r.items.filter(i => i.espec?.length).length, muestra: r.items.slice(0, 8).map(i => `${CATS[c].nombre(i)} · ${precio(i)}${i.espec?.length ? ' · ' + i.espec.map(x => x.k + ' ' + x.v).join(', ') : ''}`), ...comparar(c, actual, r.items) }]
       })))
     } catch (e) { res.status(400).json({ error: e.message }) }
   })
