@@ -11,6 +11,7 @@ export const visible = i => !conCodigo(i) || (i.stock?.tienda_1 ?? 0) + (i.stock
 export const inventario = () => read('inventario.json').filter(visible)
 export const baterias = () => (fs.existsSync(path.join(dir, 'baterias.json')) ? read('baterias.json') : [])
 export const bicicletas = () => (fs.existsSync(path.join(dir, 'bicicletas.json')) ? read('bicicletas.json') : [])
+export const otros = () => (fs.existsSync(path.join(dir, 'otros.json')) ? read('otros.json') : [])
 export const aceites = () => (fs.existsSync(path.join(dir, 'aceites.json')) ? read('aceites.json') : [])
 export const compatibilidad = () => (fs.existsSync(path.join(dir, 'compatibilidad.json')) ? read('compatibilidad.json') : [])
 export const servicios = () => read('servicios.json')

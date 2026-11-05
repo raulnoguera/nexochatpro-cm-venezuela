@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { inventario, baterias, aceites, bicicletas, compatibilidad, servicios, addCita, updateCita, citas, tiendas } from './store.js'
+import { inventario, baterias, aceites, bicicletas, otros, compatibilidad, servicios, addCita, updateCita, citas, tiendas } from './store.js'
 import { precio, disponibilidad, nombreTienda, horarioDe, ahoraCaracas } from './precios.js'
 import * as cw from './chatwoot.js'
 import { traspasar } from './equipos.js'
@@ -66,6 +66,11 @@ export const definiciones = [
     name: 'buscar_bicicletas',
     description: 'Busca bicicletas por rin (12, 16, 20, 24, 26, 29) o por modelo. Devuelve modelo, para quién es, colores, precio en dólares y en bolívares según la tienda y disponibilidad.',
     input_schema: { type: 'object', properties: { tienda: TIENDA, rin: { type: 'integer', description: 'Rin de la bicicleta, ej. 20' }, modelo: { type: 'string', description: 'Número de modelo, ej. 130' } } },
+  },
+  {
+    name: 'buscar_otros',
+    description: 'Busca otros artículos (bornes, bujías, tuercas, tuercas de seguridad, espárragos…) por nombre o descripción. Devuelve precio en dólares y en bolívares según la tienda y disponibilidad.',
+    input_schema: { type: 'object', properties: { tienda: TIENDA, texto: { type: 'string', description: 'Lo que busca el cliente, ej. «bujías ngk» o «tuercas de seguridad»' } } },
   },
   {
     name: 'listar_servicios',
@@ -219,6 +224,19 @@ export async function ejecutar(nombre, input, ctx) {
     if (resultados.some(x => x.pagando_en_dolares_usd)) { const rin = unico(r.map(x => ({ r: x.rin })), 'r'); ctx.enlace = enlaceWeb('bicicletas', rin ? { rin } : {}, tienda) }
     const t = (await import('./store.js')).tiendas()[tienda]
     return { tienda: nombreTienda(tienda), etiqueta_tasa: t.etiqueta_tasa, ...agrupaTasa(resultados), total_coincidencias: r.length, resultados, nota: !r.length ? 'Sin coincidencias en inventario' : r.length > MAX_RESULTADOS ? `Se muestran ${MAX_RESULTADOS} de ${r.length}; pide el rin para afinar` : undefined }
+  }
+  if (nombre === 'buscar_otros') {
+    if (!tienda) return FALTA_TIENDA
+    const palabras = String(input.texto ?? '').split(/\s+/).map(norm).filter(Boolean)
+    const r = otros().filter(x => palabras.every(p => norm(`${x.marca} ${x.descripcion}`).includes(p)))
+    const orden = { disponible: 0, pocas_unidades: 0, por_confirmar: 1, agotado: 2 }
+    const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x) - sinPrecio(b.x) || a.x.usd - b.x.usd)
+    const resultados = []
+    for (const { x, d } of todos.slice(0, MAX_RESULTADOS)) resultados.push({ articulo: x.marca, descripcion: x.descripcion, ...(await precioONada(x, tienda)), disponibilidad: d })
+    conTotales(resultados, input.cantidad)
+    if (resultados.some(x => x.pagando_en_dolares_usd)) ctx.enlace = enlaceWeb('otros', {}, tienda)
+    const t = (await import('./store.js')).tiendas()[tienda]
+    return { tienda: nombreTienda(tienda), etiqueta_tasa: t.etiqueta_tasa, ...agrupaTasa(resultados), total_coincidencias: r.length, resultados, nota: !r.length ? 'Sin coincidencias en inventario' : r.length > MAX_RESULTADOS ? `Se muestran ${MAX_RESULTADOS} de ${r.length}; pide más detalle para afinar` : undefined }
   }
   if (nombre === 'listar_servicios') {
     if (!tienda) return FALTA_TIENDA
