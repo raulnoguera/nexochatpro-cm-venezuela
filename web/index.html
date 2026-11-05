@@ -545,7 +545,7 @@ document.addEventListener('click', e => {
 let cau = [], bat = [], ace = [], bic = [];
 const agrupa = (arr, f) => arr.reduce((m, p) => { const k = f(p); if (k) (m[k] = m[k] || []).push(p); return m; }, {});
 const stockEn = p => CIUDAD === 'caracas' ? (p.c ?? 0) : CIUDAD === 'maracay' ? Math.max(p.t1, p.t2) : Math.max(p.t1, p.t2, p.c ?? 0);   // sin ciudad elegida se cuenta todo
-const hay = p => p.u > 0 && stockEn(p) > 0;                          // solo opciones con precio y existencia en la ciudad
+const hay = p => (CIUDAD === 'caracas' ? p.uc > 0 : CIUDAD === 'maracay' ? p.u > 0 : p.u > 0 || p.uc > 0) && stockEn(p) > 0;                          // solo opciones con precio y existencia en la ciudad
 const NOMBRES = { maracay: 'Maracay', caracas: 'Caracas' };
 function ciudadElegida(c) {                                           // se llama al elegir la ciudad en cualquier buscador y al cargar la página
   CIUDAD = NOMBRES[c] ? c : '';

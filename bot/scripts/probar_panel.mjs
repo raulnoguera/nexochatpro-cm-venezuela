@@ -236,6 +236,38 @@ try {
 
   const fetchReal = globalThis.fetch; let apiBCV = 'ok'                    // simula la API del BCV (ok / caída) sin salir a internet
   globalThis.fetch = (u, o) => (String(u).includes('dolarapi') ? (apiBCV === 'ok' ? Promise.resolve({ json: async () => ({ promedio: String(u).includes('euros') ? 1006.0326 : 894.8876, fechaActualizacion: '2026-11-05T00:00:00-04:00' }) }) : Promise.reject(new Error('sin red'))) : fetchReal(u, o))
+  // 10) precios y existencias propios de Caracas: archivo de Caracas (CODIGO CCS), selector de tienda, Maracay intacto
+  const libroC = new ExcelJS.Workbook(), wsC = libroC.addWorksheet('INVENTARIO CAUCHOS')
+  wsC.addRow(['CODIGO CCS', 'MEDIDA', 'MARCA', 'MODELO', 'TIPO', 'LONAS', 'Precio', 'Bs', 'CCS'])
+  wsC.addRow(['K1', '265/60R18', 'Habilead', 'RS21', 'AT', '10 Pr', 150, 158, 4]); wsC.addRow(['K2', '225/65R17', 'Marca Z', 'Z1', 'HT', '', 80, 84, 2])
+  const bufC = Buffer.from(await libroC.xlsx.writeBuffer()), postC = q => fetch(base + '/admin/api/excel/revisar?tienda=caracas' + q, { method: 'POST', headers: { Authorization: auth, 'Content-Type': 'application/octet-stream' }, body: bufC }).then(async r => ({ s: r.status, j: await r.json() }))
+  const maracayAntes = (await api('GET', '/cauchos/items')).j.find(x => x.sku === 'CM-C1')
+  const rc = await postC('')
+  ok('el archivo de Caracas se revisa aparte: empareja Habilead por sus datos, crea Marca Z solo para Caracas y muestra qué cambia', () => {
+    assert.equal(rc.s, 200); const c = rc.j.cauchos; assert.equal(c.total, 2); assert.equal(c.nuevos.length, 1); assert.match(c.nuevos[0], /Marca Z/); assert.equal(c.cambiados.length, 1)
+    assert.ok(c.cambiados[0].cambios.some(x => /Precio en Caracas: por consultar → REF 150/.test(x))); assert.ok(c.cambiados[0].cambios.some(x => /Existencia Caracas: \(vacío\) → 4/.test(x))) })
+  const pubC = await api('POST', '/excel/publicar', { categorias: ['cauchos'] }), lc = (await api('GET', '/cauchos/items')).j
+  const hab = lc.find(x => x.sku === 'CM-C1'), marcaZ = lc.find(x => x.marca === 'Marca Z')
+  ok('publicar el archivo de Caracas pone su precio y existencia sin tocar los de Maracay y crea lo que solo vende Caracas', () => {
+    assert.equal(pubC.s, 200); assert.equal(hab.usd_c, 150); assert.equal(hab.usd_bs_c, 158); assert.equal(hab.cc, 4); assert.equal(hab.codigo_ccs, 'K1'); assert.equal(hab.usd, maracayAntes.usd); assert.equal(hab.cm, maracayAntes.cm)
+    assert.equal(marcaZ.solo, 'caracas'); assert.equal(marcaZ.usd, 0); assert.equal(marcaZ.usd_c, 80) })
+  const wcat = catalogo().cauchos
+  ok('la web recibe el precio de Caracas (uc, bc) y marca el producto que solo vende Caracas (sc)', () => { const w = wcat.find(x => x.z === '265/60R18'); assert.equal(w.uc, 150); assert.equal(w.bc, 158); assert.equal(w.u, maracayAntes.usd); assert.equal(wcat.find(x => x.m === 'Marca Z').sc, 1) })
+  const rcCar = await ejecutar('buscar_cauchos', { tienda: 'caracas', medida: '265/60R18' }, { conversationId: 0 }).catch(e => ({ error: e.message })), rcMar = await ejecutar('buscar_cauchos', { tienda: 'maracay', medida: '265/60R18' }, { conversationId: 0 }).catch(e => ({ error: e.message }))
+  const zMar = await ejecutar('buscar_cauchos', { tienda: 'maracay', medida: '225/65R17' }, { conversationId: 0 }).catch(e => ({ error: e.message }))
+  ok('Nexo usa el precio de la ciudad del cliente y no ofrece en Maracay lo que solo vende Caracas', () => {
+    assert.equal(rcCar.resultados[0].pagando_en_dolares_usd, 150); assert.equal(rcMar.resultados[0].pagando_en_dolares_usd, maracayAntes.usd); assert.equal(zMar.total_coincidencias ?? zMar.resultados?.length ?? 0, 0) })
+  await post('')                                                          // recargar Maracay no borra lo de Caracas
+  await api('POST', '/excel/publicar', { categorias: ['cauchos'] }); const trasMaracay = (await api('GET', '/cauchos/items')).j
+  ok('recargar el archivo de Maracay conserva el precio, la existencia y el código de Caracas, y el producto solo de Caracas', () => {
+    const h = trasMaracay.find(x => x.sku === 'CM-C1'); assert.equal(h.usd_c, 150); assert.equal(h.cc, 4); assert.equal(h.codigo_ccs, 'K1'); assert.ok(trasMaracay.some(x => x.marca === 'Marca Z' && x.solo === 'caracas')) })
+  await post('')
+  const pc2 = await api('PATCH', '/cauchos/items/CM-C1', { usd_c: 160 }), pc3 = await api('PATCH', '/cauchos/items/CM-C1', { usd_c: '' })
+  ok('desde el panel se edita el precio de Caracas (el equivalente en bolívares se calcula) y vaciarlo lo quita', () => { assert.equal(pc2.j.usd_c, 160); assert.equal(pc2.j.usd_bs_c, 168); assert.equal(pc3.j.usd_c, '') })
+  await postC(''); await api('POST', '/excel/publicar', { categorias: ['cauchos'] })
+  const rc2 = await postC('')
+  ok('volver a subir el mismo archivo de Caracas no marca cambios', () => assert.equal(rc2.j.cauchos.cambiados.length, 0))
+
   const t1 = await api('PUT', '/tasas', { euro: '1006,03', dolar: 894.89 }), cj = catalogo()
   ok('el administrador fija la tasa de hoy: queda en uso, vale para Nexo y viaja a la web en catalogo.json', () => { assert.equal(t1.s, 200); assert.equal(t1.j.euro.en_uso.rate, 1006.03); assert.equal(t1.j.euro.en_uso.fuente, 'fijada a mano'); assert.equal(t1.j.dolar.manual.valor, 894.89); assert.equal(cj.tasas.euro.valor, 1006.03); assert.equal(cj.tasas.euro.fecha, new Date().toLocaleDateString('en-CA', { timeZone: 'America/Caracas' })) })
   const t2 = await api('PUT', '/tasas', { euro: 5 }), t3 = await api('GET', '/tasas'), t5 = await api('PUT', '/tasas', { euro: 'abc' })

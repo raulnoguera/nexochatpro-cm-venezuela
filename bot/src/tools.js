@@ -123,20 +123,24 @@ export const definiciones = [
 // con precios distintos cada una lleva su modelo. Las marcas de data/formato_cauchos.json siempre llevan el modelo.
 const siempreModelo = () => { try { return JSON.parse(fs.readFileSync(path.resolve('data', 'formato_cauchos.json'), 'utf8')).marcas_con_modelo.map(norm) } catch { return [] } }
 const grupoKey = x => [x.medida, x.marca, x.tipo ?? '', x.lonas ?? ''].map(norm).join('|')        // las lonas distintas no se unen en una sola línea
-const agrupaModelos = r => {
+const agrupaModelos = (r, tienda) => {
   const fijas = siempreModelo(), por = new Map(), usados = new Set()
   for (const x of r) por.set(grupoKey(x), [...(por.get(grupoKey(x)) || []), x])
   return r.filter(x => {
     if (fijas.includes(norm(x.marca))) return true
-    const g = por.get(grupoKey(x)), k = grupoKey(x) + '|' + x.usd + '|' + x.usd_bs
-    x.modelo_oculto = new Set(g.map(y => y.usd + '|' + y.usd_bs)).size === 1          // un solo precio en el grupo: sin modelo
+    const g = por.get(grupoKey(x)), k = grupoKey(x) + '|' + usdDe(x, tienda) + '|' + usdBsDe(x, tienda)
+    x.modelo_oculto = new Set(g.map(y => usdDe(y, tienda) + '|' + usdBsDe(y, tienda))).size === 1          // un solo precio en el grupo: sin modelo
     return !usados.has(k) && usados.add(k)                                           // una línea por precio distinto
   })
 }
 const modeloVisible = (x, input) => Boolean(input.codigo) || !x.modelo_oculto
 // Productos sin precio en la lista: no se inventa ningún monto; Nexo debe decir que un asesor lo confirma
-const sinPrecio = x => (x.usd > 0 ? 0 : 1)
-const precioONada = async (x, tienda) => (x.usd > 0 ? precio(x.usd, tienda, x.usd_bs) : { precio: 'por_consultar', instruccion: 'No hay precio publicado: dile al cliente que un asesor le confirma el precio; no des ningún monto.' })
+// Cada ciudad tiene su precio: Maracay usa usd y usd_bs; Caracas, usd_c y usd_bs_c. Los productos que solo se venden en Caracas no se ofrecen en Maracay.
+const usdDe = (x, tienda) => (tienda === 'caracas' ? x.usd_c : x.usd) || 0
+const usdBsDe = (x, tienda) => (tienda === 'caracas' ? x.usd_bs_c : x.usd_bs)
+const enCiudad = (x, tienda) => !(x.solo === 'caracas' && tienda !== 'caracas')
+const sinPrecio = (x, tienda) => (usdDe(x, tienda) > 0 ? 0 : 1)
+const precioONada = async (x, tienda) => (usdDe(x, tienda) > 0 ? precio(usdDe(x, tienda), tienda, usdBsDe(x, tienda)) : { precio: 'por_consultar', instruccion: 'No hay precio publicado: dile al cliente que un asesor le confirma el precio; no des ningún monto.' })
 // La tasa es la misma en todas las filas: se informa una sola vez para no repetirla en cada resultado
 const agrupaTasa = rs => { const tasa = rs.find(r => r.tasa_usada)?.tasa_usada; rs.forEach(r => delete r.tasa_usada); return tasa ? { tasa_usada: tasa } : {} }
 // Totales exactos calculados aquí: el modelo no multiplica (se equivocaba en los bolívares)
@@ -166,16 +170,16 @@ export async function ejecutar(nombre, input, ctx) {
   if (nombre === 'buscar_cauchos') {
     if (!tienda) return FALTA_TIENDA
     if (input.rin && !input.medida && !input.marca) return { sin_medida: true, instruccion: 'El cliente solo dio el rin. Pídele la medida completa (viene en el lateral del caucho, ej. 235/60R18); no muestres precios ni sugieras medidas.' }
-    let r = inventario()
+    let r = inventario().filter(x => enCiudad(x, tienda))
     if (input.medida) r = r.filter(x => norm(x.medida).includes(norm(input.medida)))
     if (input.rin) r = r.filter(x => x.rin === input.rin)
     if (input.marca) r = r.filter(x => x.marca.toLowerCase().includes(input.marca.toLowerCase()))
-    if (input.codigo) { const k = String(input.codigo).trim(); r = r.filter(x => x.codigo_cm === k || x.codigo_mc === k) }     // código exacto, sin tolerancia
-    else r = agrupaModelos(r)
+    if (input.codigo) { const k = String(input.codigo).trim(); r = r.filter(x => x.codigo_cm === k || x.codigo_mc === k || x.codigo_ccs === k) }     // código exacto, sin tolerancia
+    else r = agrupaModelos(r, tienda)
     const t = (await import('./store.js')).tiendas()[tienda]
     const resultados = []
     const orden = { disponible: 0, pocas_unidades: 0, por_confirmar: 1, agotado: 2 }
-    const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x) - sinPrecio(b.x) || a.x.usd - b.x.usd)
+    const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x, tienda) - sinPrecio(b.x, tienda) || usdDe(a.x, tienda) - usdDe(b.x, tienda))
     for (const { x, d } of todos.slice(0, MAX_CAUCHOS)) resultados.push({ marca: x.marca, ...(x.modelo && modeloVisible(x, input) && { modelo: x.modelo }), ...(x.tipo && { tipo: x.tipo }), ...(x.lonas && { lonas: x.lonas }), ...(serviciosDe(x).length && { servicios_incluidos: serviciosDe(x) }), ...(x.espec?.length && { especificaciones: x.espec.map(e => `${e.k}: ${e.v}`).join('; ') }), medida: x.medida, ...(x.detalle && { presentacion: x.detalle }), ...(x.nota && { nota: x.nota }), ...(await precioONada(x, tienda)), disponibilidad: d })
     conTotales(resultados, input.cantidad)
     if (resultados.some(x => x.pagando_en_dolares_usd)) { const med = unico(r.map(x => ({ m: x.medida })), 'm'), rin = unico(r.map(x => ({ r: x.rin })), 'r'); ctx.enlace = enlaceWeb('cauchos', { ...(med && { medida: med }), ...(rin && { rin }) }, tienda) }
@@ -184,7 +188,7 @@ export async function ejecutar(nombre, input, ctx) {
   if (nombre === 'buscar_baterias' || nombre === 'buscar_aceites') {
     if (!tienda) return FALTA_TIENDA
     const bat = nombre === 'buscar_baterias'
-    let r = bat ? baterias() : aceites()
+    let r = (bat ? baterias() : aceites()).filter(x => enCiudad(x, tienda))
     const tiene = (campo, v) => r.filter(x => norm(x[campo]).includes(norm(v)))
     if (input.marca) r = r.filter(x => norm(x.marca).includes(norm(input.marca)) || norm(x.descripcion).includes(norm(input.marca)))
     let compat
@@ -199,7 +203,7 @@ export async function ejecutar(nombre, input, ctx) {
     else { if (input.tipo) r = tiene('tipo', input.tipo); if (input.presentacion) r = r.filter(x => norm(x.presentacion) === norm(input.presentacion) || norm(x.presentacion).startsWith(norm(input.presentacion))) }
     const t = (await import('./store.js')).tiendas()[tienda]
     const orden = { disponible: 0, pocas_unidades: 0, por_confirmar: 1, agotado: 2 }
-    const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x) - sinPrecio(b.x) || a.x.usd - b.x.usd)
+    const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x, tienda) - sinPrecio(b.x, tienda) || usdDe(a.x, tienda) - usdDe(b.x, tienda))
     const resultados = []
     for (const { x, d } of todos.slice(0, MAX_RESULTADOS)) resultados.push({
       marca: x.marca, ...(bat ? { descripcion: x.descripcion, grupo: x.grupo, ...(x.garantia && { garantia_meses: x.garantia }) } : { tipo: x.tipo, presentacion: x.presentacion }),
@@ -213,11 +217,11 @@ export async function ejecutar(nombre, input, ctx) {
   }
   if (nombre === 'buscar_bicicletas') {
     if (!tienda) return FALTA_TIENDA
-    let r = bicicletas()
+    let r = bicicletas().filter(x => enCiudad(x, tienda))
     if (input.rin) r = r.filter(x => x.rin === Number(input.rin))
     if (input.modelo) r = r.filter(x => norm(x.modelo) === norm(input.modelo))
     const orden = { disponible: 0, pocas_unidades: 0, por_confirmar: 1, agotado: 2 }
-    const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x) - sinPrecio(b.x) || a.x.usd - b.x.usd)
+    const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x, tienda) - sinPrecio(b.x, tienda) || usdDe(a.x, tienda) - usdDe(b.x, tienda))
     const resultados = []
     for (const { x, d } of todos.slice(0, MAX_RESULTADOS)) resultados.push({ modelo: x.modelo, rin: x.rin, ...(x.para && { para: x.para }), ...(x.colores && { colores: x.colores }), ...(await precioONada(x, tienda)), disponibilidad: d })
     conTotales(resultados, input.cantidad)
@@ -228,9 +232,9 @@ export async function ejecutar(nombre, input, ctx) {
   if (nombre === 'buscar_otros') {
     if (!tienda) return FALTA_TIENDA
     const palabras = String(input.texto ?? '').split(/\s+/).map(norm).filter(Boolean)
-    const r = otros().filter(x => palabras.every(p => norm(`${x.marca} ${x.descripcion}`).includes(p)))
+    const r = otros().filter(x => enCiudad(x, tienda) && palabras.every(p => norm(`${x.marca} ${x.descripcion}`).includes(p)))
     const orden = { disponible: 0, pocas_unidades: 0, por_confirmar: 1, agotado: 2 }
-    const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x) - sinPrecio(b.x) || a.x.usd - b.x.usd)
+    const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x, tienda) - sinPrecio(b.x, tienda) || usdDe(a.x, tienda) - usdDe(b.x, tienda))
     const resultados = []
     for (const { x, d } of todos.slice(0, MAX_RESULTADOS)) resultados.push({ articulo: x.marca, descripcion: x.descripcion, ...(await precioONada(x, tienda)), disponibilidad: d })
     conTotales(resultados, input.cantidad)
