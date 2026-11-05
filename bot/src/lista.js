@@ -508,13 +508,35 @@ export async function leerExcel(buffer, op = {}) {
   if (!Object.values(out).some(r => r.items.length)) throw new Error('No se encontró ningún producto con precio. Sube la lista «MCY - LISTA DE PRECIOS» con sus hojas CAUCHOS, BATERIAS y ACEITES.')
   return out
 }
-function comparar(cat, antes, despues) {
+// Lo que se compara de cada producto al volver a cargar un Excel (por código): todo lo que la carga reemplaza, incluido lo que el administrador
+// pudo poner a mano en el panel (existencia de Caracas, etiqueta, especificaciones…)
+const valoresComparables = (cat, i) => ({
+  Marca: i.marca, Modelo: i.modelo, Tipo: i.tipo, Lonas: i.lonas, Medida: i.medida, Rin: i.rin, Descripción: i.descripcion, Grupo: i.grupo, Amperaje: i.amp, 'Garantía (meses)': i.garantia,
+  Presentación: i.presentacion, Para: i.para, Colores: i.colores, 'Código CM': i.codigo_cm, 'Código MC': i.codigo_mc,
+  ...(CATS[cat].sinProductos ? { 'Grupos por marca de batería': Object.entries(i.grupos || {}).map(([k, g]) => `${k}: ${g}`).join(' · ') }
+    : { Precio: precioTxt(i), 'Precio pagando en bolívares (equivale a)': i.usd_bs > 0 ? 'REF ' + i.usd_bs : '', 'Existencia CM': i.stock?.tienda_1, 'Existencia MC': i.stock?.tienda_2, 'Existencia Caracas': i.stock?.caracas }),
+  Especificaciones: especTxt(i), Servicios: (i.servicios || []).join(' · '), 'Etiqueta (texto manual)': i.etiqueta, 'Chatarra': i.chatarra ? `REF ${i.chatarra.usd} / ${i.chatarra.bs} Bs` : '',
+})
+// Para cada producto que ya estaba publicado y sigue en el archivo: qué campos cambian y si el administrador lo había editado a mano en el panel
+function cambiosDe(cat, antes, despues) {
+  const a = new Map(antes.map(i => [i.sku, i])), salida = new Map()
+  for (const i of despues) {
+    const x = a.get(i.sku); if (!x) continue
+    const va = valoresComparables(cat, x), vd = valoresComparables(cat, i), vacio = v => (v === undefined || v === null || v === '' ? '(vacío)' : String(v))
+    const cambios = Object.keys(vd).filter(k => vacio(va[k]) !== vacio(vd[k])).map(k => `${k}: ${vacio(va[k])} → ${vacio(vd[k])}`)
+    salida.set(i.sku, { nombre: CATS[cat].nombre(i), codigo: i.codigo_cm || i.codigo_mc || i.sku, cambios, aMano: Boolean(x.modificado_panel) && cambios.length > 0, fecha: x.modificado_panel })
+  }
+  return salida
+}
+function comparar(cat, antes, despues, diff = cambiosDe(cat, antes, despues)) {
   const a = new Map(antes.map(i => [i.sku, i])), d = new Map(despues.map(i => [i.sku, i]))
-  const nombre = CATS[cat].nombre
+  const nombre = CATS[cat].nombre, conCambios = [...diff.values()].filter(x => x.cambios.length)
   return {
     nuevos: [...d.values()].filter(i => !a.has(i.sku)).map(nombre),
     quitados: [...a.values()].filter(i => !d.has(i.sku)).map(nombre),
-    precios: [...d.values()].filter(i => a.has(i.sku) && (a.get(i.sku).usd !== i.usd || a.get(i.sku).usd_bs !== i.usd_bs)).map(i => `${nombre(i)}: $${a.get(i.sku).usd} → $${i.usd}`),
+    precios: [...d.values()].filter(i => a.has(i.sku) && (a.get(i.sku).usd !== i.usd || a.get(i.sku).usd_bs !== i.usd_bs)).map(i => `${nombre(i)}: REF ${a.get(i.sku).usd} → REF ${i.usd}`),
+    cambiados: conCambios.map(x => ({ nombre: x.nombre, codigo: x.codigo, cambios: x.cambios, a_mano: x.aMano, fecha: x.fecha })),
+    a_mano: conCambios.filter(x => x.aMano).length,
   }
 }
 
@@ -597,6 +619,7 @@ const TABLA_REVISION = {
 }
 const FILTROS_REVISION = {
   sin_precio: i => !(i.usd > 0), sin_espec: i => !i.espec?.length, sin_codigo: i => !i.codigo_cm && !i.codigo_mc,
+  cambiados: (i, d) => Boolean(d.get(i.sku)?.cambios.length), a_mano: (i, d) => Boolean(d.get(i.sku)?.aMano),
 }
 const pagina = fs.readFileSync(new URL('./admin.html', import.meta.url), 'utf8')
 const paginaUso = fs.readFileSync(new URL('./uso.html', import.meta.url), 'utf8')
@@ -673,12 +696,13 @@ export function montarLista(app) {
     try {
       const prev = req.query.sincodigo === '1'
       const leido = await leerExcel(req.body, { sinCodigo: prev })
-      revision = { items: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items])), omitidas: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.omitidas])), previa: prev }
+      const diff = Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, cambiosDe(c, leer(c).filter(i => !i.sku.startsWith('MAN-')), r.items)]))
+      revision = { items: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items])), omitidas: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.omitidas])), diff, previa: prev }
       res.json(Object.fromEntries(Object.entries(leido).map(([c, r]) => {
         const actual = leer(c).filter(i => !i.sku.startsWith('MAN-'))
         const precio = i => (CATS[c].sinProductos ? i.grupo : i.usd > 0 ? 'REF ' + i.usd : 'precio por consultar')
         return [c, { total: r.items.length, antes: actual.length, omitidas: r.omitidas, vista_previa: prev, sin_precio: CATS[c].sinProductos ? 0 : r.items.filter(i => !(i.usd > 0)).length,
-          con_espec: r.items.filter(i => i.espec?.length).length, muestra: r.items.slice(0, 8).map(i => `${CATS[c].nombre(i)} · ${precio(i)}${i.espec?.length ? ' · ' + i.espec.map(x => x.k + ' ' + x.v).join(', ') : ''}`), ...comparar(c, actual, r.items) }]
+          con_espec: r.items.filter(i => i.espec?.length).length, muestra: r.items.slice(0, 8).map(i => `${CATS[c].nombre(i)} · ${precio(i)}${i.espec?.length ? ' · ' + i.espec.map(x => x.k + ' ' + x.v).join(', ') : ''}`), ...comparar(c, actual, r.items, diff[c]) }]
       })))
     } catch (e) { res.status(400).json({ error: e.message }) }
   })
@@ -688,9 +712,10 @@ export function montarLista(app) {
     if (!revision || !t || !revision.items[c]) return res.status(404).json({ error: 'Primero sube y revisa el archivo.' })
     const { q = '', filtro = 'todas' } = req.query, pagina = Math.max(1, Number(req.query.pagina) || 1), POR = 50
     if (filtro === 'omitidas') return res.json({ cab: ['Fila omitida'], filas: revision.omitidas[c].map(x => [x]), total: revision.omitidas[c].length, filtradas: revision.omitidas[c].length, pagina: 1, paginas: 1 })
-    const f = FILTROS_REVISION[filtro], buscar = String(q).toLowerCase().trim()
-    const filas = revision.items[c].filter(i => (!f || f(i)) && (!buscar || t.fila(i).join(' ').toLowerCase().includes(buscar)))
-    res.json({ cab: t.cab, filas: filas.slice((pagina - 1) * POR, pagina * POR).map(t.fila), total: revision.items[c].length, filtradas: filas.length, pagina, paginas: Math.max(1, Math.ceil(filas.length / POR)) })
+    const f = FILTROS_REVISION[filtro], buscar = String(q).toLowerCase().trim(), diff = revision.diff?.[c] || new Map(), hayCambios = [...diff.values()].some(x => x.cambios.length)
+    const fila = i => (hayCambios ? [...t.fila(i), (diff.get(i.sku)?.cambios || []).join(' · ')] : t.fila(i))        // la última columna dice qué cambia respecto a lo publicado
+    const filas = revision.items[c].filter(i => (!f || f(i, diff)) && (!buscar || fila(i).join(' ').toLowerCase().includes(buscar)))
+    res.json({ cab: hayCambios ? [...t.cab, 'Qué cambia'] : t.cab, filas: filas.slice((pagina - 1) * POR, pagina * POR).map(fila), total: revision.items[c].length, filtradas: filas.length, pagina, paginas: Math.max(1, Math.ceil(filas.length / POR)) })
   })
   // Publica solo las categorías confirmadas (body { categorias: [...] }); sin lista, todas las revisadas. Las demás siguen pendientes de revisar.
   api.post('/excel/publicar', express.json(), (req, res) => {
@@ -719,7 +744,7 @@ export function montarLista(app) {
     try {
       const c = req.params.cat, items = leer(c), i = items.findIndex(x => x.sku === req.params.sku)
       if (i < 0) return res.status(404).json({ error: 'Ese producto ya no existe.' })
-      items[i] = validar(c, req.body, items[i]); guardar(c, items); res.json(vista(c, items[i]))
+      items[i] = { ...validar(c, req.body, items[i]), modificado_panel: new Date().toISOString() }; guardar(c, items); res.json(vista(c, items[i]))      // marca de edición a mano: la próxima carga de Excel avisa antes de pisarlo
     } catch (e) { res.status(400).json({ error: e.message }) }
   })
   cat.patch('/items/:sku', (req, res) => {                                     // edición rápida desde la lista: precio y existencias, sin tocar el resto
@@ -739,7 +764,7 @@ export function montarLista(app) {
       }
       for (const [campo, tienda] of [['cm', 'tienda_1'], ['mc', 'tienda_2']]) if (campo in b) it.stock[tienda] = entero(b[campo])
       if ('cc' in b) { if (b.cc === '' || b.cc == null) delete it.stock.caracas; else it.stock.caracas = entero(b.cc) }
-      items[i] = it; guardar(c, items); res.json(vista(c, it))
+      it.modificado_panel = new Date().toISOString(); items[i] = it; guardar(c, items); res.json(vista(c, it))
     } catch (e) { res.status(400).json({ error: e.message }) }
   })
   cat.delete('/items/:sku', (req, res) => {

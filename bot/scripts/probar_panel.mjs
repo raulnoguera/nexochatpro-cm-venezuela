@@ -209,6 +209,21 @@ try {
   const { esCoherente, ajustarEuro } = await import(pathToFileURL(path.join(aqui, '../src/tasa.js')).href)
   ok('la tasa del euro se descarta si no es coherente con el dólar (1,006 con dólar a 894)', () => { assert.equal(esCoherente(1.006, 894.89), false); assert.equal(esCoherente(1040, 894.89), true); assert.equal(esCoherente(999.77, 894.89), true); assert.equal(esCoherente(1000, 0), true) })
   ok('el euro sin separador de miles (1,006) se corrige a 1.006; un dato absurdo se descarta', () => { assert.equal(ajustarEuro(1.006, 894.89), 1006); assert.equal(ajustarEuro(1040, 894.89), 1040); assert.equal(ajustarEuro(5, 894.89), null); assert.equal(ajustarEuro(1.006, 0), 1006) })
+  // 9) volver a cargar el Excel con otro precio avisa qué cambia y marca lo que el administrador había editado a mano
+  const marca0 = (await api('GET', '/cauchos/items')).j.find(x => x.sku === 'CM-C1')
+  await api('PATCH', '/cauchos/items/CM-C1', { usd: 130 })                  // edición a mano en el panel
+  const hojaC = libro.getWorksheet('INVENTARIO CAUCHOS'); hojaC.getCell('H2').value = 125; hojaC.getCell('I2').value = 131
+  const bufNuevo = Buffer.from(await libro.xlsx.writeBuffer())
+  const rv = await fetch(base + '/admin/api/excel/revisar', { method: 'POST', headers: { Authorization: auth, 'Content-Type': 'application/octet-stream' }, body: bufNuevo }).then(async r => ({ s: r.status, j: await r.json() }))
+  const fm = await api('GET', '/excel/filas/cauchos?filtro=a_mano'), fc = await api('GET', '/excel/filas/cauchos?filtro=cambiados'), fs0 = await api('GET', '/excel/filas/cauchos?filtro=sin_codigo')
+  ok('al volver a cargar con otro precio, el panel dice qué cambia en ese código y que se había editado a mano', () => {
+    assert.equal(marca0.codigo_cm, 'C1'); assert.equal(rv.s, 200); const c = rv.j.cauchos
+    assert.equal(c.cambiados.length, 1); assert.equal(c.cambiados[0].codigo, 'C1'); assert.ok(c.cambiados[0].cambios.includes('Precio: REF 130 → REF 125')); assert.equal(c.a_mano, 1); assert.equal(c.cambiados[0].a_mano, true)
+    assert.deepEqual(c.precios, ['Habilead 265/60R18: REF 130 → REF 125']) })
+  ok('las filas del archivo traen la columna «Qué cambia» y se filtran por cambiados o editados a mano', () => { assert.equal(fm.j.filtradas, 1); assert.equal(fm.j.cab.at(-1), 'Qué cambia'); assert.match(fm.j.filas[0].at(-1), /Precio: REF 130 → REF 125/); assert.equal(fc.j.filtradas, 1); assert.equal(fs0.j.filtradas, 0) })
+  hojaC.getCell('H2').value = 120; hojaC.getCell('I2').value = 126          // se deja el libro como estaba para las pruebas siguientes
+  await post('')
+
   const t1 = await api('PUT', '/tasas', { euro: '1006,03', dolar: 894.89 }), cj = catalogo()
   ok('el administrador fija la tasa de hoy: queda en uso, vale para Nexo y viaja a la web en catalogo.json', () => { assert.equal(t1.s, 200); assert.equal(t1.j.euro.en_uso.rate, 1006.03); assert.equal(t1.j.euro.en_uso.fuente, 'fijada a mano'); assert.equal(t1.j.dolar.manual.valor, 894.89); assert.equal(cj.tasas.euro.valor, 1006.03); assert.equal(cj.tasas.euro.fecha, new Date().toLocaleDateString('en-CA', { timeZone: 'America/Caracas' })) })
   const t2 = await api('PUT', '/tasas', { euro: 5 }), t3 = await api('GET', '/tasas'), t5 = await api('PUT', '/tasas', { euro: 'abc' })
