@@ -239,7 +239,9 @@ function filasBicicletas(ws, op) {                                           // 
 
 // ---------- compatibilidad vehículo -> grupo de batería ----------
 // «GRUPO 22 Y 42» -> ['22','42'] · «30H (BORNE)» -> ['30H'] · «24F, 34» -> ['24F','34']. Una batería sirve si comparte algún grupo con el vehículo.
-export const gruposDe = t => String(t ?? '').toUpperCase().replace(/\bGRUPOS?\b/g, ' ').replace(/\(.*?\)/g, ' ').split(/[,;/+]|\bY\b/).map(norm).filter(Boolean)
+// Grupos que el cliente escribe distinto pero son el mismo para la búsqueda por vehículo: «30HCT» (borne y tornillo) también sirve donde el vehículo pide «30H»
+const GRUPOS_EQUIVALENTES = { '30HCT': ['30H'] }
+export const gruposDe = t => String(t ?? '').toUpperCase().replace(/\bGRUPOS?\b/g, ' ').replace(/\(.*?\)/g, ' ').split(/[,;/+]|\bY\b/).map(norm).filter(Boolean).flatMap(g => [g, ...(GRUPOS_EQUIVALENTES[g] || [])])
 const anio = v => {                                                       // «2010» -> 2010 · «08» -> 2008 · «70» -> 1970
   const n = parseInt((String(v ?? '').match(/\d+/) || [''])[0], 10)
   return Number.isFinite(n) ? (n < 100 ? (n >= 50 ? 1900 + n : 2000 + n) : n) : null

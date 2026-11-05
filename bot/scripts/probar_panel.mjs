@@ -235,6 +235,8 @@ try {
   ok('«Actualizar del BCV» con la API caída avisa con un mensaje y conserva la tasa fijada', () => { assert.equal(t6.s, 400); assert.match(t6.j.error, /API del BCV/); assert.equal(t7.j.euro.manual.valor, 1010); assert.equal(t7.j.euro.api, null) })
   const t4 = await api('PUT', '/tasas', { euro: null, dolar: null, actualizar: true })
   ok('«Actualizar del BCV»: quita la tasa fijada, vuelve a consultar la API y la web ya no recibe la fijada', () => { assert.equal(t4.s, 200); assert.equal(t4.j.euro.manual, null); assert.equal(t4.j.euro.en_uso.fuente, 'BCV'); assert.equal(catalogo().tasas.euro, null) })
+  const { gruposDe } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href)
+  ok('una batería grupo 30HCT también sirve a un vehículo que pide 30H (y no al revés con otros grupos)', () => { assert.deepEqual(gruposDe('30HCT'), ['30HCT', '30H']); assert.deepEqual(gruposDe('GRUPO 30H'), ['30H']); assert.deepEqual(gruposDe('24, 34'), ['24', '34']); assert.ok(gruposDe('30HCT').some(g => gruposDe('30H').includes(g))) })
   const { gruposParaBateria, marcasConGrupos } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href), conDatos = marcasConGrupos(nuevo.compatibilidad.items)
   ok('el grupo depende de la marca de la batería (la más específica) y, sin columna, usa los del vehículo', () => {
     assert.deepEqual(gruposParaBateria(f350, 'Fulgor Black', conDatos), ['34']); assert.deepEqual(gruposParaBateria(f350, 'Fulgor', conDatos), ['24']); assert.deepEqual(gruposParaBateria(f350, 'Duncan Quattro', conDatos), ['4D'])
