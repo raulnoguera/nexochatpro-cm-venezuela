@@ -209,6 +209,16 @@ try {
   const { esCoherente, ajustarEuro } = await import(pathToFileURL(path.join(aqui, '../src/tasa.js')).href)
   ok('la tasa del euro se descarta si no es coherente con el dólar (1,006 con dólar a 894)', () => { assert.equal(esCoherente(1.006, 894.89), false); assert.equal(esCoherente(1040, 894.89), true); assert.equal(esCoherente(999.77, 894.89), true); assert.equal(esCoherente(1000, 0), true) })
   ok('el euro sin separador de miles (1,006) se corrige a 1.006; un dato absurdo se descarta', () => { assert.equal(ajustarEuro(1.006, 894.89), 1006); assert.equal(ajustarEuro(1040, 894.89), 1040); assert.equal(ajustarEuro(5, 894.89), null); assert.equal(ajustarEuro(1.006, 0), 1006) })
+  // 8b) una categoría sin ninguna fila publicable (p. ej. sin códigos) no se puede publicar: vaciaría la lista actual
+  const libroSinCodigo = new ExcelJS.Workbook(), wsS = libroSinCodigo.addWorksheet('INVENTARIO CAUCHOS')
+  wsS.addRow(['CODIGO CM', 'CODIGO MC', 'MEDIDA', 'MARCA', 'MODELO', 'TIPO', 'LONAS', 'Precio', 'Bs']); wsS.addRow(['', '', '195/65R15', 'Marca X', '', 'HT', '', 50, 53])
+  const wsA = libroSinCodigo.addWorksheet('INVENTARIO DE ACEITES'); wsA.addRow(['CODIGO CM', 'CODIGO MC', 'Aceite', 'Combo', 'Marca', 'Precio', 'Bs']); wsA.addRow(['AX1', '', '20W-50', 'Litro', 'Mobil', 9, 10])     // con otra hoja válida el archivo se revisa, y cauchos queda con 0 filas publicables
+  const bufSin = Buffer.from(await libroSinCodigo.xlsx.writeBuffer())
+  await fetch(base + '/admin/api/excel/revisar', { method: 'POST', headers: { Authorization: auth, 'Content-Type': 'application/octet-stream' }, body: bufSin })
+  const vacio = await api('POST', '/excel/publicar', { categorias: ['cauchos'] }), cauchosAntes = (await api('GET', '/cauchos/items')).j.length
+  ok('publicar una categoría sin filas publicables se rechaza con un mensaje y no vacía la lista', () => { assert.equal(vacio.s, 400); assert.match(vacio.j.error, /ninguna fila del archivo se puede publicar/); assert.ok(cauchosAntes >= 1) })
+  await post('')
+
   // 9) volver a cargar el Excel con otro precio avisa qué cambia y marca lo que el administrador había editado a mano
   const marca0 = (await api('GET', '/cauchos/items')).j.find(x => x.sku === 'CM-C1')
   await api('PATCH', '/cauchos/items/CM-C1', { usd: 130 })                  // edición a mano en el panel
