@@ -20,7 +20,7 @@ nav.lat a:hover{background:var(--dark2)}
 nav.lat a.on{background:var(--y);color:#141414}
 nav.lat svg{width:19px;height:19px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 nav.lat .n{margin-left:auto;font-size:12px;opacity:.7;font-weight:700}
-main{padding:26px 28px 70px;max-width:1240px;width:100%}
+main{padding:26px 28px 70px;max-width:1240px;width:100%;min-width:0}
 h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}.sub{color:var(--muted);margin:0 0 20px}
 .cab{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:6px}
 .card{background:var(--s);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:var(--sombra)}
@@ -82,7 +82,11 @@ dialog[open]{display:flex}
 .p.off{display:none!important}.c{display:none}.c.on{display:block}
 .prev{width:88px;height:88px;border-radius:12px;object-fit:cover;background:var(--s2);border:1px solid var(--line)}
 .n{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}.n div{background:var(--bg);border-radius:12px;padding:10px;text-align:center}.n b{display:block;font-size:24px}
-details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20px;max-height:200px;overflow:auto;font-size:14px}
+details summary{cursor:pointer;font-weight:700}
+.rcat{max-width:none}.rcat .cab{align-items:center;margin-bottom:0}.rcat .cab h2{margin:0}.rest{font-weight:800;font-size:13px;padding:3px 10px;border-radius:99px;background:var(--s2);color:var(--muted);border:1px solid var(--line)}.rest.on{background:var(--okbg);color:var(--ok);border-color:transparent}
+.rdet{margin-top:12px;border-top:1px solid var(--line);padding-top:12px}.rctl{display:grid;grid-template-columns:1fr 220px;gap:8px;margin-bottom:10px}@media(max-width:700px){.rctl{grid-template-columns:1fr}}
+.rtab{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:12px}.rtab table{border-collapse:collapse;width:100%;font-size:13px}.rtab th{position:sticky;top:0;background:var(--s2);text-align:left;padding:7px 10px;white-space:nowrap}.rtab td{padding:6px 10px;border-top:1px solid var(--line);vertical-align:top}
+.rpag{display:flex;gap:8px;align-items:center;margin-top:8px}.rpag button{min-height:34px;padding:0 12px}ul{margin:6px 0 0;padding-left:20px;max-height:200px;overflow:auto;font-size:14px}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(10px);background:#141414;color:#fff;border-left:5px solid var(--y);border-radius:12px;padding:12px 16px;opacity:0;pointer-events:none;transition:.2s;max-width:92vw;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.35)}.toast.on{opacity:1;transform:translateX(-50%)}
 </style></head>
 <body><div class="app">
@@ -147,7 +151,7 @@ details summary{cursor:pointer;font-weight:700}ul{margin:6px 0 0;padding-left:20
     <p><input type="file" id="xf" accept=".xlsx"></p>
     <p><label style="display:flex;gap:8px;align-items:flex-start;font-weight:600"><input type="checkbox" id="xprev" style="margin-top:3px"> <span>Solo ver qué trae el archivo, aunque no tenga códigos CM/MC. <span class="muted" style="font-weight:400">No se carga nada: es solo una vista previa.</span></span></label></p>
     <p><button id="xrev" disabled>Revisar archivo</button></p><p id="xmsg"></p>
-    <div id="xres" hidden><div id="xdet"></div><p style="margin-top:12px"><button id="xpub">Publicar ahora</button> <button class="sec" id="xcan">Cancelar</button></p></div>
+    <div id="xres" hidden><div id="xban"></div><div id="xcats"></div><p style="margin-top:12px"><button id="xpub">Publicar lo confirmado</button> <button class="sec" id="xcan">Cancelar</button> <span class="muted" id="xcuenta"></span></p></div>
   </div>
 </section>
 </main></div>
@@ -433,25 +437,66 @@ $('#ajgu').onclick = async () => {
 // ---------- Excel ----------
 const lista = (t, a) => a.length ? `<details><summary>${t} (${a.length})</summary><ul>${a.slice(0, 200).map(x => `<li>${esc(x)}</li>`).join('')}</ul></details>` : ''
 $('#xf').onchange = () => { $('#xrev').disabled = !$('#xf').files[0]; $('#xres').hidden = true; $('#xmsg').textContent = '' }
+let REV = {}                                                   // por categoría: { r: resumen, conf: confirmada, f: { q, filtro, pagina } }
+const FILTROS_REV = [['todas', 'Todas las filas'], ['sin_precio', 'Sin precio'], ['sin_espec', 'Sin especificaciones'], ['sin_codigo', 'Sin código'], ['omitidas', 'Filas que no se publican']]
 $('#xrev').onclick = async () => {
   $('#xrev').disabled = true; $('#xmsg').className = 'muted'; $('#xmsg').textContent = 'Revisando…'
   try {
-    const prev = $('#xprev').checked, j = await api('POST', '/excel/revisar' + (prev ? '?sincodigo=1' : ''), $('#xf').files[0], 'application/octet-stream'), cats = Object.entries(j)
+    const prev = $('#xprev').checked, j = await api('POST', '/excel/revisar' + (prev ? '?sincodigo=1' : ''), $('#xf').files[0], 'application/octet-stream')
     $('#xmsg').textContent = ''
-    $('#xdet').innerHTML = (prev ? '<p class="ok"><b>Vista previa: no se cargó nada.</b> Así quedaría la lista si se cargara este archivo; sin códigos los productos se muestran como disponibles hasta que lleguen las existencias.</p>' : '')
-      + cats.map(([c, r]) => `<h2 style="margin-top:14px">${NOMBRES[c]}</h2><div class="n"><div><b>${r.total}</b>en la lista</div><div><b>${r.sin_precio}</b>sin precio</div><div><b>${r.con_espec}</b>con especificaciones</div><div><b>${r.nuevos.length}</b>nuevos</div><div><b>${r.precios.length}</b>con precio distinto</div></div>
-      <p class="muted">${r.quitados.length ? `Salen de la lista ${r.quitados.length} productos que estaban antes.` : 'No sale ningún producto.'}${r.antes && r.total < r.antes * 0.7 ? ' <span class="err">Atención: la lista nueva es mucho más corta que la actual. Revisa que sea el archivo correcto.</span>' : ''}</p>`
-      + lista('Ejemplos de cómo quedan', r.muestra) + lista('Productos nuevos', r.nuevos) + lista('Precios que cambian', r.precios) + lista('Productos que salen', r.quitados) + lista('Filas que no se publican', r.omitidas)).join('')
-    $('#xres').hidden = false; $('#xpub').hidden = prev
+    REV = Object.fromEntries(Object.entries(j).map(([c, r]) => [c, { r, conf: false, f: { q: '', filtro: 'todas', pagina: 1 } }]))
+    $('#xban').innerHTML = prev ? '<p class="ok"><b>Vista previa: no se cargó nada.</b> Así quedaría la lista si se cargara este archivo; sin códigos los productos se muestran como disponibles hasta que lleguen las existencias. Puedes revisar todas las filas, pero no publicar.</p>' : '<p class="muted">Revisa cada categoría y confírmala. Solo se publican las que confirmes; las demás quedan como están.</p>'
+    $('#xcats').innerHTML = Object.entries(REV).map(([c, { r }]) => `<div class="card rcat" data-c="${c}"><div class="cab"><h2>${NOMBRES[c]}</h2><span class="rest">Pendiente</span></div>
+      <div class="n"><div><b>${r.total}</b>en la lista</div><div><b>${r.sin_precio}</b>sin precio</div><div><b>${r.con_espec}</b>con especificaciones</div><div><b>${r.nuevos.length}</b>nuevos</div><div><b>${r.precios.length}</b>con precio distinto</div><div><b>${r.omitidas.length}</b>no se publican</div></div>
+      <p class="muted">${r.quitados.length ? `Salen de la lista ${r.quitados.length} productos que estaban antes.` : 'No sale ningún producto.'}${r.antes && r.total < r.antes * 0.7 ? ' <span class="err">Atención: la lista nueva es mucho más corta que la actual. Revisa que sea el archivo correcto.</span>' : ''}</p>
+      <div class="acc" style="display:flex;gap:8px;flex-wrap:wrap"><button class="sec" data-ver>Ver todas las filas</button>${prev ? '' : `<button data-conf>Confirmar ${NOMBRES[c].toLowerCase()}</button>`}</div>
+      <div class="rdet" hidden></div>${lista('Productos nuevos', r.nuevos)}${lista('Precios que cambian', r.precios)}${lista('Productos que salen', r.quitados)}</div>`).join('')
+    $('#xpub').hidden = prev; $('#xres').hidden = false; cuentaRev()
   } catch (er) { $('#xmsg').className = 'err'; $('#xmsg').textContent = er.message }
   $('#xrev').disabled = false
 }
-$('#xcan').onclick = () => { $('#xres').hidden = true; $('#xf').value = ''; $('#xrev').disabled = true }
+const cuentaRev = () => { const n = Object.values(REV).filter(x => x.conf).length; $('#xpub').disabled = !n; $('#xpub').textContent = n ? `Publicar lo confirmado (${n})` : 'Publicar lo confirmado'; $('#xcuenta').textContent = n ? '' : 'Confirma al menos una categoría para publicar.' }
+async function filasRev(c) {
+  const box = $(`.rcat[data-c="${c}"] .rdet`), f = REV[c].f
+  try {
+    const j = await api('GET', `/excel/filas/${c}?q=${encodeURIComponent(f.q)}&filtro=${f.filtro}&pagina=${f.pagina}`)
+    box.querySelector('.rtab').innerHTML = `<table><thead><tr>${j.cab.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${j.filas.map(r => `<tr>${r.map(x => `<td>${esc(x)}</td>`).join('')}</tr>`).join('') || `<tr><td colspan="${j.cab.length}" class="muted">No hay filas con ese filtro.</td></tr>`}</tbody></table>`
+    box.querySelector('.rpag').innerHTML = `<button class="sec" data-pg="-1" ${j.pagina <= 1 ? 'disabled' : ''}>← Anterior</button><span class="muted">${j.filtradas} de ${j.total} · página ${j.pagina} de ${j.paginas}</span><button class="sec" data-pg="1" ${j.pagina >= j.paginas ? 'disabled' : ''}>Siguiente →</button>`
+  } catch (er) { box.querySelector('.rtab').innerHTML = `<p class="err">${esc(er.message)}</p>` }
+}
+$('#xcats').onclick = e => {
+  const card = e.target.closest('.rcat'); if (!card) return
+  const c = card.dataset.c, det = card.querySelector('.rdet')
+  if (e.target.closest('[data-ver]')) {
+    det.hidden = !det.hidden
+    if (!det.hidden && !det.innerHTML) {
+      det.innerHTML = `<div class="rctl"><input type="search" placeholder="Buscar en ${NOMBRES[c].toLowerCase()}…" data-q><select data-fl>${FILTROS_REV.map(([k, t]) => `<option value="${k}">${t}</option>`).join('')}</select></div><div class="rtab"></div><div class="rpag"></div>`
+      filasRev(c)
+    }
+    e.target.closest('[data-ver]').textContent = det.hidden ? 'Ver todas las filas' : 'Ocultar filas'
+  } else if (e.target.closest('[data-conf]')) {
+    const x = REV[c]; x.conf = !x.conf
+    card.querySelector('.rest').textContent = x.conf ? '✓ Confirmada' : 'Pendiente'; card.querySelector('.rest').classList.toggle('on', x.conf)
+    e.target.closest('[data-conf]').textContent = x.conf ? 'Quitar confirmación' : `Confirmar ${NOMBRES[c].toLowerCase()}`; e.target.closest('[data-conf]').classList.toggle('sec', x.conf); cuentaRev()
+  } else if (e.target.dataset.pg) { REV[c].f.pagina = Math.max(1, REV[c].f.pagina + Number(e.target.dataset.pg)); filasRev(c) }
+}
+let tq; $('#xcats').oninput = e => {
+  const card = e.target.closest('.rcat'); if (!card || !('q' in e.target.dataset)) return
+  clearTimeout(tq); tq = setTimeout(() => { const f = REV[card.dataset.c].f; f.q = e.target.value; f.pagina = 1; filasRev(card.dataset.c) }, 250)
+}
+$('#xcats').onchange = e => { const card = e.target.closest('.rcat'); if (card && 'fl' in e.target.dataset) { const f = REV[card.dataset.c].f; f.filtro = e.target.value; f.pagina = 1; filasRev(card.dataset.c) } }
+$('#xcan').onclick = () => { $('#xres').hidden = true; $('#xf').value = ''; $('#xrev').disabled = true; REV = {} }
 $('#xpub').onclick = async () => {
+  const cats = Object.entries(REV).filter(([, x]) => x.conf).map(([c]) => c)
+  if (!cats.length) return
+  if (!confirm(`Se van a publicar: ${cats.map(c => NOMBRES[c]).join(', ')}.\n\nLa web y Nexo usarán estas listas ahora mismo. ¿Continuar?`)) return
   $('#xpub').disabled = true
-  try { const j = await api('POST', '/excel/publicar'); $('#xres').hidden = true; $('#xmsg').className = 'ok'; $('#xmsg').textContent = `Listo: ${Object.entries(j.totales).map(([c, n]) => n + ' ' + NOMBRES[c].toLowerCase()).join(', ')} publicados. La web y Nexo ya usan la lista nueva.`; $('#xf').value = ''; $('#xrev').disabled = true; ITEMS = [] }
-  catch (er) { $('#xmsg').className = 'err'; $('#xmsg').textContent = er.message }
-  $('#xpub').disabled = false
+  try {
+    const j = await api('POST', '/excel/publicar', { categorias: cats })
+    $('#xmsg').className = 'ok'; $('#xmsg').textContent = `Listo: ${Object.entries(j.totales).map(([c, n]) => n + ' ' + NOMBRES[c].toLowerCase()).join(', ')} publicados. La web y Nexo ya usan la lista nueva.${j.restantes.length ? ' Quedan sin publicar: ' + j.restantes.map(c => NOMBRES[c].toLowerCase()).join(', ') + '.' : ''}`
+    for (const c of cats) { delete REV[c]; $(`.rcat[data-c="${c}"]`).remove() }
+    ITEMS = []; if (!Object.keys(REV).length) { $('#xres').hidden = true; $('#xf').value = ''; $('#xrev').disabled = true } else cuentaRev()
+  } catch (er) { $('#xmsg').className = 'err'; $('#xmsg').textContent = er.message; $('#xpub').disabled = false }
 }
 
 // ---------- arranque ----------

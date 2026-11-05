@@ -557,7 +557,26 @@ export async function cargarDimensiones(buffer) {
   return { cauchos: items.length, con_dimensiones: nuevos.filter((i, n) => i !== items[n]).length }
 }
 
-let pendiente = null
+// Archivo que se está revisando en «Cargar Excel»: lo leído y las filas omitidas por categoría. previa = solo vista previa (sin códigos): no se puede publicar.
+let revision = null
+const precioTxt = i => (i.usd > 0 ? 'REF ' + i.usd : 'por consultar')
+const existencia = st => `CM ${st?.tienda_1 === SIN_CANTIDAD ? 'hay' : st?.tienda_1 ?? 0} · MC ${st?.tienda_2 === SIN_CANTIDAD ? 'hay' : st?.tienda_2 ?? 0}`
+const codigoDe = i => i.codigo_cm || i.codigo_mc || '—'
+const especTxt = i => (i.espec || []).map(x => `${x.k}: ${x.v}`).join(' · ')
+// Columnas de la tabla de revisión de cada categoría
+const TABLA_REVISION = {
+  cauchos: { cab: ['Código', 'Medida', 'Marca', 'Modelo', 'Tipo', 'Precio', 'Existencia', 'Especificaciones', 'Servicios'],
+    fila: i => [codigoDe(i), i.medida, i.marca, i.modelo || '', [i.tipo, i.lonas && i.lonas + ' lonas'].filter(Boolean).join(' '), precioTxt(i), existencia(i.stock), especTxt(i), (i.servicios || []).join(' · ')] },
+  baterias: { cab: ['Código', 'Marca', 'Grupo', 'Descripción', 'Precio', 'Existencia', 'Garantía', 'Especificaciones'],
+    fila: i => [codigoDe(i), i.marca, i.grupo, i.descripcion, precioTxt(i), existencia(i.stock), i.garantia ? i.garantia + ' meses' : '', especTxt(i)] },
+  aceites: { cab: ['Código', 'Tipo', 'Presentación', 'Marca', 'Precio', 'Existencia'], fila: i => [codigoDe(i), i.tipo, i.presentacion, i.marca, precioTxt(i), existencia(i.stock)] },
+  bicicletas: { cab: ['Código', 'Rin', 'Modelo', 'Para', 'Precio', 'Existencia'], fila: i => [codigoDe(i), i.rin, i.modelo, i.para || '', precioTxt(i), existencia(i.stock)] },
+  compatibilidad: { cab: ['Vehículo', 'Años', 'Grupos', 'Por marca de batería'],
+    fila: i => [`${i.marca} ${i.modelo}`, `${i.desde || 'todos'}${i.hasta && i.hasta !== 9999 ? '–' + i.hasta : i.desde ? ' en adelante' : ''}`, i.grupo, Object.entries(i.grupos || {}).map(([k, g]) => `${k}: ${g}`).join(' · ')] },
+}
+const FILTROS_REVISION = {
+  sin_precio: i => !(i.usd > 0), sin_espec: i => !i.espec?.length, sin_codigo: i => !i.codigo_cm && !i.codigo_mc,
+}
 const pagina = fs.readFileSync(new URL('./admin.html', import.meta.url), 'utf8')
 const paginaUso = fs.readFileSync(new URL('./uso.html', import.meta.url), 'utf8')
 
@@ -622,7 +641,7 @@ export function montarLista(app) {
     try {
       const prev = req.query.sincodigo === '1'
       const leido = await leerExcel(req.body, { sinCodigo: prev })
-      pendiente = prev ? null : Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items]))
+      revision = { items: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items])), omitidas: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.omitidas])), previa: prev }
       res.json(Object.fromEntries(Object.entries(leido).map(([c, r]) => {
         const actual = leer(c).filter(i => !i.sku.startsWith('MAN-'))
         const precio = i => (CATS[c].sinProductos ? i.grupo : i.usd > 0 ? 'REF ' + i.usd : 'precio por consultar')
@@ -631,10 +650,26 @@ export function montarLista(app) {
       })))
     } catch (e) { res.status(400).json({ error: e.message }) }
   })
-  api.post('/excel/publicar', (_req, res) => {
-    if (!pendiente) return res.status(400).json({ error: 'Primero sube y revisa el archivo.' })
-    const totales = aplicarLista(pendiente); pendiente = null
-    res.json({ ok: true, totales })
+  // Todas las filas de una categoría del archivo revisado, con buscador y filtros, para revisarlas antes de confirmar
+  api.get('/excel/filas/:cat', (req, res) => {
+    const c = req.params.cat, t = TABLA_REVISION[c]
+    if (!revision || !t || !revision.items[c]) return res.status(404).json({ error: 'Primero sube y revisa el archivo.' })
+    const { q = '', filtro = 'todas' } = req.query, pagina = Math.max(1, Number(req.query.pagina) || 1), POR = 50
+    if (filtro === 'omitidas') return res.json({ cab: ['Fila omitida'], filas: revision.omitidas[c].map(x => [x]), total: revision.omitidas[c].length, filtradas: revision.omitidas[c].length, pagina: 1, paginas: 1 })
+    const f = FILTROS_REVISION[filtro], buscar = String(q).toLowerCase().trim()
+    const filas = revision.items[c].filter(i => (!f || f(i)) && (!buscar || t.fila(i).join(' ').toLowerCase().includes(buscar)))
+    res.json({ cab: t.cab, filas: filas.slice((pagina - 1) * POR, pagina * POR).map(t.fila), total: revision.items[c].length, filtradas: filas.length, pagina, paginas: Math.max(1, Math.ceil(filas.length / POR)) })
+  })
+  // Publica solo las categorías confirmadas (body { categorias: [...] }); sin lista, todas las revisadas. Las demás siguen pendientes de revisar.
+  api.post('/excel/publicar', express.json(), (req, res) => {
+    if (!revision) return res.status(400).json({ error: 'Primero sube y revisa el archivo.' })
+    if (revision.previa) return res.status(400).json({ error: 'Esto es solo una vista previa: el archivo no tiene códigos y no se puede publicar.' })
+    const pedidas = Array.isArray(req.body?.categorias) ? req.body.categorias : Object.keys(revision.items)
+    if (!pedidas.length || pedidas.some(c => !revision.items[c])) return res.status(400).json({ error: 'Elige categorías que estén en el archivo revisado.' })
+    const totales = aplicarLista(Object.fromEntries(pedidas.map(c => [c, revision.items[c]])))
+    for (const c of pedidas) { delete revision.items[c]; delete revision.omitidas[c] }
+    const restantes = Object.keys(revision.items); if (!restantes.length) revision = null
+    res.json({ ok: true, totales, restantes })
   })
 
   // ---- productos (CRUD) por categoría
