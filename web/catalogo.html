@@ -683,9 +683,14 @@ $('#ciudad').addEventListener('change', e => {
 });
 
 async function tasas() {                              // Maracay usa la tasa euro y Caracas la del dólar, ambas del BCV
+  try {                                                // primero las que valida el servidor (corrige la escala del euro y acepta una tasa fijada a mano)
+    const j = await (await fetch(CATALOGO_URL.replace(/\/catalogo\.json$/, '/tasas'), { cache: 'no-store' })).json();
+    TASAS.euro = j.euro ? j.euro.rate : null; TASAS.dolar = j.dolar ? j.dolar.rate : null;
+    return;
+  } catch (e) { /* sin respuesta del servidor: se consulta la API directamente */ }
   const pide = async (ruta) => { try { const j = await (await fetch('https://ve.dolarapi.com/v1/' + ruta + '/oficial', { cache: 'no-store' })).json(); return j.promedio > 0 ? j.promedio : null; } catch (e) { return null; } };
   [TASAS.euro, TASAS.dolar] = await Promise.all([pide('euros'), pide('dolares')]);
-  if (TASAS.euro && TASAS.dolar && (TASAS.euro < TASAS.dolar * 0.8 || TASAS.euro > TASAS.dolar * 2)) TASAS.euro = null;   // la API a veces da el euro en otra escala (1,006): sin tasa fiable no se muestran precios en Bs
+  if (TASAS.euro && TASAS.dolar && (TASAS.euro < TASAS.dolar * 0.8 || TASAS.euro > TASAS.dolar * 2)) TASAS.euro = TASAS.euro * 1000 >= TASAS.dolar * 0.8 && TASAS.euro * 1000 <= TASAS.dolar * 2 ? TASAS.euro * 1000 : null;   // la API a veces da el euro en otra escala (1,006): sin tasa fiable no se muestran precios en Bs
 }
 (async () => {
   const [j] = await Promise.all([fetch(CATALOGO_URL, { cache: 'no-cache' }).then(r => r.json()).catch(() => fetch('catalogo.json').then(r => r.json())), tasas()]);
