@@ -61,16 +61,28 @@ button.del{background:transparent;border:1.5px solid var(--bad);color:var(--bad)
 .vsel button{min-height:34px;padding:0 14px;border-radius:9px;background:transparent;color:inherit;font-weight:700;border:0;font-size:14px}
 .vsel button:hover{background:var(--s)}.vsel button[aria-pressed=true]{background:var(--y);color:#141414}
 .cab .acciones{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.xl{overflow:auto;max-height:72vh;border:1px solid var(--line);border-radius:10px;background:var(--s)}
+.xl{overflow:auto;max-height:74vh;border:1px solid var(--line);border-radius:10px;background:var(--s)}
 .xl table{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:13px;font-variant-numeric:tabular-nums}
-.xl th{position:sticky;top:0;z-index:2;background:var(--s2);text-align:left;padding:7px 10px;white-space:nowrap;font-size:12px;letter-spacing:.03em;border-bottom:2px solid var(--line);border-right:1px solid var(--line)}
-.xl td{padding:0 10px;height:32px;line-height:30px;white-space:nowrap;border-bottom:1px solid var(--line);border-right:1px solid var(--line);max-width:320px;overflow:hidden;text-overflow:ellipsis}
-.xl td.num,.xl th.num{text-align:right}.xl td.n,.xl th.n{position:sticky;left:0;z-index:1;background:var(--s2);color:var(--muted);text-align:center;font-size:11px;padding:0 6px;min-width:38px;line-height:30px}.xl th.n{z-index:3}
-.xl tr:hover td{background:var(--s2)}.xl td.ed{padding:0}
-.xl td input{width:92px;min-height:30px;height:30px;border:0;border-radius:0;background:transparent;text-align:right;padding:0 8px;font-weight:600}
+.xl th{position:sticky;top:0;z-index:2;background:var(--s2);text-align:left;padding:0 12px;height:36px;white-space:nowrap;font-size:12px;font-weight:800;letter-spacing:.02em;border-bottom:2px solid var(--line);border-right:1px solid var(--line);user-select:none}
+.xl th[data-t]{cursor:pointer}.xl th[data-t]:hover{background:var(--y);color:#141414}.xl th .fl{opacity:.75;margin-left:5px;font-size:10px}
+.xl td{padding:0 12px;height:34px;vertical-align:middle;white-space:nowrap;border-bottom:1px solid var(--line);border-right:1px solid var(--line);max-width:300px;overflow:hidden;text-overflow:ellipsis}
+.xl td.rnum,.xl th.rnum{text-align:right}
+.xl td.rn,.xl th.rn{position:sticky;left:0;z-index:1;background:var(--s2);color:var(--muted);text-align:center;font-size:11px;font-weight:700;padding:0 8px;min-width:46px;border-right:2px solid var(--line)}.xl th.rn{z-index:3}
+.xl tbody tr:nth-child(even) td:not(.rn){background:rgba(127,127,127,.07)}
+.xl tbody tr:hover td:not(.rn){background:rgba(245,217,10,.16)}.xl tbody tr:hover td.rn{color:var(--ink);background:var(--y)}
+.xl td.ed{padding:0}.xl td.falta{background:var(--warnbg)!important}
+.xl td input{width:96px;min-height:34px;height:34px;border:0;border-radius:0;background:transparent;text-align:right;padding:0 10px;font-weight:700;display:block}
+.xl td input::placeholder{color:var(--muted);font-weight:400}
 .xl td input:focus{background:var(--s);outline:2px solid var(--yd);outline-offset:-2px;box-shadow:none}
-.xl tr.pr td{opacity:.6}.xl tr.gu td{background:var(--okbg)}
-.xl td.ac{padding:0 6px;white-space:nowrap}.xl td.ac button{min-height:26px;padding:0 10px;font-size:12px;margin-right:4px}
+.xl td input.mal{outline:2px solid var(--bad);outline-offset:-2px}
+.xl tr.ago td:not(.ed):not(.rn){color:var(--muted)}
+.xl tr.pr td{opacity:.55}.xl tr.gu td:not(.rn){background:var(--okbg)!important}
+.xl td.ac{padding:0 8px;white-space:nowrap}.xl td.ac button{min-height:26px;padding:0 10px;font-size:12px;margin-right:4px}
+.colmenu{position:relative}.colmenu summary{list-style:none;cursor:pointer;min-height:42px;display:inline-flex;align-items:center;padding:0 16px;border:1.5px solid var(--line);border-radius:10px;font-weight:700;background:var(--s)}
+.colmenu summary::-webkit-details-marker{display:none}.colmenu[open] summary{background:var(--s2)}
+.colbox{position:absolute;right:0;top:48px;z-index:20;background:var(--s);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:230px;max-height:60vh;overflow:auto;box-shadow:var(--sombra)}
+.colbox label{display:flex;gap:8px;align-items:center;padding:5px 0;font-size:14px;cursor:pointer}.colbox input{width:auto;min-height:0}.colbox .sec{margin-top:8px;min-height:34px;width:100%}
+.xl-pie{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:12px}
 .fila{display:grid;grid-template-columns:52px minmax(0,1fr) 92px 92px 64px 64px 96px 92px 72px auto;gap:10px;align-items:center;padding:10px 4px;border-top:1px solid var(--line);border-radius:8px;transition:background .3s}
 .fila:first-child{border-top:0}.fila.gu{background:var(--okbg)}.fila.pr{opacity:.55}
 .fila.sinx{grid-template-columns:minmax(0,1fr) auto}
@@ -136,7 +148,7 @@ details summary{cursor:pointer;font-weight:700}
 
 <!-- ===== LISTA DE PRODUCTOS ===== -->
 <section class="vista" id="v-lista">
-  <div class="cab"><div><h1 id="l-tit">Cauchos</h1><p class="sub" id="l-sub"></p></div><div class="acciones"><div class="vsel" role="group" aria-label="Estilo de vista de la lista"><button type="button" data-vista="tarjetas" aria-pressed="true">Tarjetas</button><button type="button" data-vista="tabla" aria-pressed="false">Tabla tipo Excel</button></div><button id="nuevo">＋ Nuevo producto</button></div></div>
+  <div class="cab"><div><h1 id="l-tit">Cauchos</h1><p class="sub" id="l-sub"></p></div><div class="acciones"><details class="colmenu" id="colmenu" hidden><summary>Columnas</summary><div class="colbox" id="colbox"></div></details><div class="vsel" role="group" aria-label="Estilo de vista de la lista"><button type="button" data-vista="tarjetas" aria-pressed="true">Tarjetas</button><button type="button" data-vista="tabla" aria-pressed="false">Tabla tipo Excel</button></div><button id="nuevo">＋ Nuevo producto</button></div></div>
   <div class="card">
     <div class="barra-h">
       <input id="q" placeholder="Buscar por marca, medida, grupo o tipo" aria-label="Buscar">
@@ -332,21 +344,50 @@ const COLS = {
   otros: [{ t: 'Código', v: codigoDeFila }, { t: 'Nombre', v: i => i.marca }, { t: 'Descripción', v: i => i.descripcion }, ...COLS_PRECIO],
   compatibilidad: [{ t: 'Marca', v: i => i.marca }, { t: 'Modelo', v: i => i.modelo }, { t: 'Año desde', n: 1, v: i => i.desde }, { t: 'Año hasta', n: 1, v: i => i.hasta }, { t: 'Grupo(s)', v: i => i.grupo }],
 }
-const celdaTabla = (c, i) => c.f ? `<td class="ed num"><input data-f="${c.f}" type="number" min="0" step="${c.step}" inputmode="decimal" value="${esc(num(c.v(i)))}" placeholder="${c.ph || ''}" aria-label="${c.t} de ${esc(i.marca)}"></td>` : `<td class="${c.n ? 'num' : ''}" title="${esc(c.v(i) ?? '')}">${esc(c.v(i) ?? '')}</td>`
-const filaTabla = (i, cols, n) => `<tr data-sku="${i.sku}" data-n="${n}"><td class="n">${n}</td>${cols.map(c => celdaTabla(c, i)).join('')}<td class="ac"><button class="sec" data-e="${i.sku}">Editar</button><button class="del" data-d="${i.sku}">Eliminar</button></td></tr>`
+const celdaTabla = (c, i) => c.f ? `<td class="ed num${c.f === 'usd' && !(Number(i.usd) > 0) ? ' falta' : ''}"><input data-f="${c.f}" type="number" min="0" step="${c.step}" inputmode="decimal" value="${esc(num(c.v(i)))}" placeholder="${c.ph || ''}" aria-label="${c.t} de ${esc(i.marca)}"></td>` : `<td class="${c.n ? 'num' : ''}" title="${esc(c.v(i) ?? '')}">${esc(c.v(i) ?? '')}</td>`
+const filaTabla = (i, cols, n) => `<tr data-sku="${i.sku}" data-n="${n}"${total(i) <= 0 ? ' class="ago"' : ''}><td class="rn">${n}</td>${cols.map(c => celdaTabla(c, i)).join('')}<td class="ac"><button class="sec" data-e="${i.sku}">Editar</button><button class="del" data-d="${i.sku}">Eliminar</button></td></tr>`
+// columnas que el usuario quiere ver (se recuerdan por categoría) y orden por columna (se toca el título)
+const ocultas = () => { try { return JSON.parse(localStorage.getItem('cols_ocultas_' + CAT) || '[]') } catch (_) { return [] } }
+const guardarOcultas = l => { try { localStorage.setItem('cols_ocultas_' + CAT, JSON.stringify(l)) } catch (_) {} }
+const colsVisibles = () => COLS[CAT].filter(c => !ocultas().includes(c.t))
+const ORD_T = {}                                                       // por categoría: { t: título de la columna, d: 1 ascendente / -1 descendente }
+const ordenadas = r => {
+  const o = ORD_T[CAT], col = o && COLS[CAT].find(c => c.t === o.t); if (!col) return r
+  const val = i => { const v = col.v(i); return v === '' || v == null ? null : v }, num_ = v => typeof v === 'number' || (v !== null && v !== '' && !isNaN(Number(v)))
+  return [...r].sort((a, b) => { const x = val(a), y = val(b); if (x === null) return y === null ? 0 : 1; if (y === null) return -1                  // los vacíos siempre al final
+    return (num_(x) && num_(y) ? Number(x) - Number(y) : String(x).localeCompare(String(y), 'es', { numeric: true, sensitivity: 'base' })) * o.d })
+}
 const tablaHtml = (rows, desde) => !rows.length ? '<p class="muted">No hay productos con ese filtro.</p>'
-  : `<div class="xl"><table><thead><tr><th class="n">#</th>${COLS[CAT].map(c => `<th class="${c.n || c.f ? 'num' : ''}">${esc(c.t)}</th>`).join('')}<th></th></tr></thead><tbody>${rows.map((i, k) => filaTabla(i, COLS[CAT], desde + k + 1)).join('')}</tbody></table></div>`
+  : `<div class="xl"><table><thead><tr><th class="rn" title="Número de fila">#</th>${colsVisibles().map(c => { const o = ORD_T[CAT]; return `<th class="${c.n || c.f ? 'num' : ''}" data-t="${esc(c.t)}" title="Tocar para ordenar">${esc(c.t)}${o?.t === c.t ? `<span class="fl">${o.d > 0 ? '▲' : '▼'}</span>` : ''}</th>` }).join('')}<th></th></tr></thead><tbody>${rows.map((i, k) => filaTabla(i, colsVisibles(), desde + k + 1)).join('')}</tbody></table></div>`
+const pintarColumnas = () => {
+  $('#colmenu').hidden = VISTA !== 'tabla'
+  if (VISTA !== 'tabla') return
+  const of = ocultas()
+  $('#colbox').innerHTML = COLS[CAT].map(c => `<label><input type="checkbox" data-col="${esc(c.t)}" ${of.includes(c.t) ? '' : 'checked'}> ${esc(c.t)}</label>`).join('') + '<button type="button" class="sec" data-col-todas>Mostrar todas</button>'
+}
+document.addEventListener('change', e => {
+  const k = e.target.closest('[data-col]'); if (!k) return
+  const of = new Set(ocultas()); if (k.checked) of.delete(k.dataset.col); else of.add(k.dataset.col)
+  if (of.size >= COLS[CAT].length) { k.checked = true; of.delete(k.dataset.col) }                         // siempre queda al menos una columna
+  guardarOcultas([...of]); pintar()
+})
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-col-todas]')) { guardarOcultas([]); pintar(); return }
+  const th = e.target.closest('.xl th[data-t]')
+  if (th) { const o = ORD_T[CAT]; ORD_T[CAT] = !o || o.t !== th.dataset.t ? { t: th.dataset.t, d: 1 } : o.d === 1 ? { t: th.dataset.t, d: -1 } : null; pag = 0; pintar(); return }   // 1.º ascendente, 2.º descendente, 3.º quita el orden
+  if (!e.target.closest('#colmenu')) $('#colmenu').removeAttribute('open')
+})
 const pintarVista = () => $$('.vsel button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.vista === VISTA)))
 $$('.vsel button').forEach(b => b.onclick = () => { VISTA = b.dataset.vista; try { localStorage.setItem('vista_lista', VISTA) } catch (_) {} pag = 0; pintar() })
 function pintar() {
-  pintarVista()
-  const r = filtrados(), tam = TAM(), max = Math.max(0, Math.ceil(r.length / tam) - 1); pag = Math.min(pag, max); const c = CFG[CAT]
+  pintarVista(); pintarColumnas()
+  const r = VISTA === 'tabla' ? ordenadas(filtrados()) : filtrados(), tam = TAM(), max = Math.max(0, Math.ceil(r.length / tam) - 1); pag = Math.min(pag, max); const c = CFG[CAT]
   $('#chips').innerHTML = esCompat() ? '' : [['', 'Todos', ITEMS.length], ...Object.entries(FILTROS).map(([k, x]) => [k, x.t, ITEMS.filter(x.fn).length])].map(([k, t, n]) => `<button class="chip" data-fl="${k}" aria-pressed="${FILTRO === k}">${t}<small>${n}</small></button>`).join('')
   $('#l-sub').textContent = `${ITEMS.length} ${esc(esCompat() ? 'vehículos' : 'productos')}${r.length !== ITEMS.length ? ` · ${r.length} con este filtro` : ''}`
   $('#cont').innerHTML = VISTA === 'tabla' ? tablaHtml(r.slice(pag * tam, pag * tam + tam), pag * tam) : esCompat() ? r.slice(pag * PAG, pag * PAG + PAG).map(i => `<div class="fila sinx"><div class="nm"><b>${esc(i.marca)} · ${esc(i.modelo)}${i.manual ? '<span class="tag">a mano</span>' : ''}</b><small>${esc(c.detalle(i))}</small></div>
     <div class="acc"><button class="sec" data-e="${i.sku}">Editar</button><button class="del" data-d="${i.sku}">Eliminar</button></div></div>`).join('') || '<p class="muted">Todavía no hay vehículos cargados. Sube la hoja COMPATIBILIDAD del Excel o crea uno con «Nuevo vehículo».</p>'
     : r.slice(pag * PAG, pag * PAG + PAG).map(i => fila(i, c)).join('') || '<p class="muted">No hay productos con ese filtro.</p>'
-  $('#pgi').textContent = `Página ${pag + 1} de ${max + 1}`
+  $('#pgi').textContent = `Página ${pag + 1} de ${max + 1}${VISTA === 'tabla' && r.length ? ` · filas ${pag * tam + 1}–${Math.min(r.length, pag * tam + tam)} de ${r.length}` : ''}`
   $('#prev').disabled = pag === 0; $('#next').disabled = pag >= max
 }
 const opciones = (id, vals) => { $(id).innerHTML = [...new Set(vals.filter(Boolean))].sort().map(v => `<option value="${esc(v)}">`).join('') }
@@ -361,7 +402,17 @@ for (const id of ['#q', '#fm', '#ord']) $(id).oninput = () => { pag = 0; pintar(
 $('#prev').onclick = () => { pag--; pintar(); window.scrollTo(0, 0) }; $('#next').onclick = () => { pag++; pintar(); window.scrollTo(0, 0) }
 
 // edición rápida: precio y existencias se guardan al salir de la casilla
-document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('[data-sku] input[data-f]')) e.target.blur() })
+document.addEventListener('keydown', e => {
+  const inp = e.target.closest?.('[data-sku] input[data-f]'); if (!inp) return
+  const enTabla = Boolean(inp.closest('.xl'))
+  if (enTabla && (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowUp')) {                 // como en Excel: Enter y las flechas pasan a la misma columna de la fila de abajo o de arriba
+    e.preventDefault()
+    const tr = inp.closest('tr'), sig = e.key === 'ArrowUp' ? tr.previousElementSibling : tr.nextElementSibling, f = inp.dataset.f
+    inp.blur(); sig?.querySelector(`input[data-f="${f}"]`)?.focus()
+  } else if (e.key === 'Enter') inp.blur()
+  else if (e.key === 'Escape') { inp.value = ITEMS.find(x => x.sku === inp.closest('[data-sku]').dataset.sku)?.[inp.dataset.f] ?? ''; inp.blur() }
+})
+document.addEventListener('focusin', e => { if (e.target.matches?.('.xl td input')) e.target.select() })
 document.addEventListener('change', async e => {
   const inp = e.target.closest('[data-sku] input[data-f]'); if (!inp) return
   const row = inp.closest('[data-sku]'), it = ITEMS.find(x => x.sku === row.dataset.sku), campo = inp.dataset.f
@@ -370,10 +421,10 @@ document.addEventListener('change', async e => {
   try {
     const nuevo = await api('PATCH', `/${CAT}/items/${it.sku}`, { [campo]: inp.value })
     Object.assign(it, { usd: nuevo.usd, usd_bs: nuevo.usd_bs, usd_c: nuevo.usd_c, usd_bs_c: nuevo.usd_bs_c, cm: nuevo.cm, mc: nuevo.mc, cc: nuevo.cc })
-    row.outerHTML = row.tagName === 'TR' ? filaTabla(it, COLS[CAT], Number(row.dataset.n)) : fila(it, CFG[CAT])
+    row.outerHTML = row.tagName === 'TR' ? filaTabla(it, colsVisibles(), Number(row.dataset.n)) : fila(it, CFG[CAT])
     const nf = $$('[data-sku]').find(x => x.dataset.sku === it.sku); nf.classList.add('gu'); setTimeout(() => nf.classList.remove('gu'), 1200)
     $$('#chips .chip').forEach(b => { const k = b.dataset.fl; b.querySelector('small').textContent = k ? ITEMS.filter(FILTROS[k].fn).length : ITEMS.length })
-  } catch (er) { row.classList.remove('pr'); inp.value = it[campo] ?? ''; toast(er.message) }
+  } catch (er) { row.classList.remove('pr'); inp.value = it[campo] ?? ''; inp.classList.add('mal'); setTimeout(() => inp.classList.remove('mal'), 2500); toast(er.message) }
 })
 
 // ---------- formulario completo ----------

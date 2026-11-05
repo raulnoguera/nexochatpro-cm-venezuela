@@ -213,8 +213,12 @@ S += fig('07-lista.jpg', ['Buscador: escribe una marca, una medida, un grupo o u
 S += [Paragraph('Cambiar el estilo de vista: tarjetas o tabla tipo Excel', H3),
       Paragraph('Arriba de cada lista (Cauchos, Baterías, Aceites, Otros, Bicicletas y Vehículos → batería) hay un botón con dos opciones. <b>«Tarjetas»</b> muestra cada producto en una tarjeta con su foto; <b>«Tabla tipo Excel»</b> los muestra en filas y columnas, como en el archivo de Excel, con las mismas columnas y 100 productos por página. El panel recuerda la que elijas la próxima vez que entres.', P)]
 S += fig('30-vista-tabla.jpg', ['Botón de estilo de vista: «Tarjetas» o «Tabla tipo Excel». La opción activa se ve en amarillo.',
-                               'En la tabla, la fila de títulos queda fija arriba y la columna con el número de fila queda fija a la izquierda mientras te desplazas.',
-                               'Precio, Bs, CM, MC, Precio Caracas, Bs Caracas y CCS se editan en la propia celda (se guardan al salir de la casilla); lo demás se cambia con «Editar» (a la derecha de cada fila).'], 'Lista de Cauchos en «Tabla tipo Excel»')
+                               '«Columnas»: elige qué columnas ver (se recuerda por categoría).',
+                               'Los títulos ordenan: toca uno para ordenar de menor a mayor (▲), otra vez de mayor a menor (▼) y una tercera para quitar el orden. Los vacíos quedan siempre al final.',
+                               'La fila bajo el cursor se resalta; los precios en 0 se marcan en ámbar y los productos agotados se ven más claros.',
+                               'Precio, Bs, CM, MC, Precio Caracas, Bs Caracas y CCS se editan en la propia celda; lo demás se cambia con «Editar» (a la derecha de cada fila).'], 'Lista de Cauchos en «Tabla tipo Excel» (ordenada por Modelo)')
+S += bl(['<b>Moverte como en Excel</b>: en una celda editable, <b>Enter</b> o la flecha ↓ guarda y pasa a la misma columna de la fila de abajo; la flecha ↑ sube; <b>Esc</b> cancela lo que escribiste.',
+         'La fila de títulos y la columna con el número de fila quedan fijas mientras te desplazas. Abajo ves «filas 1–100 de N».'])
 S += [Paragraph('Cambiar el precio o las existencias directamente en la lista', H3)]
 S += pasos(['Busca el producto (por ejemplo escribe «habilead» en el buscador).',
             'Haz clic en la casilla que quieres cambiar, por ejemplo el <b>precio</b>.',
