@@ -229,16 +229,29 @@ details summary{cursor:pointer;font-weight:700}
     <label class="c c-baterias"><span class="l">Grupo</span><input id="grupo" maxlength="40" list="grupos" placeholder="GRUPO 24" autocomplete="off"></label>
     <label class="c c-baterias"><span class="l">Amperaje (opcional)</span><input id="amp" type="number" min="0" step="1" inputmode="numeric"></label>
     <label class="c c-baterias"><span class="l">Garantía en meses (opcional)</span><input id="garantia" type="number" min="0" step="1" inputmode="numeric"></label>
+    <label class="c c-baterias"><span class="l">Polaridad (opcional; se agrega a la descripción)</span><select id="bpolaridad"><option value="">Sin dato</option><option value="DERECHA">Derecha</option><option value="IZQUIERDA">Izquierda</option></select></label>
+    <label class="c c-baterias"><span class="l">Recargo batería vieja (chatarra), en dólares (opcional)</span><input id="bchatarra_usd" type="number" min="0" step="0.01" inputmode="decimal"></label>
+    <label class="c c-baterias"><span class="l">Recargo batería vieja (chatarra), en bolívares (opcional)</span><input id="bchatarra_bs" type="number" min="0" step="0.01" inputmode="decimal"></label>
+    <label class="c c-baterias w"><span class="l">Servicios de esta batería (opcional, uno por línea)</span><textarea id="bservicios" rows="3" placeholder="Instalación gratis"></textarea></label>
+    <label class="c c-baterias w"><span class="l">Medidas y especificaciones (opcional, una por línea: «Nombre: valor»; Largo, Ancho, Alto, Voltaje, Amperios de arranque (CA), Arranque en frío (CCA), Amperios por hora (AH), Capacidad de reserva (CR))</span><textarea id="bespec" rows="5" placeholder="Largo: 260&#10;Ancho: 173&#10;Alto: 225&#10;Voltaje: 12 V"></textarea></label>
     <label class="c c-compatibilidad"><span class="l">Modelo del vehículo</span><input id="vmodelo" maxlength="60" placeholder="COROLLA" autocomplete="off"></label>
     <label class="c c-compatibilidad"><span class="l">Año desde (opcional)</span><input id="vdesde" type="number" min="1900" max="2100" step="1" inputmode="numeric" placeholder="2009"></label>
     <label class="c c-compatibilidad"><span class="l">Año hasta (opcional)</span><input id="vhasta" type="number" min="1900" max="2100" step="1" inputmode="numeric" placeholder="2019"></label>
     <label class="c c-compatibilidad w"><span class="l">Grupo(s) de batería (como en la lista de precios; varios separados por coma)</span><input id="vgrupo" maxlength="80" list="grupos" placeholder="GRUPO 24, GRUPO 34" autocomplete="off"></label>
+    <label class="c c-compatibilidad"><span class="l">Polaridad (opcional)</span><select id="vpolaridad"><option value="">Sin dato</option><option value="DERECHA">Derecha</option><option value="IZQUIERDA">Izquierda</option></select></label>
+    <label class="c c-compatibilidad"><span class="l">Amperaje mínimo (opcional)</span><input id="vamp_min" type="number" min="0" step="1" inputmode="numeric"></label>
+    <label class="c c-compatibilidad w"><span class="l">Grupo por marca de batería (opcional, una por línea: «Marca: grupo»)</span><textarea id="vgrupos" rows="4" placeholder="Fulgor: 24&#10;Marussi Plus: 34&#10;Duncan: 4D"></textarea></label>
     <label class="c c-bicicletas"><span class="l">Rin</span><input id="rin" type="number" min="10" max="32" step="1" inputmode="numeric" placeholder="20"></label>
     <label class="c c-bicicletas"><span class="l">Modelo</span><input id="modelo" maxlength="30" placeholder="130" autocomplete="off"></label>
     <label class="c c-bicicletas"><span class="l">Para (opcional)</span><input id="para" maxlength="30" placeholder="NIÑO, NIÑA…" autocomplete="off"></label>
     <label class="c c-bicicletas w"><span class="l">Colores (separados por coma)</span><input id="colores" maxlength="120" placeholder="Azul, Rojo, Verde" autocomplete="off"></label>
+    <label class="c c-bicicletas w"><span class="l">Características (opcional)</span><input id="caracteristicas" maxlength="300" placeholder="Aluminio, frenos V-brake…" autocomplete="off"></label>
     <label class="c c-aceites"><span class="l">Tipo / viscosidad</span><input id="tipo" maxlength="60" list="tipos" placeholder="20W-50 MINERAL" autocomplete="off"></label>
     <label class="c c-aceites"><span class="l">Presentación</span><input id="presentacion" maxlength="40" list="presentaciones" placeholder="Litro, 4 Litros…" autocomplete="off"></label>
+    <div class="sec-t p">Códigos del inventario (opcional)</div>
+    <label class="p"><span class="l">Código CM Maracay</span><input id="codigo_cm" maxlength="30" autocomplete="off"></label>
+    <label class="p"><span class="l">Código Master Cauchos</span><input id="codigo_mc" maxlength="30" autocomplete="off"></label>
+    <label class="p"><span class="l">Código CM Caracas</span><input id="codigo_ccs" maxlength="30" autocomplete="off"></label>
     <div class="sec-t p">Precio y existencias</div>
     <label class="p"><span class="l">Precio en dólares (0 = «Consultar precio»)</span><input id="usd" type="number" step="0.01" min="0" required inputmode="decimal"></label>
     <label class="p"><span class="l">Equivalente en $ si paga en bolívares</span><input id="usd_bs" type="number" step="0.01" min="0" inputmode="decimal" placeholder="Automático (+5 %)"></label>
@@ -274,9 +287,9 @@ let CAT = 'cauchos', ITEMS = [], pag = 0, edit = null, quitar = false, FILTRO = 
 const esCompat = () => CAT === 'compatibilidad'
 const CFG = {   // campos propios de cada categoría, cómo se titula cada fila y por cuáles se busca
   cauchos: { campos: ['medida', 'modelo', 'tipo', 'lonas', 'servicios', 'espec'], titulo: i => i.medida, detalle: i => [i.modelo, i.tipo, i.lonas && `${i.lonas} lonas`].filter(Boolean).join(' · '), buscar: i => i.marca + i.medida + (i.modelo || '') + (i.tipo || '') },
-  baterias: { campos: ['descripcion', 'grupo', 'amp', 'garantia'], titulo: i => i.descripcion, detalle: i => [i.grupo, i.garantia && 'garantía ' + i.garantia + ' m'].filter(Boolean).join(' · '), buscar: i => i.marca + i.descripcion + i.grupo },
-  compatibilidad: { campos: ['modelo', 'desde', 'hasta', 'grupo'], titulo: i => i.modelo, detalle: i => `${i.desde || 'cualquier año'}${i.hasta ? '–' + i.hasta : i.desde ? ' en adelante' : ''} · batería: ${i.por_marca || i.grupo}`, buscar: i => i.marca + i.modelo + i.grupo + (i.por_marca || '') },
-  bicicletas: { campos: ['rin', 'modelo', 'para', 'colores'], titulo: i => `Rin ${i.rin} · Modelo ${i.modelo}${i.para ? ' (' + i.para + ')' : ''}`, detalle: i => i.colores || '', buscar: i => 'rin' + i.rin + i.modelo + i.para + i.colores },
+  baterias: { campos: ['descripcion', 'grupo', 'amp', 'garantia', 'polaridad', 'chatarra_usd', 'chatarra_bs', 'servicios', 'espec'], titulo: i => i.descripcion, detalle: i => [i.grupo, i.garantia && 'garantía ' + i.garantia + ' m'].filter(Boolean).join(' · '), buscar: i => i.marca + i.descripcion + i.grupo },
+  compatibilidad: { campos: ['modelo', 'desde', 'hasta', 'grupo', 'polaridad', 'amp_min', 'grupos'], titulo: i => i.modelo, detalle: i => `${i.desde || 'cualquier año'}${i.hasta ? '–' + i.hasta : i.desde ? ' en adelante' : ''} · batería: ${i.por_marca || i.grupo}`, buscar: i => i.marca + i.modelo + i.grupo + (i.por_marca || '') },
+  bicicletas: { campos: ['rin', 'modelo', 'para', 'colores', 'caracteristicas'], titulo: i => `Rin ${i.rin} · Modelo ${i.modelo}${i.para ? ' (' + i.para + ')' : ''}`, detalle: i => i.colores || '', buscar: i => 'rin' + i.rin + i.modelo + i.para + i.colores },
   otros: { campos: ['descripcion'], titulo: i => i.descripcion, detalle: i => '', buscar: i => i.marca + i.descripcion },
   aceites: { campos: ['tipo', 'presentacion'], titulo: i => `${i.tipo} · ${i.presentacion}`, detalle: i => '', buscar: i => i.marca + i.tipo + i.presentacion },
 }
@@ -363,7 +376,7 @@ const COLS_PRECIO = [{ t: 'Precio $', f: 'usd', step: '0.01', v: i => i.usd }, {
   { t: 'Precio Caracas $', f: 'usd_c', step: '0.01', v: i => i.usd_c, ph: '—' }, { t: 'Bs Caracas', f: 'usd_bs_c', step: '0.01', v: i => i.usd_bs_c, ph: '—' }, { t: 'CCS', f: 'cc', step: '1', v: i => i.cc, ph: '—' }]
 const COLS = {
   cauchos: [{ t: 'Código', v: codigoDeFila }, { t: 'Medida', v: i => i.medida }, { t: 'Marca', v: i => i.marca }, { t: 'Modelo', v: i => i.modelo }, { t: 'Tipo', v: i => i.tipo }, { t: 'Lonas', n: 1, v: i => i.lonas }, ...COLS_PRECIO],
-  baterias: [{ t: 'Código', v: codigoDeFila }, { t: 'Marca', v: i => i.marca }, { t: 'Grupo', v: i => i.grupo }, { t: 'Descripción', v: i => i.descripcion }, { t: 'AMP', n: 1, v: i => i.amp }, { t: 'Garantía (m)', n: 1, v: i => i.garantia }, ...COLS_PRECIO],
+  baterias: [{ t: 'Código', v: codigoDeFila }, { t: 'Marca', v: i => i.marca }, { t: 'Grupo', v: i => i.grupo }, { t: 'Descripción', v: i => i.descripcion }, { t: 'Polaridad', v: i => i.polaridad }, { t: 'AMP', n: 1, v: i => i.amp }, { t: 'Garantía (m)', n: 1, v: i => i.garantia }, ...COLS_PRECIO],
   aceites: [{ t: 'Código', v: codigoDeFila }, { t: 'Aceite', v: i => i.tipo }, { t: 'Combo', v: i => i.presentacion }, { t: 'Marca', v: i => i.marca }, ...COLS_PRECIO],
   bicicletas: [{ t: 'Código', v: codigoDeFila }, { t: 'Rin', n: 1, v: i => i.rin }, { t: 'Modelo', v: i => i.modelo }, { t: 'Para', v: i => i.para }, { t: 'Colores', v: i => i.colores }, ...COLS_PRECIO],
   otros: [{ t: 'Código', v: codigoDeFila }, { t: 'Nombre', v: i => i.marca }, { t: 'Descripción', v: i => i.descripcion }, ...COLS_PRECIO],
@@ -459,10 +472,11 @@ const reducir = file => new Promise((ok, no) => {                    // la foto 
     const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(u); c.toBlob(b => b ? ok(b) : no(new Error('No se pudo procesar la imagen.')), 'image/jpeg', 0.85) }
   img.onerror = () => no(new Error('No se pudo leer la imagen.')); img.src = u
 })
-const COMUNES = ['marca', 'usd', 'usd_bs', 'usd_c', 'usd_bs_c', 'cm', 'mc', 'cc', 'etiqueta']
+const COMUNES = ['marca', 'codigo_cm', 'codigo_mc', 'codigo_ccs', 'usd', 'usd_bs', 'usd_c', 'usd_bs_c', 'cm', 'mc', 'cc', 'etiqueta']
 const camposDe = () => (esCompat() ? ['marca', ...CFG.compatibilidad.campos] : [...COMUNES, ...CFG[CAT].campos])
 const CAUCHO_ID = ['modelo', 'tipo', 'lonas', 'servicios', 'espec']                     // en cauchos estos campos llevan otro id para no chocar con los de bicicletas y aceites
-const idc = k => (esCompat() && k !== 'marca' ? 'v' + k : CAT === 'cauchos' && CAUCHO_ID.includes(k) ? 'c' + k : k)
+const BATERIA_ID = ['servicios', 'espec', 'polaridad', 'chatarra_usd', 'chatarra_bs']      // en baterías también llevan otro id
+const idc = k => (esCompat() && k !== 'marca' ? 'v' + k : CAT === 'cauchos' && CAUCHO_ID.includes(k) ? 'c' + k : CAT === 'baterias' && BATERIA_ID.includes(k) ? 'b' + k : k)
 function abrir(i) {
   edit = i; quitar = false; $('#emsg').textContent = ''; $('#foto').value = ''; $('#cmarca').checked = false
   $('#dt').textContent = (i ? 'Editar ' : 'Nuevo ') + (esCompat() ? 'vehículo' : 'producto') + (i ? ' · ' + i.marca : '')
