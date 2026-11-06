@@ -60,7 +60,8 @@ const especDe = (v, columnas) => sinVacios(columnas.map(([c, nombre]) => [nombre
 const serviciosDeCelda = t => String(t ?? '').split(/[\n;]/).map(x => x.trim()).filter(x => x && x.length <= 60).slice(0, 12)
 
 // op.sinCodigo (solo carga puntual por scripts/cargar_excel.mjs --sin-codigo): las filas sin código CM/MC también se cargan, con un id propio
-// (sin código, como la lista anterior) y, si ni CM, MC ni el total traen número, como «hay» en las dos tiendas de Maracay.
+// (sin código, como la lista anterior) y, si ni CM, MC ni el total traen número, como «hay» en las dos tiendas de Maracay cuando tienen precio
+// cargado; sin precio cargado quedan agotadas (el cliente confirmó que un producto sin precio es porque no hay).
 function filasConCodigo(ws, armar, op = {}) {
   const items = [], omitidas = [], vistos = new Map(), h = cabecera(ws), car = op.tienda === 'caracas'      // car: archivo de CM Caracas (mismo formato; código CODIGO CCS y existencia en la columna CCS)
   ws.eachRow((row, n) => {
@@ -75,8 +76,9 @@ function filasConCodigo(ws, armar, op = {}) {
     }
     const precio = Number(v('PRECIO')) > 0 ? Number(v('PRECIO')) : 0, bs = Number(v('BS')), total = entero(v('TOTALINVENTARIO'))
     const sinDato = op.sinCodigo && !id && (car ? ['CCS', 'CARACAS', 'TOTALINVENTARIO'] : ['CM', 'MC', 'TOTALINVENTARIO']).every(k => v(k) == null || v(k) === '')
-    const stock = car ? { tienda_1: 0, tienda_2: 0, caracas: sinDato ? SIN_CANTIDAD : entero(h.CCS ? v('CCS') : h.CARACAS ? v('CARACAS') : v('TOTALINVENTARIO')) }
-      : sinDato ? { tienda_1: SIN_CANTIDAD, tienda_2: SIN_CANTIDAD } : h.CM || h.MC ? { tienda_1: entero(v('CM')), tienda_2: entero(v('MC')) } : { tienda_1: cm ? total : 0, tienda_2: cm ? 0 : total }   // sin columnas CM y MC: el total es de la tienda del código
+    const hay = precio > 0 ? SIN_CANTIDAD : 0                                           // sin dato de existencia: con precio cargado «hay»; sin precio cargado es que no hay (agotado)
+    const stock = car ? { tienda_1: 0, tienda_2: 0, caracas: sinDato ? hay : entero(h.CCS ? v('CCS') : h.CARACAS ? v('CARACAS') : v('TOTALINVENTARIO')) }
+      : sinDato ? { tienda_1: hay, tienda_2: hay } : h.CM || h.MC ? { tienda_1: entero(v('CM')), tienda_2: entero(v('MC')) } : { tienda_1: cm ? total : 0, tienda_2: cm ? 0 : total }   // sin columnas CM y MC: el total es de la tienda del código
     const item = { sku: car ? 'CCS-' + (ccs || 'FILA-' + n) : cm ? 'CM-' + cm : mc ? 'MC-' + mc : 'FILA-' + n, ...r.item, usd: precio, usd_bs: precio ? (bs > 0 ? bs : Math.ceil(precio * 1.05 - 1e-6)) : 0, stock }
     if (cm) item.codigo_cm = cm
     if (mc) item.codigo_mc = mc
