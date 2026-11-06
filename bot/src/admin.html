@@ -275,7 +275,7 @@ const esCompat = () => CAT === 'compatibilidad'
 const CFG = {   // campos propios de cada categoría, cómo se titula cada fila y por cuáles se busca
   cauchos: { campos: ['medida', 'modelo', 'tipo', 'lonas', 'servicios', 'espec'], titulo: i => i.medida, detalle: i => [i.modelo, i.tipo, i.lonas && `${i.lonas} lonas`].filter(Boolean).join(' · '), buscar: i => i.marca + i.medida + (i.modelo || '') + (i.tipo || '') },
   baterias: { campos: ['descripcion', 'grupo', 'amp', 'garantia'], titulo: i => i.descripcion, detalle: i => [i.grupo, i.garantia && 'garantía ' + i.garantia + ' m'].filter(Boolean).join(' · '), buscar: i => i.marca + i.descripcion + i.grupo },
-  compatibilidad: { campos: ['modelo', 'desde', 'hasta', 'grupo'], titulo: i => i.modelo, detalle: i => `${i.desde || 'cualquier año'}${i.hasta ? '–' + i.hasta : i.desde ? ' en adelante' : ''} · batería: ${i.grupo}`, buscar: i => i.marca + i.modelo + i.grupo },
+  compatibilidad: { campos: ['modelo', 'desde', 'hasta', 'grupo'], titulo: i => i.modelo, detalle: i => `${i.desde || 'cualquier año'}${i.hasta ? '–' + i.hasta : i.desde ? ' en adelante' : ''} · batería: ${i.por_marca || i.grupo}`, buscar: i => i.marca + i.modelo + i.grupo + (i.por_marca || '') },
   bicicletas: { campos: ['rin', 'modelo', 'para', 'colores'], titulo: i => `Rin ${i.rin} · Modelo ${i.modelo}${i.para ? ' (' + i.para + ')' : ''}`, detalle: i => i.colores || '', buscar: i => 'rin' + i.rin + i.modelo + i.para + i.colores },
   otros: { campos: ['descripcion'], titulo: i => i.descripcion, detalle: i => '', buscar: i => i.marca + i.descripcion },
   aceites: { campos: ['tipo', 'presentacion'], titulo: i => `${i.tipo} · ${i.presentacion}`, detalle: i => '', buscar: i => i.marca + i.tipo + i.presentacion },
@@ -367,7 +367,7 @@ const COLS = {
   aceites: [{ t: 'Código', v: codigoDeFila }, { t: 'Aceite', v: i => i.tipo }, { t: 'Combo', v: i => i.presentacion }, { t: 'Marca', v: i => i.marca }, ...COLS_PRECIO],
   bicicletas: [{ t: 'Código', v: codigoDeFila }, { t: 'Rin', n: 1, v: i => i.rin }, { t: 'Modelo', v: i => i.modelo }, { t: 'Para', v: i => i.para }, { t: 'Colores', v: i => i.colores }, ...COLS_PRECIO],
   otros: [{ t: 'Código', v: codigoDeFila }, { t: 'Nombre', v: i => i.marca }, { t: 'Descripción', v: i => i.descripcion }, ...COLS_PRECIO],
-  compatibilidad: [{ t: 'Marca', v: i => i.marca }, { t: 'Modelo', v: i => i.modelo }, { t: 'Año desde', n: 1, v: i => i.desde }, { t: 'Año hasta', n: 1, v: i => i.hasta }, { t: 'Grupo(s)', v: i => i.grupo }],
+  compatibilidad: [{ t: 'Marca', v: i => i.marca }, { t: 'Modelo', v: i => i.modelo }, { t: 'Año desde', n: 1, v: i => i.desde }, { t: 'Año hasta', n: 1, v: i => i.hasta }, { t: 'Grupo(s)', v: i => i.grupo }, { t: 'Grupo por marca de batería', v: i => i.por_marca || '' }],
 }
 const celdaTabla = (c, i) => c.f ? `<td class="ed num${c.f === 'usd' && !(Number(i.usd) > 0) ? ' falta' : ''}"><input data-f="${c.f}" type="number" min="0" step="${c.step}" inputmode="decimal" value="${esc(num(c.v(i)))}" placeholder="${c.ph || ''}" aria-label="${c.t} de ${esc(i.marca)}"></td>` : `<td class="${c.n ? 'num' : ''}" title="${esc(c.v(i) ?? '')}">${esc(c.v(i) ?? '')}</td>`
 const filaTabla = (i, cols, n) => `<tr data-sku="${i.sku}" data-n="${n}"${total(i) <= 0 ? ' class="ago"' : ''}><td class="rn">${n}</td>${cols.map(c => celdaTabla(c, i)).join('')}<td class="ac"><button class="sec" data-e="${i.sku}">Editar</button><button class="del" data-d="${i.sku}">Eliminar</button></td></tr>`

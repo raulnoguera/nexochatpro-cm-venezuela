@@ -468,8 +468,14 @@ CATS.compatibilidad = {
     if (desde == null || hasta == null || desde > hasta) throw new Error('Revisa los años: «desde» no puede ser mayor que «hasta».')
     return { ...previo, marca, modelo, desde, hasta, grupo }
   },
-  vistaCompleta: i => ({ sku: i.sku, marca: i.marca, modelo: i.modelo, desde: i.desde || '', hasta: i.hasta === 9999 ? '' : i.hasta, grupo: i.grupo, manual: i.sku.startsWith('MAN-') }),
+  vistaCompleta: i => ({ sku: i.sku, marca: i.marca, modelo: i.modelo, desde: i.desde || '', hasta: i.hasta === 9999 ? '' : i.hasta, grupo: i.grupo, por_marca: i.grupos ? porMarcaTexto(i.grupos) : '', manual: i.sku.startsWith('MAN-') }),
 }
+// «FULGORBLACK» -> «Fulgor Black»: el nombre con el que aparece la marca en las baterías de la lista (si no hay, queda como viene en la tabla)
+function nombreMarcaBateria(k) {
+  for (const b of leer('baterias')) { const w = String(b.marca || '').trim().split(/\s+/); let acc = ''; for (let n = 0; n < w.length; n++) { acc += norm(w[n]); if (acc === k) return w.slice(0, n + 1).join(' '); if (acc.length >= k.length) break } }
+  return k
+}
+const porMarcaTexto = grupos => Object.entries(grupos).map(([k, t]) => `${nombreMarcaBateria(k)}: ${gruposDe(t).join(' o ')}`).join(' · ')
 const ruta = cat => path.join(dir, CATS[cat].archivo)
 const leer = cat => (fs.existsSync(ruta(cat)) ? JSON.parse(fs.readFileSync(ruta(cat), 'utf8')) : [])
 const escribir = (nombre, datos) => { const f = path.join(dir, nombre); fs.writeFileSync(f + '.tmp', JSON.stringify(datos)); fs.renameSync(f + '.tmp', f) }
