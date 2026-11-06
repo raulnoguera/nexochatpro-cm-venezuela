@@ -434,7 +434,7 @@ const conDatos = c => c === 'maracay' || Object.values(DATA).some(a => a.some(p 
 
 function estado(p) {                                    // existencia en las tiendas de la ciudad elegida
   const c = CIUDADES[ciudad()], con = c.tiendas.filter(k => (p[k] ?? 0) > 0);
-  if (!con.length) return ['no', 'Agotado'];
+  if (!con.length) return ['no', CAT === 'baterias' ? 'Agotada' : 'Agotado'];
   return ['ok', 'Disponible'];                    // en Maracay da igual si es CM o Master Cauchos
 }
 const tiendaWa = p => { const ks = CIUDADES[ciudad()].tiendas; return ks.slice().sort((a, b) => (p[b] ?? 0) - (p[a] ?? 0))[0]; };   // la tienda que tiene el producto (o la de más existencia)
@@ -531,9 +531,10 @@ const bloqueAceite = p => {
   return `<div class="incl"><b>Incluye con tu combo</b><ul><li>Filtro${COMBO_DETALLE ? ' · ' + esc(COMBO_DETALLE) : ''}</li>${pend}</ul></div>`;
 };
 // Ciudad con varias tiendas (Maracay): el botón abre la lista para que el cliente elija a cuál escribirle
+const agotada = p => CAT === 'baterias' && nivel(p) === 0;      // batería sin existencia en la ciudad: el botón pasa a «Consultar disponibilidad»
 function botonTiendas(p, c, ci, ks) {
-  const msg = k => `Hola, me interesa ${c.msg(p)}. ` + ((p[k] ?? 0) > 0 ? `Vi que está en ${TIENDAS[k].nombre} (${ci.nombre}). ` : `Les escribo a ${TIENDAS[k].nombre} (${ci.nombre}). `) + '¿Hay disponible?';
-  return `<div class="askwrap"><button type="button" class="ask" data-pick aria-expanded="false">${CHAT} Consultar por WhatsApp</button><div class="wamenu askmenu" hidden><p>Elige la tienda</p>${ks.map(k => `<a href="${wa(msg(k), k)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg><span>${esc(TIENDAS[k].nombre)}<small>${(p[k] ?? 0) > 0 ? 'Disponible' : 'Sin existencia ahora'}</small></span></a>`).join('')}</div></div>`;
+  const msg = k => `Hola, me interesa ${c.msg(p)}. ` + ((p[k] ?? 0) > 0 ? `Vi que está en ${TIENDAS[k].nombre} (${ci.nombre}). ` : `Les escribo a ${TIENDAS[k].nombre} (${ci.nombre}). `) + '' + (agotada(p) ? '¿Me confirman la disponibilidad?' : '¿Hay disponible?');
+  return `<div class="askwrap"><button type="button" class="ask" data-pick aria-expanded="false">${CHAT} ${agotada(p) ? 'Consultar disponibilidad' : 'Consultar por WhatsApp'}</button><div class="wamenu askmenu" hidden><p>Elige la tienda</p>${ks.map(k => `<a href="${wa(msg(k), k)}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15.1L2 22l5-1.3A10 10 0 1012 2z"/></svg><span>${esc(TIENDAS[k].nombre)}<small>${(p[k] ?? 0) > 0 ? 'Disponible' : 'Sin existencia ahora'}</small></span></a>`).join('')}</div></div>`;
 }
 function card(p) {
   const c = CATS[CAT], [k, t] = estado(p), tasa = TASAS[CIUDADES[ciudad()].tasa], ci = CIUDADES[ciudad()], tk = tiendaWa(p), conWa = ci.tiendas.filter(x => TIENDAS[x].wa);
@@ -543,7 +544,7 @@ function card(p) {
     <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}${CAT === 'aceites' ? bloqueAceite(p) : ''}
     <div class="price">${pu(p) > 0 ? `<div class="usd">${refGrande(pu(p))}<small>Oferta en divisa</small></div>${precioBs}` : '<div class="usd consulta">Consultar precio</div><div class="bs">Te lo confirmamos por WhatsApp</div>'}</div>
     ${CAT === 'cauchos' ? bloqueCaucho(p) : CAT === 'baterias' ? bloqueBateria(p) : ''}
-    ${conWa.length > 1 ? botonTiendas(p, c, ci, conWa) : TIENDAS[tk].wa ? `<a class="ask" href="${wa(`Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} Consultar por WhatsApp</a>` : ''}</article>`;
+    ${conWa.length > 1 ? botonTiendas(p, c, ci, conWa) : TIENDAS[tk].wa ? `<a class="ask" href="${wa(agotada(p) ? `Hola, me interesa ${c.msg(p)}. Les escribo a ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Me confirman la disponibilidad?` : `Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} ${agotada(p) ? 'Consultar disponibilidad' : 'Consultar por WhatsApp'}</a>` : ''}</article>`;
 }
 
 const clave = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -552,7 +553,8 @@ const polBat = p => /\bDERECHA\b/i.test(p.d || '') ? 'DERECHA' : /\bIZQUIERDA\b/
 const sirvePolaridad = (c, p) => !c.p || !polBat(p) || (p.k || []).some(g => SIN_POLARIDAD.includes(g)) || c.p === polBat(p);   // c.p: polaridad del vehículo; la de la batería sale de su descripción
 const sirveAlVehiculo = p => {                                           // ¿esta batería le sirve al vehículo elegido? El grupo depende de la marca de la batería (columna de su marca en la tabla); una marca sin columna no se recomienda por vehículo
   const n = F.va ? Number(F.va) : null, conDatos = new Set(COMPAT.flatMap(c => Object.keys(c.m || {}))), m = clave(p.m);
-  const k = [...conDatos].filter(x => m.startsWith(x) && (!/EVERLITE/.test(m) || x.includes('EVERLITE')))   // Fulgor Everlite tiene designación propia: no hereda el grupo de Fulgor.sort((a, b) => b.length - a.length)[0];
+  // Fulgor Everlite tiene designación propia: no hereda el grupo de Fulgor
+  const k = [...conDatos].filter(x => m.startsWith(x) && (!/EVERLITE/.test(m) || x.includes('EVERLITE'))).sort((a, b) => b.length - a.length)[0];
   return COMPAT.some(c => c.o === F.vm && c.d === F.vd && (n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999))) && sirvePolaridad(c, p) && ((c.m && conDatos.size ? (k ? c.m[k] || [] : []) : c.g)).some(x => (p.k || []).includes(x)));
 };
 function filtrar(paraMarcas, sinModelo) {                              // paraMarcas: ignora la marca elegida y el texto escrito (sirve para saber qué marcas ofrecer)
@@ -570,7 +572,7 @@ function filtrar(paraMarcas, sinModelo) {                              // paraMa
     if (CAT === 'cauchos') { if (F.rin && String(p.r) !== F.rin) return false; if (F.medida && p.z !== F.medida) return false; }
     for (const [key, , , get] of defs) if (F[key] && get(p) !== (key === 'tipo' ? F[key].toUpperCase() : F[key])) return false;
     if (CAT === 'baterias' && F.vm && F.vd) { if (!sirveAlVehiculo(p)) return false; }
-    if (!F.todos && nivel(p) === 0) return false;     // por defecto solo lo que hay en la ciudad elegida
+    if (!F.todos && nivel(p) === 0 && !(CAT === 'baterias' && F.vm && F.vd)) return false;     // por defecto solo lo que hay en la ciudad elegida; con un vehículo elegido se ven también las baterías agotadas (para comprobar la compatibilidad)
     const t = norm(c.texto(p));
     return tok.every(x => t.includes(x));
   });
@@ -661,7 +663,7 @@ function buscadorVehiculo() {
     const que = `${esc(F.vm)} ${esc(F.vd)}${F.va ? ' ' + esc(F.va) : ''}`, porMarca = gruposPorMarca(filas);
     const pols = uniq(filas.map(c => c.p).filter(Boolean)), polTxt = pols.length ? ` Polaridad: <b>${esc(pols.map(x => x.toLowerCase()).join(' o '))}</b> (no aplica a los grupos 30H, 30HCT, 4D y 8D).` : '';
     const grp = x => /^(GRUPO|PARA)\b/i.test(x) ? x : 'GRUPO ' + x;
-    aviso = porMarca.length ? `<div class="reco">Para tu <b>${que}</b> el grupo depende de la marca de la batería: ${porMarca.map(([m, gs]) => `<b>${esc(m)}</b>: ${esc(gs.map(grp).join(' o '))}`).join(' · ')}. Si tu batería es de otra marca, escríbenos por WhatsApp y te confirmamos el grupo.${polTxt} Verifica el grupo y la polaridad con tu batería actual. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`
+    aviso = porMarca.length ? `<div class="reco">Para tu <b>${que}</b> el grupo depende de la marca de la batería: ${porMarca.map(([m, gs]) => `<b>${esc(m)}</b>: ${esc(gs.map(grp).join(' o '))}`).join(' · ')}. Si tu batería es de otra marca, escríbenos por WhatsApp y te confirmamos el grupo.${polTxt} Verifica el grupo y la polaridad con tu batería actual. Las baterías agotadas aparecen al final: consúltanos por su disponibilidad. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`
       : g.length ? `<div class="reco">Para tu <b>${que}</b> sirven las baterías <b>${esc(g.map(x => /^(GRUPO|PARA)\b/i.test(x) ? x : 'GRUPO ' + x).join(' o '))}</b>. Confirma el grupo y la polaridad con tu batería actual antes de comprar. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`
       : `<div class="reco">No tenemos datos de tu <b>${que}</b>. Escríbenos por WhatsApp y te ayudamos. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`;
   }
