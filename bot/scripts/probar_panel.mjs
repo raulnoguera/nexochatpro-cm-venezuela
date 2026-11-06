@@ -292,6 +292,13 @@ try {
     assert.ok(!rb.error, rb.error); assert.deepEqual(rb.resultados.map(x => x.marca).sort(), ['Duncan']); assert.deepEqual(rb.compatibilidad?.grupo_segun_marca_de_bateria?.DUNCAN, ['4D']) })
   const vc = await api('GET', '/compatibilidad/items'), vf = (vc.j || []).find(x => x.modelo === 'F-350')
   ok('el panel muestra el grupo de cada marca de batería en «Vehículos → batería»', () => { assert.equal(vc.s, 200); assert.ok(vf, 'F-350 en la vista'); assert.match(vf.por_marca, /Duncan: 4D/); assert.match(vf.por_marca, /Fulgor: 24/); assert.match(vf.por_marca, /Fulgor Black: 34/) })
+  const { sirvePolaridad, polaridadDe } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href)
+  ok('polaridad: el vehículo y la batería deben coincidir, salvo en los grupos 30H, 30HCT, 4D y 8D o si falta el dato', () => {
+    assert.equal(polaridadDe('1100 AMP / MR / DERECHA'), 'DERECHA'); assert.equal(polaridadDe('1100 AMP / BORNE'), '')
+    assert.equal(sirvePolaridad('DERECHA', '24', '1100 AMP / MR / DERECHA'), true); assert.equal(sirvePolaridad('DERECHA', '24', '1100 AMP / IZQUIERDA'), false); assert.equal(sirvePolaridad('IZQUIERDA', '34', '900 AMP / DERECHA'), false)
+    for (const g of ['30H', '30HCT', '4D', '8D']) assert.equal(sirvePolaridad('DERECHA', g, '1300 AMP / IZQUIERDA'), true)
+    assert.equal(sirvePolaridad('', '24', '1100 AMP / IZQUIERDA'), true); assert.equal(sirvePolaridad('DERECHA', '24', '1100 AMP / BORNE'), true)
+    assert.equal(cat.compatibilidad.find(x => x.d === 'F-350').p, 'DERECHA') })
   // 11) carrusel de marcas: el administrador elige las marcas, sube el logo y fija el orden
   const car0 = await api('GET', '/carrusel')
   ok('sin configurar, el carrusel se arma solo con las marcas conocidas que hay en la lista', () => { assert.equal(car0.s, 200); assert.equal(car0.j.cauchos.personalizado, false); assert.ok(car0.j.cauchos.marcas.some(x => x.marca === 'Habilead')); assert.deepEqual(Object.keys(car0.j), ['cauchos', 'baterias', 'aceites']) })
