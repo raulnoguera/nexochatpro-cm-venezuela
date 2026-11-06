@@ -416,12 +416,21 @@ export const CATS = {
       if (!descripcion || descripcion.length > 80) throw new Error('Escribe la descripción, por ejemplo 1000 AMP / 24R.')
       if (!grupo || grupo.length > 40) throw new Error('Escribe el grupo, por ejemplo GRUPO 24.')
       const amp = Number(b.amp) > 0 ? Math.round(Number(b.amp)) : (descripcion.match(/(\d{3,4})\s*AMP/i) || [])[1]
-      const o = { descripcion, grupo }
+      const pol = String(b.polaridad ?? '').trim().toUpperCase()
+      if (pol && !['DERECHA', 'IZQUIERDA'].includes(pol)) throw new Error('La polaridad es DERECHA o IZQUIERDA.')
+      const desc = pol && polaridadDe(descripcion) !== pol ? `${descripcion.replace(/\s*\/?\s*\b(DERECHA|IZQUIERDA)\b/gi, '').trim()} / ${pol}` : descripcion     // la polaridad va en la descripción, como en el inventario
+      if (desc.length > 80) throw new Error('La descripción con la polaridad pasa de 80 letras: acórtala.')
+      const servicios = lineas(b.servicios)
+      if (servicios.length > 12) throw new Error('Máximo 12 servicios por producto.')
+      if (servicios.some(x => x.length > 61)) throw new Error('Cada servicio debe tener máximo 60 letras.')
+      const cu = b.chatarra_usd === '' || b.chatarra_usd == null ? 0 : Number(b.chatarra_usd), cb = b.chatarra_bs === '' || b.chatarra_bs == null ? 0 : Number(b.chatarra_bs)
+      if (!(cu >= 0) || !(cb >= 0)) throw new Error('El recargo de la batería vieja (chatarra) debe ser un número.')
+      const o = { descripcion: desc, grupo, servicios, espec: especDeTexto(b.espec), chatarra: cu > 0 || cb > 0 ? { usd: cu, bs: cb } : undefined }
       if (amp) o.amp = Number(amp)
       if (Number(b.garantia) > 0) o.garantia = Math.round(Number(b.garantia))
       return o
     },
-    vista: i => ({ descripcion: i.descripcion, grupo: i.grupo, amp: i.amp ?? '', garantia: i.garantia ?? '' }),
+    vista: i => ({ descripcion: i.descripcion, grupo: i.grupo, amp: i.amp ?? '', garantia: i.garantia ?? '', polaridad: polaridadDe(i.descripcion), servicios: (i.servicios || []).join('\n'), espec: especATexto(i.espec), chatarra_usd: i.chatarra?.usd ?? '', chatarra_bs: i.chatarra?.bs ?? '' }),
   },
   aceites: {
     archivo: 'aceites.json', hoja: 'ACEITES', leer: filasAceites,
@@ -447,9 +456,9 @@ CATS.bicicletas = {
     const rin = Math.round(Number(b.rin)), modelo = String(b.modelo ?? '').trim()
     if (!(rin >= 10 && rin <= 32)) throw new Error('Escribe el rin de la bicicleta, por ejemplo 20.')
     if (!modelo || modelo.length > 30) throw new Error('Escribe el modelo, por ejemplo 130.')
-    return { rin, modelo, para: String(b.para ?? '').trim().slice(0, 30), colores: String(b.colores ?? '').trim().slice(0, 120) }
+    return { rin, modelo, para: String(b.para ?? '').trim().slice(0, 30), colores: String(b.colores ?? '').trim().slice(0, 120), caracteristicas: String(b.caracteristicas ?? '').trim().slice(0, 300) || undefined }
   },
-  vista: i => ({ rin: i.rin, modelo: i.modelo, para: i.para ?? '', colores: i.colores ?? '' }),
+  vista: i => ({ rin: i.rin, modelo: i.modelo, para: i.para ?? '', colores: i.colores ?? '', caracteristicas: i.caracteristicas ?? '' }),
 }
 
 CATS.otros = {                                                             // bornes, bujías, tuercas…: «marca» guarda el nombre del artículo
@@ -471,15 +480,26 @@ CATS.compatibilidad = {
   web: i => ({ o: i.marca, d: i.modelo, a: i.desde, b: i.hasta, g: gruposDe(i.grupo), r: i.grupo, ...(polaridadDe(i.polaridad) && { p: polaridadDe(i.polaridad) }), ...(i.grupos && { m: Object.fromEntries(Object.entries(i.grupos).map(([k, t]) => [k, gruposDe(t)])) }) }),
   orden: (a, b) => a.o.localeCompare(b.o) || a.d.localeCompare(b.d, 'es', { numeric: true }) || a.a - b.a,
   validar: (b, previo = {}) => {
-    const marca = String(b.marca ?? '').trim().toUpperCase(), modelo = String(b.modelo ?? '').trim().toUpperCase(), grupo = String(b.grupo ?? '').trim()
+    const marca = String(b.marca ?? '').trim().toUpperCase(), modelo = String(b.modelo ?? '').trim().toUpperCase()
     if (!marca || marca.length > 40) throw new Error('Escribe la marca del vehículo.')
     if (!modelo || modelo.length > 60) throw new Error('Escribe el modelo del vehículo.')
-    if (!gruposDe(grupo).length) throw new Error('Escribe el grupo de batería, por ejemplo GRUPO 24 (varios separados por coma).')
+    const grupos = {}                                                          // «Fulgor: 24» por línea = una columna por marca de batería del Excel
+    for (const l of lineas(b.grupos)) {
+      const m = l.match(/^([^:]+):\s*(.+)$/)
+      if (!m || !norm(m[1]) || !gruposDe(m[2]).length) throw new Error(`Grupo por marca: «${l}» no se entiende. Escribe «Marca: grupo», por ejemplo «Fulgor: 24».`)
+      grupos[norm(m[1])] = m[2].trim()
+    }
+    const grupo = String(b.grupo ?? '').trim() || [...new Set(Object.values(grupos).flatMap(gruposDe))].join(', ')
+    if (!gruposDe(grupo).length) throw new Error('Escribe el grupo de batería, por ejemplo GRUPO 24 (varios separados por coma), o el grupo de cada marca.')
+    const pol = String(b.polaridad ?? '').trim().toUpperCase()
+    if (pol && !['DERECHA', 'IZQUIERDA'].includes(pol)) throw new Error('La polaridad es DERECHA o IZQUIERDA.')
+    const amp = b.amp_min === '' || b.amp_min == null ? 0 : Number(b.amp_min)
+    if (!(amp >= 0)) throw new Error('El amperaje mínimo debe ser un número.')
     const desde = b.desde === '' || b.desde == null ? 0 : anio(b.desde), hasta = b.hasta === '' || b.hasta == null ? 9999 : anio(b.hasta)
     if (desde == null || hasta == null || desde > hasta) throw new Error('Revisa los años: «desde» no puede ser mayor que «hasta».')
-    return { ...previo, marca, modelo, desde, hasta, grupo }
+    return { ...previo, marca, modelo, desde, hasta, grupo, grupos: Object.keys(grupos).length ? grupos : undefined, polaridad: pol || undefined, amp_min: amp > 0 ? Math.round(amp) : undefined }
   },
-  vistaCompleta: i => ({ sku: i.sku, marca: i.marca, modelo: i.modelo, desde: i.desde || '', hasta: i.hasta === 9999 ? '' : i.hasta, grupo: i.grupo, por_marca: i.grupos ? porMarcaTexto(i.grupos) : '', manual: i.sku.startsWith('MAN-') }),
+  vistaCompleta: i => ({ sku: i.sku, marca: i.marca, modelo: i.modelo, desde: i.desde || '', hasta: i.hasta === 9999 ? '' : i.hasta, grupo: i.grupo, por_marca: i.grupos ? porMarcaTexto(i.grupos) : '', grupos: Object.entries(i.grupos || {}).map(([k, t]) => `${nombreMarcaBateria(k)}: ${t}`).join('\n'), polaridad: polaridadDe(i.polaridad), amp_min: i.amp_min ?? '', manual: i.sku.startsWith('MAN-') }),
 }
 // «FULGORBLACK» -> «Fulgor Black»: el nombre con el que aparece la marca en las baterías de la lista (si no hay, queda como viene en la tabla)
 function nombreMarcaBateria(k) {
@@ -686,9 +706,16 @@ function validar(cat, b, previo = {}) {
   if (!(usdc >= 0)) throw new Error('Escribe el precio de Caracas en dólares (vacío si todavía no tiene).')
   if (usdc > 0) { item.usd_c = usdc; item.usd_bs_c = Number(b.usd_bs_c) > 0 ? Number(b.usd_bs_c) : Math.ceil(usdc * 1.05 - 1e-6) } else { delete item.usd_c; delete item.usd_bs_c }
   item.etiqueta = String(b.etiqueta ?? '').trim().slice(0, 60)
+  for (const [campo, nombre] of [['codigo_cm', 'CM'], ['codigo_mc', 'MC'], ['codigo_ccs', 'CCS']]) {      // códigos del inventario (como las columnas CODIGO CM / MC / CCS del Excel); vacío = sin código
+    if (!(campo in b)) continue
+    const c = String(b[campo] ?? '').trim()
+    if (c.length > 30) throw new Error(`El código ${nombre} es muy largo (máximo 30 caracteres).`)
+    if (c && leer(cat).some(x => x.sku !== previo.sku && norm(x[campo] || '') === norm(c))) throw new Error(`El código ${nombre} «${c}» ya lo tiene otro producto de esta lista.`)
+    if (c) item[campo] = c; else delete item[campo]
+  }
   return item
 }
-const vista = (cat, i) => CATS[cat].vistaCompleta?.(i) ?? ({ sku: i.sku, marca: i.marca, ...(conCodigo(i) && { codigo_cm: i.codigo_cm ?? '', codigo_mc: i.codigo_mc ?? '', ...(i.codigo_ccs && { codigo_ccs: i.codigo_ccs }) }), usd: i.usd, usd_bs: i.usd_bs, usd_c: i.usd_c ?? '', usd_bs_c: i.usd_bs_c ?? '', ...(i.solo && { solo: i.solo }), cm: i.stock.tienda_1, mc: i.stock.tienda_2, cc: i.stock.caracas ?? '', etiqueta: extra(i), imagen: i.imagen || null, manual: i.sku.startsWith('MAN-'), ...CATS[cat].vista(i) })
+const vista = (cat, i) => CATS[cat].vistaCompleta?.(i) ?? ({ sku: i.sku, marca: i.marca, codigo_cm: i.codigo_cm ?? '', codigo_mc: i.codigo_mc ?? '', codigo_ccs: i.codigo_ccs ?? '', usd: i.usd, usd_bs: i.usd_bs, usd_c: i.usd_c ?? '', usd_bs_c: i.usd_bs_c ?? '', ...(i.solo && { solo: i.solo }), cm: i.stock.tienda_1, mc: i.stock.tienda_2, cc: i.stock.caracas ?? '', etiqueta: extra(i), imagen: i.imagen || null, manual: i.sku.startsWith('MAN-'), ...CATS[cat].vista(i) })
 
 const TIPOS = [[[0xff, 0xd8, 0xff], 'jpg'], [[0x89, 0x50, 0x4e, 0x47], 'png'], [[0x52, 0x49, 0x46, 0x46], 'webp']]
 const extension = b => TIPOS.find(([m]) => m.every((x, i) => b[i] === x))?.[1]
