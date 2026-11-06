@@ -152,6 +152,7 @@ select option::checkmark{display:none}
 .price .bs b{color:var(--ink)}
 .sub{color:var(--muted);font-size:13px;font-weight:600}
 select.marca{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface2);padding:0 12px;font-weight:600}
+.cab{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.cab-t{flex:1 1 auto;min-width:0}.cab .stk{flex:none;margin-top:2px}.card h4.tit{text-transform:none;font-size:22px;line-height:1.1;overflow-wrap:anywhere}.subt{margin-top:4px;color:var(--muted);font-size:13.5px;font-weight:600}
 .datos{margin-top:6px;display:grid;gap:2px;font-size:14px}.datos i{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-right:6px}.datos b{color:var(--ink);font-weight:800}.datos .fila{display:flex;justify-content:space-between;align-items:baseline;gap:4px 10px;flex-wrap:wrap}.datos .fila>.dest{flex:1 1 auto}.datos b{overflow-wrap:anywhere}.datos .dest{font-size:18px;line-height:1.2}.datos .dest b{font-size:19px;font-weight:800;letter-spacing:.005em}.datos .dest i{font-size:19px;font-weight:800;letter-spacing:.005em;text-transform:none;color:var(--ink);margin-right:7px}.datos .med{margin:4px 0 0}.tags:empty{display:none}.grp.sinh3{margin-top:10px;margin-bottom:10px}
 .incl{background:var(--surface2);border-radius:12px;padding:9px 12px;font-size:13.5px}.incl b{display:block;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}.incl ul{margin:0;padding:0;list-style:none}.incl li{padding-left:20px;position:relative;font-weight:600}.incl li:before{content:'✓';position:absolute;left:0;color:var(--ok);font-weight:800}
 .incl li.pend:before{content:'·'}.pend{color:var(--muted);font-weight:600}.esp p.pend{margin:8px 0 0}
@@ -433,8 +434,8 @@ const conDatos = c => c === 'maracay' || Object.values(DATA).some(a => a.some(p 
 
 function estado(p) {                                    // existencia en las tiendas de la ciudad elegida
   const c = CIUDADES[ciudad()], con = c.tiendas.filter(k => (p[k] ?? 0) > 0);
-  if (!con.length) return ['no', 'Agotado en ' + c.nombre];
-  return ['ok', 'Disponible en ' + c.nombre];                    // en Maracay da igual si es CM o Master Cauchos
+  if (!con.length) return ['no', 'Agotado'];
+  return ['ok', 'Disponible'];                    // en Maracay da igual si es CM o Master Cauchos
 }
 const tiendaWa = p => { const ks = CIUDADES[ciudad()].tiendas; return ks.slice().sort((a, b) => (p[b] ?? 0) - (p[a] ?? 0))[0]; };   // la tienda que tiene el producto (o la de más existencia)
 const wa = (msg, k) => `https://wa.me/${TIENDAS[k].wa}?text=${encodeURIComponent(msg)}`;
@@ -455,6 +456,17 @@ const modeloCaucho = p => detalleCaucho(p).modelo;
 // Marca (izquierda) y tipo (derecha, con las lonas entre paréntesis) en la misma línea; el modelo debajo. Cada uno con su etiqueta y el valor a su lado; lo que no tiene dato no se muestra
 const grupoBat = p => (p.g && p.g !== '-' ? String(p.g).replace(/^GRUPO\s+/i, '') : '');
 // Batería: Marca (y garantía a la derecha), Grupo y, debajo, la descripción (amperaje y polaridad), como en la tarjeta de caucho
+// Título compuesto con «/»: caucho = Marca/Tipo/Medida (Milemax/HT/165/65R13); batería = Marca/Grupo/Amperaje (Fulgor/24/900 AMP). Lo que no tiene dato se omite.
+const tituloCaucho = p => [marcaDe(p), detalleCaucho(p).tipo, p.z].filter(Boolean).join('/');
+const ampBat = p => (p.a ? p.a : ((String(p.d || '').match(/(\d{3,4})\s*AMP/i) || [])[1] || '')) ;
+const tituloBateria = p => [p.m, grupoBat(p), ampBat(p) ? ampBat(p) + ' AMP' : ''].filter(Boolean).join('/');
+const cabTarjeta = (cuerpo, t) => `<div class="cab"><div class="cab-t">${cuerpo}</div><span class="stk ${t[0]}">${t[1]}</span></div>`;      // estado arriba a la derecha, en línea con el título
+const subCaucho = p => { const d = detalleCaucho(p), x = [d.modelo, d.lonas ? `${d.lonas} lonas` : ''].filter(Boolean).join(' · '); return x ? `<div class="subt">${esc(x)}</div>` : ''; };
+const subBateria = p => {
+  const resto = String(p.d || '').replace(/\d{3,4}\s*AMP/gi, '').replace(/\b(DERECHA|IZQUIERDA)\b/gi, '').split('/').map(x => x.trim()).filter(Boolean).join(' / ');      // nomenclatura que no está en el título (M, MR, BD…)
+  const fila = [polBat(p) ? `<i>Polaridad</i> <b>${esc(polTxt(p))}</b>` : '', p.w ? `<i>Garantía</i> <b>${esc(p.w)} meses</b>` : ''].filter(Boolean);
+  return `${resto ? `<div class="subt">${esc(resto)}</div>` : ''}${fila.length ? `<div class="datos"><div class="fila">${fila.map(x => `<span>${x}</span>`).join('')}</div></div>` : ''}`;
+};
 const datosBateria = p => `<div class="datos"><div class="fila"><span class="dest"><i>Marca</i> <b>${esc(p.m)}</b></span>${p.w ? `<span class="der"><i>Garantía</i> <b>${esc(p.w)} meses</b></span>` : ''}</div>${grupoBat(p) ? `<div class="dest"><i>Grupo</i> <b>${esc(grupoBat(p))}</b></div>` : ''}${polBat(p) ? `<div class="dest"><i>Polaridad</i> <b>${esc(polTxt(p))}</b></div>` : ''}<h4 class="med">${esc(p.d)}</h4></div>`;
 const datosCaucho = p => `<div class="datos"><div class="fila"><span class="dest"><i>Marca</i> <b>${esc(marcaDe(p))}</b></span>${tipoLonas(p) ? `<span class="der"><i>Tipo</i> <b>${esc(tipoLonas(p))}</b></span>` : ''}</div>${modeloCaucho(p) ? `<div class="dest"><i>Modelo</i> <b>${esc(modeloCaucho(p))}</b></div>` : ''}<h4 class="med">${esc(p.z)}</h4></div>`;
 const tipoLonas = p => { const d = detalleCaucho(p); return [d.tipo, d.lonas ? `(${d.lonas} lonas)` : ''].filter(Boolean).join(' '); };      // a la derecha de la marca: «HT (16 lonas)»
@@ -527,8 +539,8 @@ function card(p) {
   const c = CATS[CAT], [k, t] = estado(p), tasa = TASAS[CIUDADES[ciudad()].tasa], ci = CIUDADES[ciudad()], tk = tiendaWa(p), conWa = ci.tiendas.filter(x => TIENDAS[x].wa);
   const precioBs = tasa ? `<div class="bs"><b>Bs ${bs(pb(p) * tasa)}</b> pagando en bolívares<br><span class="sub">(${ref(pb(p))} a ${ci.etiqueta})</span></div>` : '';
   const tags = c.tags(p).concat(p.x && !(CAT === 'cauchos' && /^\d+\s*lonas$/i.test(p.x.trim())) ? [p.x] : []);
-  return `<article class="card"><div class="ph${p.i ? ' foto' : ''}">${p.i ? `<img src="${esc(p.i)}" alt="${esc(p.m + ' ' + c.titulo_p(p))}" loading="lazy">` : ICONOS[CAT]}</div><div>${CAT === 'cauchos' ? datosCaucho(p) : CAT === 'baterias' ? datosBateria(p) : `<div class="brand">${esc(p.m)}${p.mo ? ' · ' + esc(p.mo) : ''}</div><h4>${esc(c.titulo_p(p))}</h4>`}</div>
-    <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}<span class="stk ${k}">${t}</span>${CAT === 'aceites' ? bloqueAceite(p) : ''}
+  return `<article class="card"><div class="ph${p.i ? ' foto' : ''}">${p.i ? `<img src="${esc(p.i)}" alt="${esc(p.m + ' ' + c.titulo_p(p))}" loading="lazy">` : ICONOS[CAT]}</div>${cabTarjeta(CAT === 'cauchos' ? `<h4 class="tit">${esc(tituloCaucho(p))}</h4>` : CAT === 'baterias' ? `<h4 class="tit">${esc(tituloBateria(p))}</h4>` : `<div class="brand">${esc(p.m)}${p.mo ? ' · ' + esc(p.mo) : ''}</div><h4>${esc(c.titulo_p(p))}</h4>`, [k, t])}${CAT === 'cauchos' ? subCaucho(p) : CAT === 'baterias' ? subBateria(p) : ''}
+    <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}${CAT === 'aceites' ? bloqueAceite(p) : ''}
     <div class="price">${pu(p) > 0 ? `<div class="usd">${refGrande(pu(p))}<small>Oferta en divisa</small></div>${precioBs}` : '<div class="usd consulta">Consultar precio</div><div class="bs">Te lo confirmamos por WhatsApp</div>'}</div>
     ${CAT === 'cauchos' ? bloqueCaucho(p) : CAT === 'baterias' ? bloqueBateria(p) : ''}
     ${conWa.length > 1 ? botonTiendas(p, c, ci, conWa) : TIENDAS[tk].wa ? `<a class="ask" href="${wa(`Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} Consultar por WhatsApp</a>` : ''}</article>`;
