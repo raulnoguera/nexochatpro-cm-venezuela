@@ -250,13 +250,13 @@ const anio = v => {                                                       // «2
 }
 // Una columna por marca de batería (DUNCAN, FULGOR, MARUSSI PLUS…): la celda dice el grupo que usa esa marca en ese vehículo.
 const COLUMNAS_FIJAS = new Set(['MARCA', 'VEHICULO', 'MODELO', 'DESDE', 'ANODESDE', 'INICIO', 'HASTA', 'ANOHASTA', 'FIN', 'ANO', 'ANOS', 'GRUPO', 'GRUPOS', 'GRUPODEBATERIA', 'BATERIA', 'POLARIDAD', 'AMPERAJEMINIMO'])
-// Marcas de batería que traen algún grupo en la tabla. Una batería cuya marca no tiene datos usa los grupos del vehículo de cualquier marca.
+// Marcas de batería que traen algún grupo en la tabla. Una batería cuya marca no tiene columna NO se recomienda por vehículo (cada marca puede usar otro grupo): se busca por grupo o se consulta con un asesor.
 export const marcasConGrupos = filas => new Set(filas.flatMap(c => Object.keys(c.grupos || {})))
 // Grupos que le sirven a este vehículo con una batería de esa marca: la columna de su marca (la más larga que empieza igual: «Marussi Plus Limit» -> MARUSSIPLUS)
 export const gruposParaBateria = (c, marcaBateria, conDatos) => {
   if (!c.grupos) return gruposDe(c.grupo)
   const m = norm(marcaBateria), k = [...conDatos].filter(x => m.startsWith(x)).sort((a, b) => b.length - a.length)[0]
-  return k ? gruposDe(c.grupos[k]) : gruposDe(c.grupo)
+  return k ? gruposDe(c.grupos[k]) : conDatos.size ? [] : gruposDe(c.grupo)
 }
 function filasCompat(ws) {
   const items = [], omitidas = [], sku = unicos()

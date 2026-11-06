@@ -196,7 +196,8 @@ export async function ejecutar(nombre, input, ctx) {
       const filas = compatibilidad().filter(c => (!input.vehiculo_marca || norm(c.marca).includes(norm(input.vehiculo_marca))) && (!input.vehiculo_modelo || norm(c.modelo).includes(norm(input.vehiculo_modelo))) && (!input.anio || (input.anio >= c.desde && input.anio <= c.hasta)))
       if (!filas.length) return { tienda: nombreTienda(tienda), sin_datos_compatibilidad: true, instruccion: 'Ese vehículo no está en la tabla de compatibilidad. No adivines el grupo: pide el grupo que dice la batería actual o pasa a un asesor (pasar_a_humano).' }
       const conDatos = marcasConGrupos(compatibilidad())
-      compat = { vehiculo: [...new Set(filas.map(c => `${c.marca} ${c.modelo}`))].join(', '), grupos_compatibles: [...new Set(filas.map(c => c.grupo))] }
+      const porMarca = {}; for (const c of filas) for (const [k, t] of Object.entries(c.grupos || {})) porMarca[k] = [...new Set([...(porMarca[k] || []), ...gruposDe(t)])]
+      compat = { vehiculo: [...new Set(filas.map(c => `${c.marca} ${c.modelo}`))].join(', '), ...(Object.keys(porMarca).length ? { grupo_segun_marca_de_bateria: porMarca, aviso: 'El grupo depende de la marca de la batería: no mezcles grupos de otras marcas. Las marcas que no salen aquí no tienen dato para este vehículo: no las recomiendes por vehículo, pide el grupo de la batería actual o pasa a un asesor.' } : { grupos_compatibles: [...new Set(filas.map(c => c.grupo))] }) }
       r = r.filter(x => filas.some(c => gruposParaBateria(c, x.marca, conDatos).some(g => gruposDe(x.grupo).includes(g))))      // el grupo depende de la marca de la batería
     }
     if (bat) { if (input.grupo) r = tiene('grupo', input.grupo); if (input.amperaje) r = r.filter(x => x.amp === input.amperaje) }
