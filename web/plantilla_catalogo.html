@@ -50,12 +50,12 @@ select.marca{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:48p
 .veh .sel select{min-height:50px;background:var(--surface2);color:var(--ink);border:1.5px solid var(--line);font-weight:700;font-size:16px;padding:0 10px}
 .veh select:disabled{opacity:.5}
 .veh .btn{width:100%;margin-top:10px;min-height:52px;border-radius:12px;font-size:17px;font-weight:800;letter-spacing:0;text-transform:none;box-shadow:none}
-.veh .btn svg{display:none}
+.veh .btn{display:flex;align-items:center;justify-content:center;gap:9px}.veh .btn svg{width:22px;height:22px;flex:none}
 .veh .btn:disabled{background:var(--line);color:var(--muted);cursor:not-allowed}
 .veh .pronto{margin:10px 0 0;color:var(--muted);font-size:13.5px;font-weight:600}
 .veh .reco{margin:12px 0 0}
 .veh .quitar{background:none;border:0;color:var(--y);font-weight:700;text-decoration:underline;cursor:pointer;padding:0;margin-left:6px}
-.sepa{margin-top:18px;padding-top:16px;border-top:1px dashed var(--line)}
+.grp.acc{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}.sepa{margin-top:18px;padding-top:16px;border-top:1px dashed var(--line)}
 .cinta-box{margin:6px 0 18px}.cinta-box h3{margin:0 0 10px;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .cinta-box{margin:8px 0 26px;padding-top:18px;border-top:3px solid var(--y)}
 .cinta-wrap{position:relative}
@@ -103,7 +103,7 @@ select.marca{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:48p
     <div id="filtros"></div>
     <div class="grp" id="mgrp"><h3>Marca</h3><select class="marca" id="marca" aria-label="Marca"><option value="">Todas las marcas</option></select></div>
     <div class="grp sinh3" id="modgrp" hidden><h3>Modelo</h3><select class="marca" id="modelo" aria-label="Modelo"><option value="">Todos los modelos</option></select></div>
-    <div class="grp"><button class="chip" id="todos" aria-pressed="false">Mostrar también los agotados</button> <button class="btn ghost" id="clr" style="min-height:44px">Limpiar</button></div>
+    <div class="grp acc"><button class="chip" id="todos" aria-pressed="false">Mostrar también los agotados</button> <button class="btn ghost" id="clr" style="min-height:44px">Limpiar</button></div>
   </div>
   <div class="meta"><span id="count"></span><span class="sub" id="fecha"></span></div>
   <div class="grid" id="grid"></div>
@@ -464,15 +464,15 @@ const vehListo = () => { if (!V.vm || !V.vd) return false; return !!V.va || !ani
 function buscadorVehiculo() {
   const tit = '<h3>Encuentra tu batería</h3>', ico = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="2" y="7" width="20" height="13" rx="2"/><path d="M6 7V4h3v3M15 7V4h3v3M6 13.5h4M16 11.5v4M14 13.5h4"/></svg>';
   if (!COMPAT.length) return `<div class="grp veh">${tit}<div class="pasos">
-    <label class="sel"><span>Marca</span><select disabled><option>Elige una opción</option></select></label>
-    <label class="sel"><span>Modelo</span><select disabled><option>Elige una opción</option></select></label>
-    <label class="sel"><span>Año</span><select disabled><option>Elige una opción</option></select></label>
-    <button class="btn" disabled>Ver baterías</button></div>
+    <label class="sel"><select disabled aria-label="Marca del vehículo"><option>Elige la marca</option></select></label>
+    <label class="sel"><select disabled aria-label="Modelo del vehículo"><option>Elige el modelo</option></select></label>
+    <label class="sel"><select disabled aria-label="Año del vehículo"><option>Elige el año</option></select></label>
+    <button class="btn" disabled>${ico}Ver baterías</button></div>
     <p class="pronto">Muy pronto podrás buscar por la marca, el modelo y el año de tu vehículo. Mientras tanto, busca por grupo o escríbenos por WhatsApp y te decimos cuál te sirve.</p></div>`;
   const marcas = uniq(COMPAT.map(c => c.o)).sort(num);
   const modelos = V.vm ? uniq(COMPAT.filter(c => c.o === V.vm).map(c => c.d)).sort(num) : [];
   const anios = V.vm && V.vd ? aniosDe(filasVeh(V.vm, V.vd)) : [];
-  const anioSel = !V.vd ? `<option value="">Elige una opción</option>` : anios.length ? opt(anios, V.va, 'Elige una opción') : `<option value="">Todos los años</option>`;
+  const anioSel = !V.vd ? `<option value="">${V.vm ? 'Primero el modelo' : 'Elige el año'}</option>` : anios.length ? opt(anios, V.va, 'Elige el año') : `<option value="">Todos los años</option>`;
   let aviso = '';
   if (F.vm && F.vd) {
     const n = F.va ? Number(F.va) : null;
@@ -485,10 +485,10 @@ function buscadorVehiculo() {
       : `<div class="reco">No tenemos datos de tu <b>${que}</b>. Escríbenos por WhatsApp y te ayudamos. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`;
   }
   return `<div class="grp veh">${tit}<div class="pasos">
-    <label class="sel"><span>Marca</span><select id="vm">${opt(marcas, V.vm, 'Elige una opción')}</select></label>
-    <label class="sel"><span>Modelo</span><select id="vd" ${V.vm ? '' : 'disabled'}>${opt(modelos, V.vd, 'Elige una opción')}</select></label>
-    <label class="sel"><span>Año</span><select id="va" ${anios.length ? '' : 'disabled'}>${anioSel}</select></label>
-    <button class="btn" id="vbus" ${vehListo() ? '' : 'disabled'}>Ver baterías</button></div>${aviso}</div>`;
+    <label class="sel"><select id="vm" aria-label="Marca del vehículo">${opt(marcas, V.vm, 'Elige la marca')}</select></label>
+    <label class="sel"><select id="vd" aria-label="Modelo del vehículo" ${V.vm ? '' : 'disabled'}>${opt(modelos, V.vd, V.vm ? 'Elige el modelo' : 'Primero la marca')}</select></label>
+    <label class="sel"><select id="va" aria-label="Año del vehículo" ${anios.length ? '' : 'disabled'}>${anioSel}</select></label>
+    <button class="btn" id="vbus" ${vehListo() ? '' : 'disabled'}>${ico}Ver baterías</button></div>${aviso}</div>`;
 }
 // WhatsApp de la barra: las tiendas de la ciudad elegida (Maracay tiene dos). Si la ciudad aún no tiene número, se ofrecen las que sí lo tienen.
 const waTiendas = () => { const ci = CIUDADES[ciudad()]; return ci ? ci.tiendas : Object.keys(TIENDAS); };     // sin ciudad: las tres tiendas; con ciudad: solo las suyas (también las que aún no tienen número)
