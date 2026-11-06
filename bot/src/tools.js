@@ -207,7 +207,7 @@ export async function ejecutar(nombre, input, ctx) {
     const todos = r.map(x => ({ x, d: disponibilidad(x.stock, tienda) })).sort((a, b) => orden[a.d.estado] - orden[b.d.estado] || sinPrecio(a.x, tienda) - sinPrecio(b.x, tienda) || usdDe(a.x, tienda) - usdDe(b.x, tienda))
     const resultados = []
     for (const { x, d } of todos.slice(0, MAX_RESULTADOS)) resultados.push({
-      marca: x.marca, ...(bat ? { descripcion: x.descripcion, grupo: x.grupo, ...(x.garantia && { garantia_meses: x.garantia }) } : { tipo: x.tipo, presentacion: x.presentacion }),
+      marca: x.marca, ...(bat ? { descripcion: x.descripcion, grupo: x.grupo, ...(x.garantia && { garantia_meses: x.garantia }), ...((x.servicios || []).filter(z => !z.startsWith('-')).length && { servicios_incluidos: x.servicios.filter(z => !z.startsWith('-')) }), ...(x.espec?.length && { especificaciones: x.espec.map(e => `${e.k}: ${e.v}`).join('; ') }) } : { tipo: x.tipo, presentacion: x.presentacion }),
       ...(x.nota && { nota: x.nota }), ...(await precioONada(x, tienda)), disponibilidad: d })
     conTotales(resultados, input.cantidad)
     if (resultados.some(x => x.pagando_en_dolares_usd)) {
