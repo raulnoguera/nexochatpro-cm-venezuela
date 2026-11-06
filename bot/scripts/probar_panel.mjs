@@ -282,7 +282,8 @@ try {
   const { gruposParaBateria, marcasConGrupos } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href), conDatos = marcasConGrupos(nuevo.compatibilidad.items)
   ok('el grupo depende de la marca de la batería (la más específica) y, sin columna, no se recomienda por vehículo', () => {
     assert.deepEqual(gruposParaBateria(f350, 'Fulgor Black', conDatos), ['34']); assert.deepEqual(gruposParaBateria(f350, 'Fulgor', conDatos), ['24']); assert.deepEqual(gruposParaBateria(f350, 'Duncan Quattro', conDatos), ['4D'])
-    assert.deepEqual(gruposParaBateria(f350, 'Velko Basank', conDatos), []) })
+    assert.deepEqual(gruposParaBateria(f350, 'Velko Basank', conDatos), []); assert.deepEqual(gruposParaBateria(f350, 'Fulgor Everlite', conDatos), [])
+    assert.deepEqual(gruposParaBateria(f350, 'Fulgor Everlite', new Set([...conDatos, 'FULGOREVERLITE'])), []) })   // con su propia columna vacía tampoco hereda
   fs.writeFileSync(path.join(tmp, 'data', 'compatibilidad.json'), JSON.stringify(nuevo.compatibilidad.items))
   fs.writeFileSync(path.join(tmp, 'data', 'baterias.json'), JSON.stringify(nuevo.baterias.items))
   const cat = aCatalogo({ baterias: nuevo.baterias.items, compatibilidad: nuevo.compatibilidad.items })
