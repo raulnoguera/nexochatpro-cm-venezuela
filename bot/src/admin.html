@@ -238,10 +238,14 @@ details summary{cursor:pointer;font-weight:700}
     <label class="c c-compatibilidad"><span class="l">Modelo del vehículo</span><input id="vmodelo" maxlength="60" placeholder="COROLLA" autocomplete="off"></label>
     <label class="c c-compatibilidad"><span class="l">Año desde (opcional)</span><input id="vdesde" type="number" min="1900" max="2100" step="1" inputmode="numeric" placeholder="2009"></label>
     <label class="c c-compatibilidad"><span class="l">Año hasta (opcional)</span><input id="vhasta" type="number" min="1900" max="2100" step="1" inputmode="numeric" placeholder="2019"></label>
-    <label class="c c-compatibilidad w"><span class="l">Grupo(s) de batería (como en la lista de precios; varios separados por coma)</span><input id="vgrupo" maxlength="80" list="grupos" placeholder="GRUPO 24, GRUPO 34" autocomplete="off"></label>
+    <label class="c c-compatibilidad w"><span class="l">Grupo(s) del vehículo (como en la lista de precios; varios separados por coma; si hay marcas abajo, se arma solo)</span><input id="vgrupo" maxlength="80" list="grupos" placeholder="GRUPO 24, GRUPO 34" autocomplete="off"></label>
     <label class="c c-compatibilidad"><span class="l">Polaridad (opcional)</span><select id="vpolaridad"><option value="">Sin dato</option><option value="DERECHA">Derecha</option><option value="IZQUIERDA">Izquierda</option></select></label>
     <label class="c c-compatibilidad"><span class="l">Amperaje mínimo (opcional)</span><input id="vamp_min" type="number" min="0" step="1" inputmode="numeric"></label>
-    <label class="c c-compatibilidad w"><span class="l">Grupo por marca de batería (opcional, una por línea: «Marca: grupo»)</span><textarea id="vgrupos" rows="4" placeholder="Fulgor: 24&#10;Marussi Plus: 34&#10;Duncan: 4D"></textarea></label>
+    <div class="c c-compatibilidad w" id="vmarcas"><span class="l">Grupo de batería por marca (cada marca puede usar otro grupo en este vehículo)</span>
+      <div id="vmarcas-filas"></div>
+      <button type="button" class="sec" id="vmarcas-add" style="margin-top:6px">＋ Agregar marca con su grupo</button>
+      <small class="muted" style="display:block;margin-top:4px">Ejemplo: Fulgor → 24, Marussi Plus → 34. Si usas marcas, el grupo general de arriba se arma solo con ellas.</small>
+      <textarea id="vgrupos" hidden></textarea></div>
     <label class="c c-bicicletas"><span class="l">Rin</span><input id="rin" type="number" min="10" max="32" step="1" inputmode="numeric" placeholder="20"></label>
     <label class="c c-bicicletas"><span class="l">Modelo</span><input id="modelo" maxlength="30" placeholder="130" autocomplete="off"></label>
     <label class="c c-bicicletas"><span class="l">Para (opcional)</span><input id="para" maxlength="30" placeholder="NIÑO, NIÑA…" autocomplete="off"></label>
@@ -270,7 +274,7 @@ details summary{cursor:pointer;font-weight:700}
   </div></div>
   <div class="df"><p id="emsg" class="err" style="margin:0;flex:1"></p><span style="display:flex;gap:8px"><button type="button" class="sec" id="cancel">Cancelar</button><button id="guardar">Guardar</button></span></div>
 </form></dialog>
-<datalist id="marcas"></datalist><datalist id="dl-marcas"></datalist><datalist id="grupos"></datalist><datalist id="tipos"></datalist><datalist id="presentaciones"></datalist><datalist id="tiposcaucho"><option value="HT"><option value="AT"><option value="MT"><option value="RT"><option value="Direccional"><option value="Mixto"></datalist>
+<datalist id="marcas"></datalist><datalist id="dl-bmarcas"></datalist><datalist id="dl-marcas"></datalist><datalist id="grupos"></datalist><datalist id="tipos"></datalist><datalist id="presentaciones"></datalist><datalist id="tiposcaucho"><option value="HT"><option value="AT"><option value="MT"><option value="RT"><option value="Direccional"><option value="Mixto"></datalist>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -488,8 +492,33 @@ function abrir(i) {
   $('#marca').closest('label').querySelector('.l').textContent = CAT === 'otros' ? 'Artículo (bujías, bornes, tuercas…)' : 'Marca'
   const bici = CAT === 'bicicletas'; $('#marca').closest('label').hidden = bici; $('#marca').required = !bici; if (bici && !$('#marca').value) $('#marca').value = 'Bicicleta'   // las bicicletas no llevan marca
   $('#pv').src = i?.imagen ? IMG + i.imagen : 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96"><rect width="96" height="96" fill="#ddd"/></svg>')
-  $('#qfoto').hidden = !i?.imagen; actualizarMarca(); $('#dlg').showModal()
+  $('#qfoto').hidden = !i?.imagen; actualizarMarca(); if (esCompat()) cargarMarcas()
+  $('#dlg').showModal()
 }
+// Vehículos → batería: una fila por marca de batería con su grupo (se guarda como líneas «Marca: grupo» en #vgrupos)
+let BMARCAS_OK = false
+function filaMarca(m = '', g = '') {
+  const f = document.createElement('div'); f.className = 'vm-fila'; f.style.cssText = 'display:grid;grid-template-columns:1fr 1fr auto;gap:8px;margin-bottom:6px;align-items:center'
+  f.innerHTML = '<input class="vm-m" list="dl-bmarcas" maxlength="40" placeholder="Marca (ej. Fulgor)" autocomplete="off" aria-label="Marca de batería"><input class="vm-g" maxlength="40" placeholder="Grupo (ej. 24)" autocomplete="off" aria-label="Grupo de esa marca"><button type="button" class="del vm-x" title="Quitar esta marca" aria-label="Quitar esta marca">✕</button>'
+  f.querySelector('.vm-m').value = m; f.querySelector('.vm-g').value = g
+  return f
+}
+function sincronizarMarcas() {
+  const filas = $$('#vmarcas-filas .vm-fila').map(f => [f.querySelector('.vm-m').value.trim(), f.querySelector('.vm-g').value.trim()]).filter(([m, g]) => m || g)
+  $('#vgrupos').value = filas.map(([m, g]) => `${m}: ${g}`).join('\n')
+  const gs = [...new Set(filas.flatMap(([, g]) => g.split(/[,;/+]/).map(x => x.trim()).filter(Boolean)))]
+  $('#vgrupo').disabled = filas.length > 0
+  if (filas.length) $('#vgrupo').value = gs.join(', ')
+}
+function cargarMarcas() {
+  const caja = $('#vmarcas-filas'); caja.innerHTML = ''
+  for (const l of $('#vgrupos').value.split('\n').map(x => x.trim()).filter(Boolean)) { const i = l.indexOf(':'); caja.append(filaMarca(l.slice(0, i).trim(), l.slice(i + 1).trim())) }
+  sincronizarMarcas()
+  if (!BMARCAS_OK) api('GET', '/compatibilidad/marcas').then(r => { $('#dl-bmarcas').innerHTML = r.marcas.map(m => `<option value="${esc(m)}">`).join(''); BMARCAS_OK = true }).catch(() => {})
+}
+$('#vmarcas-add').onclick = () => { $('#vmarcas-filas').append(filaMarca()); sincronizarMarcas(); $('#vmarcas-filas .vm-fila:last-child .vm-m').focus() }
+$('#vmarcas-filas').oninput = sincronizarMarcas
+$('#vmarcas-filas').onclick = e => { const x = e.target.closest('.vm-x'); if (x) { x.closest('.vm-fila').remove(); sincronizarMarcas() } }
 function actualizarMarca() {
   if (esCompat()) { $('#lmarca').hidden = true; return }
   const m = $('#marca').value.trim(), n = ITEMS.filter(x => x.marca === m && x.sku !== edit?.sku).length
