@@ -24,7 +24,7 @@ select.marca{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:48p
 #espdlg{border:0;border-radius:18px;padding:0;width:min(92vw,420px);max-height:86vh;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);overflow:auto}#espdlg::backdrop{background:rgba(0,0,0,.6)}
 #espdlg .esbox{padding:20px}#espdlg h3{font-family:var(--display);font-size:26px;line-height:1.05;text-transform:uppercase;margin:0 36px 2px 0}#espdlg .esub{color:var(--muted);font-size:14px;margin:0 0 12px}
 #espdlg dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:15px}#espdlg dt{color:var(--muted)}#espdlg dd{margin:0;font-weight:700;text-align:right}#espdlg p.pend{margin:0;font-size:15px}
-#espdlg .bdib{display:block;width:100%;max-width:300px;margin:0 auto 14px;color:var(--ink)}#espdlg .x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface2);color:var(--ink);font-size:20px;line-height:1;cursor:pointer}#espdlg .cerrar{margin-top:16px;width:100%}
+#espdlg .bdib{display:block;width:100%;max-width:300px;margin:0 auto 14px;color:var(--ink)}#espdlg dt{display:flex;align-items:center;gap:7px}#espdlg .info{flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--muted);background:none;color:var(--muted);font:italic 800 12px/1 inherit;font-family:Georgia,serif;cursor:pointer;padding:0}#espdlg .info[aria-expanded=true]{background:var(--y);border-color:var(--y);color:#111}#espdlg .ayuda{grid-column:1/-1;background:var(--surface2);border-radius:10px;padding:9px 11px;font-size:13.5px;line-height:1.4;color:var(--ink)}#espdlg .x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface2);color:var(--ink);font-size:20px;line-height:1;cursor:pointer}#espdlg .cerrar{margin-top:16px;width:100%}
 .askwrap{position:relative}.askmenu{top:auto;bottom:calc(100% + 6px);left:0;right:0;min-width:0}
 .card .ph.foto{height:150px;padding:0;overflow:hidden}.card .ph.foto img{width:100%;height:100%;object-fit:cover}
 .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.tabs .chip{flex:none}
@@ -326,12 +326,24 @@ const tipoLonas = p => { const d = detalleCaucho(p); return [d.tipo, d.lonas ? `
 const ESPEC_ROT = { ic: 'Índice de carga', iv: 'Índice de velocidad' };                  // atajos de campos del catálogo, por si el cliente los envía así
 // Especificaciones: p.e = { 'Índice de carga': '91', ... } (cualquier etiqueta). Sin datos no se muestra nada.
 const especCaucho = p => Object.entries({ ...Object.fromEntries(Object.entries(ESPEC_ROT).filter(([k]) => p[k]).map(([k, et]) => [et, p[k]])), ...(p.e || {}) }).filter(([, v]) => v !== '' && v != null);
+const ayudasDe = es => Object.fromEntries(es.map(([k]) => [k, Object.entries(AYUDAS).find(([n]) => n.trim().toLowerCase() === String(k).trim().toLowerCase())?.[1]]).filter(([, t]) => t));
+const DIMS_CAUCHO = ['Ancho', 'Alto', 'Diámetro'];
+const dibujoCaucho = d => {                                   // vista de frente (alto y diámetro del rin) y de perfil (ancho)
+  const v = k => esc(d[k] || '—');
+  return `<svg class="bdib" viewBox="0 0 340 205" role="img" aria-label="Medidas del caucho: ancho ${v('Ancho')}, alto ${v('Alto')}, diámetro del rin ${v('Diámetro')}">
+    <g stroke="currentColor" stroke-width="2"><circle cx="85" cy="90" r="70" fill="var(--ink)"/><circle cx="85" cy="90" r="36" fill="var(--surface2)"/><circle cx="85" cy="90" r="9" fill="var(--y)"/>
+      <rect x="225" y="40" width="50" height="100" rx="16" fill="var(--ink)"/></g>
+    <g stroke="currentColor" stroke-width="1.3" fill="none" opacity=".75"><path d="M168 20v140M163 20h10M163 160h10"/><path d="M49 90h72M49 85v10M121 85v10" stroke-dasharray="4 3"/><path d="M225 154h50M225 149v10M275 149v10"/></g>
+    <g font-family="inherit" font-size="13" font-weight="800" fill="currentColor"><text transform="translate(190 90) rotate(-90)" text-anchor="middle">Alto ${v('Alto')}</text>
+      <text x="85" y="182" text-anchor="middle">Diámetro del rin</text><text x="85" y="198" text-anchor="middle">${v('Diámetro')}</text><text x="250" y="176" text-anchor="middle">Ancho</text><text x="250" y="192" text-anchor="middle">${v('Ancho')}</text></g></svg>`;
+};
 const bloqueCaucho = p => {
   const pend = '<li class="pend">Por confirmar</li>';
   const lista = p.sv || SERVICIOS_COMPRA;       // p.sv: servicios de este caucho (generales + por marca/modelo + propios); sin eso, los generales
   const sv = lista.length || MOSTRAR_PENDIENTES ? `<div class="incl"><b>Incluye con tu compra</b><ul>${lista.length ? lista.map(x => `<li>${esc(x)}</li>`).join('') : pend}</ul></div>` : '';
   const es = especCaucho(p), ico = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>';
-  const info = esc(JSON.stringify({ t: [marcaDe(p), modeloCaucho(p)].filter(Boolean).join(' ') + ' · ' + p.z, e: es }));     // lo que muestra la ventana (ver #espdlg)
+  const dims = Object.fromEntries(es.filter(([k]) => DIMS_CAUCHO.includes(k))), resto = es.filter(([k]) => !DIMS_CAUCHO.includes(k));
+  const info = esc(JSON.stringify({ t: [marcaDe(p), modeloCaucho(p)].filter(Boolean).join(' ') + ' · ' + p.z, e: resto, ay: ayudasDe(resto), cd: Object.keys(dims).length ? dims : null }));     // lo que muestra la ventana (ver #espdlg)
   const det = es.length || MOSTRAR_PENDIENTES ? `<button type="button" class="espbtn" data-esp="${info}">${ico} Ver especificaciones</button>` : '';
   return sv + det;
 };
@@ -352,16 +364,18 @@ const bloqueBateria = p => {
   const lista = p.sv || [], pol = polBat(p) ? polTxt(p) : '';
   const sv = lista.length || MOSTRAR_PENDIENTES ? `<div class="incl"><b>Incluye con tu compra</b><ul>${lista.length ? lista.map(x => `<li>${esc(x)}</li>`).join('') : '<li class="pend">Por confirmar</li>'}</ul></div>` : '';
   const hay = Object.keys(dims).length || resto.length, ico = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>';
-  const info = esc(JSON.stringify({ t: `${p.m} · Grupo ${grupoBat(p)}`, e: resto, bd: Object.keys(dims).length ? dims : null, pol }));
+  const info = esc(JSON.stringify({ t: `${p.m} · Grupo ${grupoBat(p)}`, e: resto, ay: ayudasDe(resto), bd: Object.keys(dims).length ? dims : null, pol }));
   return sv + (hay || MOSTRAR_PENDIENTES ? `<button type="button" class="espbtn" data-esp="${info}">${ico} Ver medidas y especificaciones</button>` : '');
 };
 // Combos de aceite (4 litros o más): incluyen filtro. El detalle del filtro (marca, tipo…) lo enviará el cliente: se escribe en COMBO_DETALLE y la tarjeta lo muestra sola.
 // Ej.: const COMBO_DETALLE = 'Filtro de aceite';
+let AYUDAS = {};                                // explicaciones de las especificaciones (icono «i»): { 'Índice de carga': '…' }, las edita el administrador
 let COMBO_DETALLE = '';
 const aplicarAjustes = a => {
   if (!a) return
   if (Array.isArray(a.servicios_compra)) SERVICIOS_COMPRA = a.servicios_compra
   if (typeof a.combo_detalle === 'string') COMBO_DETALLE = a.combo_detalle
+  if (a.ayudas_espec && typeof a.ayudas_espec === 'object') AYUDAS = a.ayudas_espec
   if (typeof a.mostrar_pendientes === 'boolean') MOSTRAR_PENDIENTES = a.mostrar_pendientes
 };
 const bloqueAceite = p => {
@@ -567,11 +581,14 @@ document.addEventListener('click', e => {
 });
 // «Ver especificaciones»: ventana emergente (no alarga la tarjeta); se cierra con ×, «Cerrar», tocando fuera o con Esc
 document.addEventListener('click', e => {
+  const inf = e.target.closest('[data-ayuda]');                  // icono «i»: abre o cierra la explicación de esa especificación
+  if (inf) { const box = inf.parentElement.nextElementSibling.nextElementSibling; box.hidden = !box.hidden; inf.setAttribute('aria-expanded', String(!box.hidden)); return; }
   const b = e.target.closest('[data-esp]'), d = $('#espdlg');
   if (b) { let x; try { x = JSON.parse(b.dataset.esp); } catch (_) { return; }
     $('#essub').textContent = x.t || '';
-    const filas = [...(x.pol ? [['Polaridad', x.pol]] : []), ...(x.e || [])];
-    $('#escont').innerHTML = (x.bd ? dibujoBateria(x.bd) : '') + (filas.length ? `<dl>${filas.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : (x.bd ? '' : '<p class="pend">Por confirmar</p>'));
+    const filas = [...(x.pol ? [['Polaridad', x.pol]] : []), ...(x.e || [])], ay = x.ay || {};
+    const fila = ([k, v]) => `<dt>${esc(k)}${ay[k] ? `<button type="button" class="info" data-ayuda aria-expanded="false" aria-label="¿Qué significa ${esc(k)}?">i</button>` : ''}</dt><dd>${esc(v)}</dd>${ay[k] ? `<div class="ayuda" hidden>${esc(ay[k])}</div>` : ''}`;
+    $('#escont').innerHTML = (x.bd ? dibujoBateria(x.bd) : '') + (x.cd ? dibujoCaucho(x.cd) : '') + (filas.length ? `<dl>${filas.map(fila).join('')}</dl>` : (x.bd || x.cd ? '' : '<p class="pend">Por confirmar</p>'));
     if (!d.open) d.showModal(); return; }
   if (e.target === d || e.target.closest('[data-cerrar]')) d.close();
 });

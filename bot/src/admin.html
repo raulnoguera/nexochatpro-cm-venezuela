@@ -193,6 +193,7 @@ details summary{cursor:pointer;font-weight:700}
     <p><label><span class="l">Servicios que vienen con la compra de los cauchos (uno por línea)</span><textarea id="ajsrv" rows="5" placeholder="Montura&#10;Balanceo&#10;Válvula nueva"></textarea></label></p>
     <div class="reglas"><span class="l">Servicios según la marca o el modelo <small class="muted">(se suman a los de arriba; deja el modelo vacío para toda la marca)</small></span>
       <div id="regs"></div><p><button class="sec" id="regnew" type="button">＋ Agregar regla</button></p></div>
+    <p><label><span class="l">Explicaciones de las especificaciones (icono «i» en «Ver especificaciones»; una por línea: «Nombre: explicación», con el nombre igual al de la especificación)</span><textarea id="ajayudas" rows="6" placeholder="Índice de carga: Carga máxima que un neumático puede soportar…"></textarea></label></p>
     <p><label><span class="l">Detalle del filtro que incluyen los combos de aceite</span><input id="ajcombo" maxlength="80" placeholder="Ej. Filtro de aceite"></label></p>
     <p><label style="display:flex;gap:10px;align-items:flex-start"><input type="checkbox" id="ajpend" style="margin-top:4px"><span style="font-size:15px;color:inherit">Mostrar «Por confirmar» donde todavía no hay información <small class="muted">(si lo apagas, esos apartados se esconden hasta tener datos)</small></span></label></p>
     <p style="margin-top:14px"><button id="ajgu">Guardar ajustes</button> <span id="ajmsg"></span></p>
@@ -562,12 +563,12 @@ async function cargarAjustes() {
   OPC = (await api('GET', '/ajustes/opciones').catch(() => ({ marcas: [] }))).marcas
   $('#dl-marcas').innerHTML = OPC.map(o => `<option value="${esc(o.marca)}" label="${o.total} cauchos">`).join('')
   $('#regs').innerHTML = ''; (a.servicios_reglas || []).forEach(r => filaRegla(r)); alcance()
-  $('#ajsrv').value = (a.servicios_compra || []).join('\n'); $('#ajcombo').value = a.combo_detalle || ''; $('#ajpend').checked = a.mostrar_pendientes !== false
+  $('#ajsrv').value = (a.servicios_compra || []).join('\n'); $('#ajcombo').value = a.combo_detalle || ''; $('#ajayudas').value = Object.entries(a.ayudas_espec || {}).map(([k, t]) => `${k}: ${t}`).join('\n'); $('#ajpend').checked = a.mostrar_pendientes !== false
 }
 $('#ajgu').onclick = async () => {
   $('#ajgu').disabled = true; $('#ajmsg').className = 'muted'; $('#ajmsg').textContent = 'Guardando…'
   try {
-    await api('PUT', '/ajustes', { servicios_compra: $('#ajsrv').value, servicios_reglas: leerReglas(), combo_detalle: $('#ajcombo').value, mostrar_pendientes: $('#ajpend').checked })
+    await api('PUT', '/ajustes', { servicios_compra: $('#ajsrv').value, servicios_reglas: leerReglas(), combo_detalle: $('#ajcombo').value, ayudas_espec: $('#ajayudas').value, mostrar_pendientes: $('#ajpend').checked })
     $('#ajmsg').className = 'ok'; $('#ajmsg').textContent = 'Guardado. Ya se ve en la web.'; await cargarAjustes()
   } catch (er) { $('#ajmsg').className = 'err'; $('#ajmsg').textContent = er.message }
   $('#ajgu').disabled = false
