@@ -301,7 +301,8 @@ const TIPOS_ACE = { min: 'Mineral', semi: 'Semisintético', sint: 'Sintético', 
 const tipoAce = t => { const u = t.toUpperCase(); return /SEMISINT/.test(u) ? 'semi' : /SINT/.test(u) ? 'sint' : /MINERAL/.test(u) ? 'min' : 'otros'; };
 const viscAce = t => t.toUpperCase().replace(/\s*(SEMISINTETICO|SINTETICO|MINERAL)\s*$/, '');
 const esCombo = p => parseInt(p, 10) >= 4 && /Litros/i.test(p);
-const presAce = p => esCombo(p) ? `Combo ${parseInt(p, 10)} litros` : /^Litro$/i.test(p) ? '1 litro' : p;
+const presAce = p => esCombo(p) ? `Combo ${parseInt(p, 10)} litros + Filtro` : /^Litro$/i.test(p) ? '1 litro' : p;      // los combos dicen «+ Filtro»
+const ordPres = (a, b) => (/^Litro$/i.test(b) - /^Litro$/i.test(a)) || num(a, b);      // 1 litro primero, luego de menor a mayor
 const CATS = {
   cauchos: {
     nombre: 'Cauchos', pista: 'Ej. 265/60R18 o Haida', titulo: 'Escribe la medida o la marca',
@@ -373,7 +374,7 @@ function filtrosAceites() {
   const lista = (DATA.aceites || []).filter(p => !NO_ACEITE.test(p.t) && (F.todos || ks.some(k => (p[k] ?? 0) > 0)));
   const porTipo = {}; for (const p of lista) (porTipo[tipoAce(p.t)] = porTipo[tipoAce(p.t)] || []).push(p);
   const tipo = F.atipo || (F.tipo ? tipoAce(F.tipo) : ''), viscs = porTipo[tipo] ? uniq(porTipo[tipo].map(p => p.t.toUpperCase())).sort(num) : [];
-  const pres = F.tipo ? uniq(lista.filter(p => p.t.toUpperCase() === F.tipo.toUpperCase()).map(p => p.p)).sort(num) : [];
+  const pres = F.tipo ? uniq(lista.filter(p => p.t.toUpperCase() === F.tipo.toUpperCase()).map(p => p.p)).sort(ordPres) : [];
   const combos = uniq(lista.map(p => p.p).filter(esCombo)).sort(num);
   return `<div class="grp"><h3>Busca por tipo y viscosidad</h3><div class="two">
     <label><select id="atipo" aria-label="Tipo de aceite"><option value="">Elige el tipo</option>${Object.keys(TIPOS_ACE).filter(k => porTipo[k]).map(k => `<option value="${k}" ${tipo === k ? 'selected' : ''}>${TIPOS_ACE[k]}</option>`).join('')}</select></label>
@@ -540,7 +541,7 @@ function card(p) {
   const c = CATS[CAT], [k, t] = estado(p), tasa = TASAS[CIUDADES[ciudad()].tasa], ci = CIUDADES[ciudad()], tk = tiendaWa(p), conWa = ci.tiendas.filter(x => TIENDAS[x].wa);
   const precioBs = tasa ? `<div class="bs"><b>Bs ${bs(pb(p) * tasa)}</b> pagando en bolívares<br><span class="sub">(${ref(pb(p))} a ${ci.etiqueta})</span></div>` : '';
   const tags = c.tags(p).concat(p.x && !(CAT === 'cauchos' && /^\d+\s*lonas$/i.test(p.x.trim())) ? [p.x] : []);
-  return `<article class="card"><div class="ph${p.i ? ' foto' : ''}">${p.i ? `<img src="${esc(p.i)}" alt="${esc(p.m + ' ' + c.titulo_p(p))}" loading="lazy">` : ICONOS[CAT]}</div>${cabTarjeta(CAT === 'cauchos' ? `<h4 class="tit">${esc(tituloCaucho(p))}</h4>` : CAT === 'baterias' ? `<h4 class="tit">${esc(tituloBateria(p))}</h4>` : `<div class="brand">${esc(p.m)}${p.mo ? ' · ' + esc(p.mo) : ''}</div><h4>${esc(c.titulo_p(p))}</h4>`, [k, t])}${CAT === 'cauchos' ? subCaucho(p) : CAT === 'baterias' ? subBateria(p) : ''}
+  return `<article class="card"><div class="ph${p.i ? ' foto' : ''}">${p.i ? `<img src="${esc(p.i)}" alt="${esc(p.m + ' ' + c.titulo_p(p))}" loading="lazy">` : ICONOS[CAT]}</div>${cabTarjeta(CAT === 'cauchos' ? `<h4 class="tit">${esc(tituloCaucho(p))}</h4>` : CAT === 'baterias' ? `<h4 class="tit">${esc(tituloBateria(p))}</h4>` : CAT === 'aceites' ? `<h4>${esc(p.m)}</h4><div class="brand">${esc(c.titulo_p(p))}</div>` : `<div class="brand">${esc(p.m)}${p.mo ? ' · ' + esc(p.mo) : ''}</div><h4>${esc(c.titulo_p(p))}</h4>`, [k, t])}${CAT === 'cauchos' ? subCaucho(p) : CAT === 'baterias' ? subBateria(p) : ''}
     <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}${CAT === 'aceites' ? bloqueAceite(p) : ''}
     <div class="price">${pu(p) > 0 ? `<div class="usd">${refGrande(pu(p))}<small>Oferta en divisa</small></div>${precioBs}` : '<div class="usd consulta">Consultar precio</div><div class="bs">Te lo confirmamos por WhatsApp</div>'}</div>
     ${CAT === 'cauchos' ? bloqueCaucho(p) : CAT === 'baterias' ? bloqueBateria(p) : ''}
