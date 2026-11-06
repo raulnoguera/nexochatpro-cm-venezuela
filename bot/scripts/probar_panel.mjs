@@ -280,16 +280,16 @@ try {
   const { gruposDe } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href)
   ok('una batería grupo 30HCT también sirve a un vehículo que pide 30H (y no al revés con otros grupos)', () => { assert.deepEqual(gruposDe('30HCT'), ['30HCT', '30H']); assert.deepEqual(gruposDe('GRUPO 30H'), ['30H']); assert.deepEqual(gruposDe('24, 34'), ['24', '34']); assert.ok(gruposDe('30HCT').some(g => gruposDe('30H').includes(g))) })
   const { gruposParaBateria, marcasConGrupos } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href), conDatos = marcasConGrupos(nuevo.compatibilidad.items)
-  ok('el grupo depende de la marca de la batería (la más específica) y, sin columna, usa los del vehículo', () => {
+  ok('el grupo depende de la marca de la batería (la más específica) y, sin columna, no se recomienda por vehículo', () => {
     assert.deepEqual(gruposParaBateria(f350, 'Fulgor Black', conDatos), ['34']); assert.deepEqual(gruposParaBateria(f350, 'Fulgor', conDatos), ['24']); assert.deepEqual(gruposParaBateria(f350, 'Duncan Quattro', conDatos), ['4D'])
-    assert.deepEqual(gruposParaBateria(f350, 'Velko Basank', conDatos), ['4D', '24', '34']) })
+    assert.deepEqual(gruposParaBateria(f350, 'Velko Basank', conDatos), []) })
   fs.writeFileSync(path.join(tmp, 'data', 'compatibilidad.json'), JSON.stringify(nuevo.compatibilidad.items))
   fs.writeFileSync(path.join(tmp, 'data', 'baterias.json'), JSON.stringify(nuevo.baterias.items))
   const cat = aCatalogo({ baterias: nuevo.baterias.items, compatibilidad: nuevo.compatibilidad.items })
   ok('el catálogo de la web lleva los grupos por marca y las especificaciones de la batería', () => { assert.deepEqual(cat.compatibilidad.find(x => x.d === 'F-350').m, { DUNCAN: ['4D'], FULGOR: ['24'], FULGORBLACK: ['34'] }); assert.equal(cat.baterias.find(x => x.g === '24').e.Voltaje, '12 V') })
   const rb = await ejecutar('buscar_baterias', { tienda: 'maracay', vehiculo_marca: 'Ford', vehiculo_modelo: 'F-350', anio: 2005 }, { conversationId: 0 }).catch(e => ({ error: e.message }))
-  ok('Nexo, para una F-350: ofrece la Duncan 4D y la Velko (marca sin datos usa los del vehículo) y no la Fulgor Black grupo 24', () => {
-    assert.ok(!rb.error, rb.error); assert.deepEqual(rb.resultados.map(x => x.marca).sort(), ['Duncan', 'Velko Basank']) })
+  ok('Nexo, para una F-350: ofrece solo la Duncan 4D (la Velko no tiene columna: no se recomienda por vehículo) y no la Fulgor Black grupo 24', () => {
+    assert.ok(!rb.error, rb.error); assert.deepEqual(rb.resultados.map(x => x.marca).sort(), ['Duncan']); assert.deepEqual(rb.compatibilidad?.grupo_segun_marca_de_bateria?.DUNCAN, ['4D']) })
   // 11) carrusel de marcas: el administrador elige las marcas, sube el logo y fija el orden
   const car0 = await api('GET', '/carrusel')
   ok('sin configurar, el carrusel se arma solo con las marcas conocidas que hay en la lista', () => { assert.equal(car0.s, 200); assert.equal(car0.j.cauchos.personalizado, false); assert.ok(car0.j.cauchos.marcas.some(x => x.marca === 'Habilead')); assert.deepEqual(Object.keys(car0.j), ['cauchos', 'baterias', 'aceites']) })
