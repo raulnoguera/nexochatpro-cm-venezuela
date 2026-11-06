@@ -501,10 +501,13 @@ function card(p) {
 }
 
 const clave = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+const SIN_POLARIDAD = ['30H', '30HCT', '4D', '8D'];                          // estos grupos no se filtran por polaridad
+const polBat = p => /\bDERECHA\b/i.test(p.d || '') ? 'DERECHA' : /\bIZQUIERDA\b/i.test(p.d || '') ? 'IZQUIERDA' : '';
+const sirvePolaridad = (c, p) => !c.p || !polBat(p) || (p.k || []).some(g => SIN_POLARIDAD.includes(g)) || c.p === polBat(p);   // c.p: polaridad del vehículo; la de la batería sale de su descripción
 const sirveAlVehiculo = p => {                                           // ¿esta batería le sirve al vehículo elegido? El grupo depende de la marca de la batería (columna de su marca en la tabla); una marca sin columna no se recomienda por vehículo
   const n = F.va ? Number(F.va) : null, conDatos = new Set(COMPAT.flatMap(c => Object.keys(c.m || {}))), m = clave(p.m);
   const k = [...conDatos].filter(x => m.startsWith(x)).sort((a, b) => b.length - a.length)[0];
-  return COMPAT.some(c => c.o === F.vm && c.d === F.vd && (n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999))) && ((c.m && conDatos.size ? (k ? c.m[k] || [] : []) : c.g)).some(x => (p.k || []).includes(x)));
+  return COMPAT.some(c => c.o === F.vm && c.d === F.vd && (n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999))) && sirvePolaridad(c, p) && ((c.m && conDatos.size ? (k ? c.m[k] || [] : []) : c.g)).some(x => (p.k || []).includes(x)));
 };
 function filtrar(paraMarcas, sinModelo) {                              // paraMarcas: ignora la marca elegida y el texto escrito (sirve para saber qué marcas ofrecer)
   const c = CATS[CAT], tok = CAT === 'baterias' || paraMarcas ? [] : (F.q || '').split(/\s+/).map(norm).filter(Boolean);   // baterías: sin búsqueda escrita (el amperaje solo no indica si le sirve al vehículo)
@@ -610,8 +613,9 @@ function buscadorVehiculo() {
     const n = F.va ? Number(F.va) : null;
     const filas = filasVeh(F.vm, F.vd).filter(c => n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999))), g = uniq(filas.map(c => c.gr));
     const que = `${esc(F.vm)} ${esc(F.vd)}${F.va ? ' ' + esc(F.va) : ''}`, porMarca = gruposPorMarca(filas);
+    const pols = uniq(filas.map(c => c.p).filter(Boolean)), polTxt = pols.length ? ` Polaridad: <b>${esc(pols.map(x => x.toLowerCase()).join(' o '))}</b> (no aplica a los grupos 30H, 30HCT, 4D y 8D).` : '';
     const grp = x => /^(GRUPO|PARA)\b/i.test(x) ? x : 'GRUPO ' + x;
-    aviso = porMarca.length ? `<div class="reco">Para tu <b>${que}</b> el grupo depende de la marca de la batería: ${porMarca.map(([m, gs]) => `<b>${esc(m)}</b>: ${esc(gs.map(grp).join(' o '))}`).join(' · ')}. Si tu batería es de otra marca, escríbenos por WhatsApp y te confirmamos el grupo. Verifica también la polaridad con tu batería actual. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`
+    aviso = porMarca.length ? `<div class="reco">Para tu <b>${que}</b> el grupo depende de la marca de la batería: ${porMarca.map(([m, gs]) => `<b>${esc(m)}</b>: ${esc(gs.map(grp).join(' o '))}`).join(' · ')}. Si tu batería es de otra marca, escríbenos por WhatsApp y te confirmamos el grupo.${polTxt} Verifica el grupo y la polaridad con tu batería actual. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`
       : g.length ? `<div class="reco">Para tu <b>${que}</b> sirven las baterías <b>${esc(g.map(x => /^(GRUPO|PARA)\b/i.test(x) ? x : 'GRUPO ' + x).join(' o '))}</b>. Confirma el grupo y la polaridad con tu batería actual antes de comprar. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`
       : `<div class="reco">No tenemos datos de tu <b>${que}</b>. Escríbenos por WhatsApp y te ayudamos. <button class="quitar" id="vquitar">Quitar vehículo</button></div>`;
   }

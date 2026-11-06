@@ -251,6 +251,13 @@ const anio = v => {                                                       // «2
 // Una columna por marca de batería (DUNCAN, FULGOR, MARUSSI PLUS…): la celda dice el grupo que usa esa marca en ese vehículo.
 const COLUMNAS_FIJAS = new Set(['MARCA', 'VEHICULO', 'MODELO', 'DESDE', 'ANODESDE', 'INICIO', 'HASTA', 'ANOHASTA', 'FIN', 'ANO', 'ANOS', 'GRUPO', 'GRUPOS', 'GRUPODEBATERIA', 'BATERIA', 'POLARIDAD', 'AMPERAJEMINIMO'])
 // Marcas de batería que traen algún grupo en la tabla. Una batería cuya marca no tiene columna NO se recomienda por vehículo (cada marca puede usar otro grupo): se busca por grupo o se consulta con un asesor.
+// Polaridad: el vehículo la trae en la tabla (IZQUIERDA / DERECHA) y la batería la trae en su descripción («1100 AMP / MR / DERECHA»). Los grupos 30H, 30HCT, 4D y 8D no se filtran por polaridad.
+export const GRUPOS_SIN_POLARIDAD = ['30H', '30HCT', '4D', '8D']
+export const polaridadDe = t => { const u = String(t ?? '').toUpperCase(); return /\bDERECHA\b/.test(u) ? 'DERECHA' : /\bIZQUIERDA\b/.test(u) ? 'IZQUIERDA' : '' }
+export const sirvePolaridad = (polaridadVehiculo, grupoBateria, descripcionBateria) => {
+  const v = polaridadDe(polaridadVehiculo), b = polaridadDe(descripcionBateria)
+  return !v || !b || gruposDe(grupoBateria).some(g => GRUPOS_SIN_POLARIDAD.includes(g)) || v === b
+}
 export const marcasConGrupos = filas => new Set(filas.flatMap(c => Object.keys(c.grupos || {})))
 // Grupos que le sirven a este vehículo con una batería de esa marca: la columna de su marca (la más larga que empieza igual: «Marussi Plus Limit» -> MARUSSIPLUS)
 export const gruposParaBateria = (c, marcaBateria, conDatos) => {
@@ -457,7 +464,7 @@ CATS.otros = {                                                             // bo
 CATS.compatibilidad = {
   archivo: 'compatibilidad.json', hoja: 'COMPATIBILIDAD', leer: filasCompat, sinProductos: true,
   nombre: i => `${i.marca} ${i.modelo} ${i.desde || ''}-${i.hasta === 9999 ? '' : i.hasta}`,
-  web: i => ({ o: i.marca, d: i.modelo, a: i.desde, b: i.hasta, g: gruposDe(i.grupo), r: i.grupo, ...(i.grupos && { m: Object.fromEntries(Object.entries(i.grupos).map(([k, t]) => [k, gruposDe(t)])) }) }),
+  web: i => ({ o: i.marca, d: i.modelo, a: i.desde, b: i.hasta, g: gruposDe(i.grupo), r: i.grupo, ...(polaridadDe(i.polaridad) && { p: polaridadDe(i.polaridad) }), ...(i.grupos && { m: Object.fromEntries(Object.entries(i.grupos).map(([k, t]) => [k, gruposDe(t)])) }) }),
   orden: (a, b) => a.o.localeCompare(b.o) || a.d.localeCompare(b.d, 'es', { numeric: true }) || a.a - b.a,
   validar: (b, previo = {}) => {
     const marca = String(b.marca ?? '').trim().toUpperCase(), modelo = String(b.modelo ?? '').trim().toUpperCase(), grupo = String(b.grupo ?? '').trim()
