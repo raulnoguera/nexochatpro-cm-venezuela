@@ -290,6 +290,8 @@ try {
   const rb = await ejecutar('buscar_baterias', { tienda: 'maracay', vehiculo_marca: 'Ford', vehiculo_modelo: 'F-350', anio: 2005 }, { conversationId: 0 }).catch(e => ({ error: e.message }))
   ok('Nexo, para una F-350: ofrece solo la Duncan 4D (la Velko no tiene columna: no se recomienda por vehículo) y no la Fulgor Black grupo 24', () => {
     assert.ok(!rb.error, rb.error); assert.deepEqual(rb.resultados.map(x => x.marca).sort(), ['Duncan']); assert.deepEqual(rb.compatibilidad?.grupo_segun_marca_de_bateria?.DUNCAN, ['4D']) })
+  const vc = await api('GET', '/compatibilidad/items'), vf = (vc.j || []).find(x => x.modelo === 'F-350')
+  ok('el panel muestra el grupo de cada marca de batería en «Vehículos → batería»', () => { assert.equal(vc.s, 200); assert.ok(vf, 'F-350 en la vista'); assert.match(vf.por_marca, /Duncan: 4D/); assert.match(vf.por_marca, /Fulgor: 24/); assert.match(vf.por_marca, /Fulgor Black: 34/) })
   // 11) carrusel de marcas: el administrador elige las marcas, sube el logo y fija el orden
   const car0 = await api('GET', '/carrusel')
   ok('sin configurar, el carrusel se arma solo con las marcas conocidas que hay en la lista', () => { assert.equal(car0.s, 200); assert.equal(car0.j.cauchos.personalizado, false); assert.ok(car0.j.cauchos.marcas.some(x => x.marca === 'Habilead')); assert.deepEqual(Object.keys(car0.j), ['cauchos', 'baterias', 'aceites']) })
