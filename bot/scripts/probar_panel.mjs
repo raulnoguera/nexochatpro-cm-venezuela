@@ -51,9 +51,9 @@ try {
 
   // 5) ajustes de la web
   r = await api('GET', '/ajustes')
-  ok('ajustes por defecto: sin servicios, sin detalle y «Por confirmar» visible', () => { assert.deepEqual(r.j, { servicios_compra: [], servicios_reglas: [], combo_detalle: '', mostrar_pendientes: true }) })
+  ok('ajustes por defecto: sin servicios, sin detalle, «Por confirmar» visible y las explicaciones de la hoja del cliente', () => { const { ayudas_espec, ...resto } = r.j; assert.deepEqual(resto, { servicios_compra: [], servicios_reglas: [], combo_detalle: '', mostrar_pendientes: true }); assert.ok(ayudas_espec['Índice de carga']) })
   r = await api('PUT', '/ajustes', { servicios_compra: ' Montura \n\nBalanceo\nVálvula nueva', combo_detalle: 'Filtro de aceite', mostrar_pendientes: false })
-  ok('guarda los ajustes y limpia las líneas vacías', () => { assert.equal(r.s, 200); assert.deepEqual(r.j, { servicios_compra: ['Montura', 'Balanceo', 'Válvula nueva'], servicios_reglas: [], combo_detalle: 'Filtro de aceite', mostrar_pendientes: false }) })
+  ok('guarda los ajustes y limpia las líneas vacías', () => { assert.equal(r.s, 200); const { ayudas_espec, ...resto } = r.j; assert.deepEqual(resto, { servicios_compra: ['Montura', 'Balanceo', 'Válvula nueva'], servicios_reglas: [], combo_detalle: 'Filtro de aceite', mostrar_pendientes: false }); assert.ok(ayudas_espec['Índice de carga']) })
   ok('catalogo.json trae los ajustes al instante', () => assert.deepEqual(catalogo().ajustes, r.j))
   ok('aCatalogo también los incluye', () => assert.deepEqual(aCatalogo({}).ajustes, r.j))
   r = await api('PUT', '/ajustes', { servicios_compra: Array.from({ length: 13 }, (_, i) => 'S' + i) })
@@ -320,6 +320,18 @@ try {
   const bi = await api('POST', '/bicicletas/items', { marca: 'Bicicleta', usd: 100, cm: 1, mc: 0, rin: 20, modelo: '999', caracteristicas: 'Aluminio, frenos V-brake' })
   const biv = (await api('GET', '/bicicletas/items')).j.find(x => x.sku === bi.j.sku)
   ok('bicicleta a mano: guarda las características', () => { assert.equal(bi.s, 200); assert.equal(biv.caracteristicas, 'Aluminio, frenos V-brake') })
+  // 10c) explicaciones de las especificaciones (columna W del inventario de cauchos) y dibujo del caucho
+  const { ayudasDeHoja, AYUDAS_BASE } = await import(pathToFileURL(path.join(aqui, '../src/lista.js')).href)
+  const libroW = new ExcelJS.Workbook(), hojaW = libroW.addWorksheet('INVENTARIO CAUCHOS')
+  ;['Índice de carga:', 'Carga máxima que soporta.', 'Código de velocidad:', 'Velocidad máxima.', 'TL = Tubeless', 'No requiere tripa.', 'TT = Tube Type', 'Requiere tripa.'].forEach((t, i) => { hojaW.getCell(i + 1, 23).value = t })
+  const ayW = ayudasDeHoja(hojaW)
+  ok('la columna W se lee como pares título/explicación, con TL y TT juntos', () => { assert.equal(ayW['Índice de carga'], 'Carga máxima que soporta.'); assert.equal(ayW['Código de velocidad'], 'Velocidad máxima.'); assert.match(ayW['TL/TT'], /TL = Tubeless: No requiere tripa\. TT = Tube Type: Requiere tripa\./) })
+  const ajA = await api('GET', '/ajustes')
+  ok('sin tocar nada, la web recibe las explicaciones de la hoja del cliente', () => { assert.deepEqual(ajA.j.ayudas_espec, AYUDAS_BASE); assert.deepEqual(catalogo().ajustes.ayudas_espec, AYUDAS_BASE) })
+  const ajB = await api('PUT', '/ajustes', { servicios_compra: '', combo_detalle: '', ayudas_espec: 'Índice de carga: Texto nuevo\nVoltaje: Tensión de la batería.' })
+  const ajC = await api('PUT', '/ajustes', { servicios_compra: '', combo_detalle: '' }), ajD = await api('PUT', '/ajustes', { servicios_compra: '', ayudas_espec: 'sin dos puntos' })
+  ok('el administrador edita las explicaciones; si guarda sin enviarlas se conservan; una línea mal escrita se rechaza', () => { assert.equal(ajB.s, 200); assert.equal(ajB.j.ayudas_espec['Índice de carga'], 'Texto nuevo'); assert.equal(catalogo().ajustes.ayudas_espec.Voltaje, 'Tensión de la batería.'); assert.equal(ajC.j.ayudas_espec['Índice de carga'], 'Texto nuevo'); assert.equal(ajD.s, 400); assert.match(ajD.j.error, /Nombre: explicación/) })
+  await api('PUT', '/ajustes', { servicios_compra: '', combo_detalle: '', ayudas_espec: Object.entries(AYUDAS_BASE).map(([k, t]) => `${k}: ${t}`).join('\n') })
   // 11) carrusel de marcas: el administrador elige las marcas, sube el logo y fija el orden
   const car0 = await api('GET', '/carrusel')
   ok('sin configurar, el carrusel se arma solo con las marcas conocidas que hay en la lista', () => { assert.equal(car0.s, 200); assert.equal(car0.j.cauchos.personalizado, false); assert.ok(car0.j.cauchos.marcas.some(x => x.marca === 'Habilead')); assert.deepEqual(Object.keys(car0.j), ['cauchos', 'baterias', 'aceites']) })

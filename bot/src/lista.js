@@ -126,6 +126,18 @@ const armarCaucho = v => {
   return { desc: `${med} ${marca}`.trim(), falta: !med || !marca ? 'medida o marca' : '', item }
 }
 const filasCauchosNuevo = (ws, op) => filasConCodigo(ws, armarCaucho, op)
+// Columna W del inventario de cauchos: pares «título» / «explicación» uno debajo del otro (Índice de carga: …, TL = Tubeless …). TL y TT van juntos en «TL/TT».
+const NOMBRES_AYUDA = new Map(ESPEC_CAUCHO.map(([, n]) => [norm(n), n]))
+export function ayudasDeHoja(ws) {
+  const celdas = []; ws.eachRow(row => { const t = txt(celda(row.getCell(23).value)); if (t) celdas.push(t) })
+  const out = {}
+  for (let i = 0; i + 1 < celdas.length; i += 2) {
+    const titulo = celdas[i].replace(/:\s*$/, '').trim(), texto = celdas[i + 1].replace(/\s*\n\s*/g, ' ').trim()
+    if (/^(TL|TT)\s*=/i.test(titulo)) out['TL/TT'] = [out['TL/TT'], `${titulo}: ${texto}`.replace(/\.$/, '.')].filter(Boolean).join(' ')
+    else out[NOMBRES_AYUDA.get(norm(titulo)) || titulo] = texto
+  }
+  return out
+}
 
 function filasCauchos(ws, op) {
   if (esNuevo(ws)) return filasCauchosNuevo(ws, op)
@@ -309,7 +321,15 @@ const especDeTexto = t => {
 const especATexto = e => (e || []).map(x => `${x.k}: ${x.v}`).join('\n')
 
 // ---------- ajustes de la web (los edita el cliente en el panel; la web los lee desde catalogo.json) ----------
-const AJUSTES_BASE = { servicios_compra: [], servicios_reglas: [], combo_detalle: '', mostrar_pendientes: true }
+// Explicaciones que la web muestra con el icono «i» junto a cada especificación (vienen de la columna W del inventario de cauchos). Se editan en Ajustes de la web.
+export const AYUDAS_BASE = {
+  'Índice de carga': 'Carga máxima que un neumático puede soportar cuando se infla a la presión recomendada.',
+  'Índice de carga dual': 'Carga máxima que un neumático puede soportar cuando se montan en pareja (dos cauchos juntos de cada lado). Este índice es menor por seguridad.',
+  'Código de velocidad': 'Velocidad máxima a la que un neumático puede rodar con la carga indicada en su índice de carga.',
+  'Presión máxima': 'Indica cuánta presión de aire debe tener el caucho al instalarlo. Se debe mantener el nivel correcto para asegurar un buen agarre, estabilidad y un desgaste parejo.',
+  'TL/TT': 'TL = Tubeless: no requiere tripa y protector. TT = Tube Type: requiere tripa y protector.',
+}
+const AJUSTES_BASE = { servicios_compra: [], servicios_reglas: [], combo_detalle: '', mostrar_pendientes: true, ayudas_espec: AYUDAS_BASE }
 export const leerAjustes = () => {
   try { return { ...AJUSTES_BASE, ...JSON.parse(fs.readFileSync(path.join(dir, 'ajustes_web.json'), 'utf8')) } } catch { return { ...AJUSTES_BASE } }
 }
@@ -367,13 +387,28 @@ export function opcionesMarcas(items) {
   }
   return [...marcas.values()].sort((a, b) => a.marca.localeCompare(b.marca, 'es')).map(m => ({ marca: m.marca, total: m.total, modelos: [...m.modelos].sort((a, b) => a.localeCompare(b, 'es', { numeric: true })) }))
 }
+// «Nombre: explicación» por línea (o un objeto {nombre: explicación}); el nombre es el de la especificación tal como se ve en la tarjeta
+export function validarAyudas(v) {
+  if (v === undefined) return leerAjustes().ayudas_espec || AYUDAS_BASE      // si quien guarda no las envía, quedan las que ya había
+  if (v === null) return AYUDAS_BASE
+  const pares = Array.isArray(v) ? v : typeof v === 'object' ? Object.entries(v).map(([k, t]) => `${k}: ${t}`) : String(v).split('\n')
+  const out = {}
+  for (const l of pares.map(x => String(x).trim()).filter(Boolean)) {
+    const m = l.match(/^([^:]{1,60}):\s*(.+)$/)
+    if (!m) throw new Error(`Explicación «${l.slice(0, 40)}»: escribe «Nombre: explicación».`)
+    if (m[2].length > 400) throw new Error(`La explicación de «${m[1].trim()}» es muy larga (máximo 400 letras).`)
+    out[m[1].trim()] = m[2].trim()
+  }
+  if (Object.keys(out).length > 40) throw new Error('Máximo 40 explicaciones.')
+  return out
+}
 export function validarAjustes(b) {
   const servicios = (Array.isArray(b.servicios_compra) ? b.servicios_compra : String(b.servicios_compra ?? '').split('\n')).map(x => String(x).trim()).filter(Boolean)
   if (servicios.length > 12) throw new Error('Máximo 12 servicios.')
   if (servicios.some(x => x.length > 60)) throw new Error('Cada servicio debe tener máximo 60 letras.')
   const combo = String(b.combo_detalle ?? '').trim()
   if (combo.length > 80) throw new Error('El detalle del filtro debe tener máximo 80 letras.')
-  return { servicios_compra: servicios, servicios_reglas: validarReglas(b.servicios_reglas), combo_detalle: combo, mostrar_pendientes: b.mostrar_pendientes !== false && b.mostrar_pendientes !== 'false' }
+  return { servicios_compra: servicios, servicios_reglas: validarReglas(b.servicios_reglas), ayudas_espec: validarAyudas(b.ayudas_espec), combo_detalle: combo, mostrar_pendientes: b.mostrar_pendientes !== false && b.mostrar_pendientes !== 'false' }
 }
 
 const extra = i => {
@@ -539,6 +574,7 @@ export async function leerExcel(buffer, op = {}) {
   try { await wb.xlsx.load(buffer) } catch { throw new Error('No se pudo leer el archivo. Debe ser un Excel .xlsx.') }
   const out = {}
   for (const [cat, c] of Object.entries(CATS)) { if (op.tienda === 'caracas' && c.sinProductos) continue; const ws = wb.getWorksheet(c.hoja) || wb.worksheets.find(w => HOJAS[cat]?.test(w.name.trim())); if (ws) out[cat] = c.leer(ws, op) }
+  if (out.cauchos) { const hc = wb.getWorksheet(CATS.cauchos.hoja) || wb.worksheets.find(w => HOJAS.cauchos?.test(w.name.trim())); const ay = hc ? ayudasDeHoja(hc) : {}; if (Object.keys(ay).length) out.cauchos.ayudas = ay }
   const dims = leerDimensiones(wb)
   if (out.cauchos && dims.size) {
     out.cauchos.items = conDimensiones(out.cauchos.items, dims)
@@ -900,7 +936,7 @@ export function montarLista(app) {
         } else { const diff = cambiosDe(c, actual, r.items); comp[c] = { diff, antes: actual.length, cmp: comparar(c, actual, r.items, diff) } }
       }
       const diff = Object.fromEntries(Object.entries(comp).map(([c, x]) => [c, x.diff]))
-      revision = { tienda, items: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items])), omitidas: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.omitidas])), diff, previa: prev }
+      revision = { tienda, ayudas: leido.cauchos?.ayudas, items: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.items])), omitidas: Object.fromEntries(Object.entries(leido).map(([c, r]) => [c, r.omitidas])), diff, previa: prev }
       res.json(Object.fromEntries(Object.entries(leido).map(([c, r]) => {
         const actual = { length: comp[c].antes }
         const precio = i => (CATS[c].sinProductos ? i.grupo : i.usd > 0 ? 'REF ' + i.usd : 'precio por consultar')
@@ -929,6 +965,7 @@ export function montarLista(app) {
     const vacias = pedidas.filter(c => !revision.items[c].length)                   // nunca se publica una lista vacía: vaciaría lo que hay publicado
     if (vacias.length) return res.status(400).json({ error: `No se publica ${vacias.join(', ')}: ninguna fila del archivo se puede publicar (revisa «Filas que no se publican»; casi siempre falta el código). Así no se vacía la lista actual.` })
     const totales = (revision.tienda === 'caracas' ? aplicarListaCaracas : aplicarLista)(Object.fromEntries(pedidas.map(c => [c, revision.items[c]])))
+    if (pedidas.includes('cauchos') && revision.ayudas) { const aj = leerAjustes(); escribir('ajustes_web.json', { ...aj, ayudas_espec: { ...aj.ayudas_espec, ...revision.ayudas } }); escribir('catalogo.json', aCatalogo({})) }     // las explicaciones de la columna W pasan a los ajustes de la web
     for (const c of pedidas) { delete revision.items[c]; delete revision.omitidas[c] }
     const restantes = Object.keys(revision.items); if (!restantes.length) revision = null
     res.json({ ok: true, totales, restantes })
