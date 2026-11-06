@@ -639,7 +639,8 @@ function validarCarrusel(l) {
 const carruselParaWeb = () => Object.fromEntries(Object.entries(leerCarrusel()).filter(([c]) => CARRUSEL_CATS.includes(c))
   .map(([c, l]) => [c, l.filter(x => x.visible !== false).map(x => ({ m: x.marca, ...(x.imagen && { i: `${PUBLICO}/img/${x.imagen}` }) }))]))
 const estadoCarrusel = () => Object.fromEntries(CARRUSEL_CATS.map(c => {
-  const g = leerCarrusel()[c], marcas = g ?? marcasAutomaticas(c).map(m => ({ marca: m, imagen: null, visible: true }))
+  const hay = new Set(marcasExistentes(c).map(m => m.toLowerCase()))                  // marcas con productos en la lista de esa categoría
+  const g = leerCarrusel()[c], marcas = (g ?? marcasAutomaticas(c).map(m => ({ marca: m, imagen: null, visible: true }))).map(x => ({ ...x, sin_productos: !hay.has(x.marca.toLowerCase()) }))
   return [c, { personalizado: Boolean(g), marcas, sugeridas: marcasExistentes(c).filter(m => !marcas.some(x => x.marca.toLowerCase() === m.toLowerCase())) }]
 }))
 

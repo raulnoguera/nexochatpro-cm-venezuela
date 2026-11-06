@@ -300,6 +300,7 @@ try {
   const wc = catalogo().carrusel
   ok('el carrusel guardado queda en ese orden y la web recibe solo las marcas visibles, con la URL del logo', () => {
     assert.equal(guardado.s, 200); assert.equal(guardado.j.personalizado, true); assert.deepEqual(wc.cauchos.map(x => x.m), ['Habilead', 'Marca Z']); assert.ok(wc.cauchos[0].i.endsWith('/img/' + logo.j.imagen)); assert.ok(!('i' in wc.cauchos[1])); assert.ok(!('baterias' in wc)) })
+  ok('el panel avisa de las marcas del carrusel que no tienen productos en la lista', () => { const m = guardado.j.marcas; assert.equal(m.find(x => x.marca === 'Habilead').sin_productos, false); assert.equal(m.find(x => x.marca === 'Marca Z').sin_productos, true) })
   const dup = await api('PUT', '/carrusel/cauchos', { marcas: [{ marca: 'Habilead' }, { marca: 'habilead' }] }), falso = await api('PUT', '/carrusel/cauchos', { marcas: [{ marca: 'X', imagen: '0000000000000000.png' }] })
   const mucho = await api('PUT', '/carrusel/cauchos', { marcas: Array.from({ length: 41 }, (_, i) => ({ marca: 'M' + i })) }), otra = await api('PUT', '/carrusel/bicicletas', { marcas: [] })
   ok('se rechazan marcas repetidas, logos que no existen, más de 40 marcas y categorías sin carrusel', () => { assert.equal(dup.s, 400); assert.match(dup.j.error, /repetida/); assert.equal(falso.s, 400); assert.match(falso.j.error, /ya no existe/); assert.equal(mucho.s, 400); assert.equal(otra.s, 404) })

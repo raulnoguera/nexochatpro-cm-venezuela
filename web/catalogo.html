@@ -391,8 +391,8 @@ function filtrosBaterias() {
 }
 const slug = m => m.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 function marcasCinta() {                                   // [{ m, i? }]: lo que dejó el administrador; sin configurar, baterías: todas; cauchos y aceites: las destacadas (ORDEN) que hay en la lista
+  if (CARRUSEL[CAT]) return CARRUSEL[CAT];                  // lo que puso el administrador se muestra siempre, aunque aún no tenga productos
   const hay = new Set((DATA[CAT] || []).map(marcaDe).map(m => m.toLowerCase()));
-  if (CARRUSEL[CAT]) return CARRUSEL[CAT].filter(x => hay.has(x.m.toLowerCase()));
   if (CAT === 'baterias') return marcasBat().map(m => ({ m }));
   return (ORDEN[CAT] || []).filter(m => hay.has(m.toLowerCase())).map(m => ({ m }));
 }
