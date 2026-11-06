@@ -371,7 +371,7 @@ const polBat = p => /\bDERECHA\b/i.test(p.d || '') ? 'DERECHA' : /\bIZQUIERDA\b/
 const sirvePolaridad = (c, p) => !c.p || !polBat(p) || (p.k || []).some(g => SIN_POLARIDAD.includes(g)) || c.p === polBat(p);   // c.p: polaridad del vehículo; la de la batería sale de su descripción
 const sirveAlVehiculo = p => {                                           // ¿esta batería le sirve al vehículo elegido? El grupo depende de la marca de la batería (columna de su marca en la tabla); una marca sin columna no se recomienda por vehículo
   const n = F.va ? Number(F.va) : null, conDatos = new Set(COMPAT.flatMap(c => Object.keys(c.m || {}))), m = clave(p.m);
-  const k = [...conDatos].filter(x => m.startsWith(x)).sort((a, b) => b.length - a.length)[0];
+  const k = [...conDatos].filter(x => m.startsWith(x) && (!/EVERLITE/.test(m) || x.includes('EVERLITE')))   // Fulgor Everlite tiene designación propia: no hereda el grupo de Fulgor.sort((a, b) => b.length - a.length)[0];
   return COMPAT.some(c => c.o === F.vm && c.d === F.vd && (n == null || !(c.a > 0) || (n >= c.a && n <= (c.b || 9999))) && sirvePolaridad(c, p) && ((c.m && conDatos.size ? (k ? c.m[k] || [] : []) : c.g)).some(x => (p.k || []).includes(x)));
 };
 function filtrar(paraMarcas, sinModelo) {                              // paraMarcas: ignora la marca elegida y el texto escrito (sirve para saber qué marcas ofrecer)

@@ -260,9 +260,11 @@ export const sirvePolaridad = (polaridadVehiculo, grupoBateria, descripcionBater
 }
 export const marcasConGrupos = filas => new Set(filas.flatMap(c => Object.keys(c.grupos || {})))
 // Grupos que le sirven a este vehículo con una batería de esa marca: la columna de su marca (la más larga que empieza igual: «Marussi Plus Limit» -> MARUSSIPLUS)
+// Líneas con designación propia: no heredan el grupo de la marca madre (Fulgor Everlite no usa el grupo de Fulgor); solo valen si el archivo trae su propia columna
+export const LINEAS_PROPIAS = ['EVERLITE']
 export const gruposParaBateria = (c, marcaBateria, conDatos) => {
   if (!c.grupos) return gruposDe(c.grupo)
-  const m = norm(marcaBateria), k = [...conDatos].filter(x => m.startsWith(x)).sort((a, b) => b.length - a.length)[0]
+  const m = norm(marcaBateria), k = [...conDatos].filter(x => m.startsWith(x) && (!LINEAS_PROPIAS.some(l => m.includes(l)) || LINEAS_PROPIAS.some(l => x.includes(l)))).sort((a, b) => b.length - a.length)[0]
   return k ? gruposDe(c.grupos[k]) : conDatos.size ? [] : gruposDe(c.grupo)
 }
 function filasCompat(ws) {
