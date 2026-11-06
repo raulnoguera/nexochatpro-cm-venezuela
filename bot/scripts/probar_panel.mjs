@@ -290,5 +290,23 @@ try {
   const rb = await ejecutar('buscar_baterias', { tienda: 'maracay', vehiculo_marca: 'Ford', vehiculo_modelo: 'F-350', anio: 2005 }, { conversationId: 0 }).catch(e => ({ error: e.message }))
   ok('Nexo, para una F-350: ofrece la Duncan 4D y la Velko (marca sin datos usa los del vehículo) y no la Fulgor Black grupo 24', () => {
     assert.ok(!rb.error, rb.error); assert.deepEqual(rb.resultados.map(x => x.marca).sort(), ['Duncan', 'Velko Basank']) })
+  // 11) carrusel de marcas: el administrador elige las marcas, sube el logo y fija el orden
+  const car0 = await api('GET', '/carrusel')
+  ok('sin configurar, el carrusel se arma solo con las marcas conocidas que hay en la lista', () => { assert.equal(car0.s, 200); assert.equal(car0.j.cauchos.personalizado, false); assert.ok(car0.j.cauchos.marcas.some(x => x.marca === 'Habilead')); assert.deepEqual(Object.keys(car0.j), ['cauchos', 'baterias', 'aceites']) })
+  const raw = (ruta, cuerpo) => fetch(base + '/admin/api' + ruta, { method: 'POST', headers: { Authorization: auth, 'Content-Type': 'application/octet-stream' }, body: cuerpo }).then(async r => ({ s: r.status, j: await r.json() }))
+  const logo = await raw('/carrusel/imagen', Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 1, 2, 3, 4])), notImg = await raw('/carrusel/imagen', Buffer.from('no soy una imagen'))
+  ok('se sube un logo PNG y se rechaza lo que no es una imagen', () => { assert.equal(logo.s, 200); assert.match(logo.j.imagen, /^[0-9a-f]{16}\.png$/); assert.ok(fs.existsSync(path.join(tmp, 'data', 'imagenes', logo.j.imagen))); assert.equal(notImg.s, 400) })
+  const guardado = await api('PUT', '/carrusel/cauchos', { marcas: [{ marca: 'Habilead', imagen: logo.j.imagen, visible: true }, { marca: 'Sportrak', imagen: null, visible: false }, { marca: 'Marca Z', imagen: null }] })
+  const wc = catalogo().carrusel
+  ok('el carrusel guardado queda en ese orden y la web recibe solo las marcas visibles, con la URL del logo', () => {
+    assert.equal(guardado.s, 200); assert.equal(guardado.j.personalizado, true); assert.deepEqual(wc.cauchos.map(x => x.m), ['Habilead', 'Marca Z']); assert.ok(wc.cauchos[0].i.endsWith('/img/' + logo.j.imagen)); assert.ok(!('i' in wc.cauchos[1])); assert.ok(!('baterias' in wc)) })
+  const dup = await api('PUT', '/carrusel/cauchos', { marcas: [{ marca: 'Habilead' }, { marca: 'habilead' }] }), falso = await api('PUT', '/carrusel/cauchos', { marcas: [{ marca: 'X', imagen: '0000000000000000.png' }] })
+  const mucho = await api('PUT', '/carrusel/cauchos', { marcas: Array.from({ length: 41 }, (_, i) => ({ marca: 'M' + i })) }), otra = await api('PUT', '/carrusel/bicicletas', { marcas: [] })
+  ok('se rechazan marcas repetidas, logos que no existen, más de 40 marcas y categorías sin carrusel', () => { assert.equal(dup.s, 400); assert.match(dup.j.error, /repetida/); assert.equal(falso.s, 400); assert.match(falso.j.error, /ya no existe/); assert.equal(mucho.s, 400); assert.equal(otra.s, 404) })
+  await post(''); await api('POST', '/excel/publicar', { categorias: ['cauchos'] })
+  ok('cargar un Excel no borra los logos del carrusel', () => assert.ok(fs.existsSync(path.join(tmp, 'data', 'imagenes', logo.j.imagen))))
+  const reset = await api('DELETE', '/carrusel/cauchos')
+  ok('«volver al automático» quita el carrusel personalizado y borra el logo que ya no se usa', () => { assert.equal(reset.s, 200); assert.equal(reset.j.personalizado, false); assert.ok(!('cauchos' in catalogo().carrusel)); assert.ok(!fs.existsSync(path.join(tmp, 'data', 'imagenes', logo.j.imagen))) })
+
   console.log(`\n${n} comprobaciones correctas`)
 } finally { srv.close(); fs.rmSync(tmp, { recursive: true, force: true }) }
