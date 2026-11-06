@@ -172,7 +172,7 @@ const CATS = {
     nombre: 'Cauchos', pista: 'Ej. 265/60R18 o Haida', titulo: 'Escribe la medida o la marca',
     texto: p => p.z + p.m + (p.mo || '') + (p.ti || ''),
     filtros: () => [],                                  // los cauchos se filtran con las casillas Rin → Medida (ver filtrosCauchos)
-    titulo_p: p => p.z, tags: p => (p.ti ? [p.ti] : []),
+    titulo_p: p => p.z, tags: () => [],                       // el tipo va en el título
     msg: p => `el caucho ${p.m}${p.mo ? ' ' + p.mo : ''} ${p.z}${p.ti ? ' ' + p.ti : ''}${p.x ? ' (' + p.x + ')' : ''}`,
   },
   baterias: {
@@ -321,12 +321,12 @@ const modeloCaucho = p => detalleCaucho(p).modelo;
 // Marca (izquierda) y tipo (derecha, con las lonas entre paréntesis) en la misma línea; el modelo debajo. Cada uno con su etiqueta y el valor a su lado; lo que no tiene dato no se muestra
 const grupoBat = p => (p.g && p.g !== '-' ? String(p.g).replace(/^GRUPO\s+/i, '') : '');
 // Batería: Marca (y garantía a la derecha), Grupo y, debajo, la descripción (amperaje y polaridad), como en la tarjeta de caucho
-// Título compuesto con «/»: caucho = Marca/Tipo/Medida (Milemax/HT/165/65R13); batería = Marca/Grupo/Amperaje (Fulgor/24/900 AMP). Lo que no tiene dato se omite.
-const tituloCaucho = p => [marcaDe(p), detalleCaucho(p).tipo, p.z].filter(Boolean).join('/');
+// Título compuesto: caucho = Marca Tipo Medida (Milemax HT 165/65R13); batería = Marca/Grupo/Amperaje (Fulgor/24/900 AMP). Lo que no tiene dato se omite.
+const tituloCaucho = p => [marcaDe(p), detalleCaucho(p).tipo, p.z].filter(Boolean).join(' ');      // caucho: Marca Tipo Medida (sin «/» entre las partes; la medida lleva las suyas: 165/65R13)
 const ampBat = p => (p.a ? p.a : ((String(p.d || '').match(/(\d{3,4})\s*AMP/i) || [])[1] || '')) ;
 const tituloBateria = p => [p.m, grupoBat(p), ampBat(p) ? ampBat(p) + ' AMP' : ''].filter(Boolean).join('/');
 const cabTarjeta = (cuerpo, t) => `<div class="cab"><div class="cab-t">${cuerpo}</div><span class="stk ${t[0]}">${t[1]}</span></div>`;      // estado arriba a la derecha, en línea con el título
-const subCaucho = p => { const d = detalleCaucho(p), x = [d.modelo, d.lonas ? `${d.lonas} lonas` : ''].filter(Boolean).join(' · '); return x ? `<div class="subt">${esc(x)}</div>` : ''; };
+const subCaucho = p => { const d = detalleCaucho(p); return d.lonas ? `<div class="subt">${esc(d.lonas)} lonas</div>` : ''; };      // el modelo y el tipo ya no se repiten debajo
 const subBateria = p => {
   const resto = String(p.d || '').replace(/\d{3,4}\s*AMP/gi, '').replace(/\b(DERECHA|IZQUIERDA)\b/gi, '').split('/').map(x => x.trim()).filter(Boolean).join(' / ');      // nomenclatura que no está en el título (M, MR, BD…)
   const fila = [polBat(p) ? `<i>Polaridad</i> <b>${esc(polTxt(p))}</b>` : '', p.w ? `<i>Garantía</i> <b>${esc(p.w)} meses</b>` : ''].filter(Boolean);
