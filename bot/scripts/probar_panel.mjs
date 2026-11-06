@@ -300,6 +300,8 @@ try {
     for (const g of ['30H', '30HCT', '4D', '8D']) assert.equal(sirvePolaridad('DERECHA', g, '1300 AMP / IZQUIERDA'), true)
     assert.equal(sirvePolaridad('', '24', '1100 AMP / IZQUIERDA'), true); assert.equal(sirvePolaridad('DERECHA', '24', '1100 AMP / BORNE'), true)
     assert.equal(cat.compatibilidad.find(x => x.d === 'F-350').p, 'DERECHA') })
+  const catS = aCatalogo({ baterias: [{ ...nuevo.baterias.items[0], servicios: ['Instalación gratis', '-Montaje'], espec: [{ k: 'Largo', v: '260' }, { k: 'Voltaje', v: '12 V' }] }] })
+  ok('la tarjeta de batería recibe sus servicios del inventario (sin los generales de cauchos) y sus especificaciones', () => { assert.deepEqual(catS.baterias[0].sv, ['Instalación gratis']); assert.equal(catS.baterias[0].e.Largo, '260') })
   // 11) carrusel de marcas: el administrador elige las marcas, sube el logo y fija el orden
   const car0 = await api('GET', '/carrusel')
   ok('sin configurar, el carrusel se arma solo con las marcas conocidas que hay en la lista', () => { assert.equal(car0.s, 200); assert.equal(car0.j.cauchos.personalizado, false); assert.ok(car0.j.cauchos.marcas.some(x => x.marca === 'Habilead')); assert.deepEqual(Object.keys(car0.j), ['cauchos', 'baterias', 'aceites']) })

@@ -24,7 +24,7 @@ select.marca{white-space:nowrap;text-overflow:ellipsis;width:100%;min-height:48p
 #espdlg{border:0;border-radius:18px;padding:0;width:min(92vw,420px);max-height:86vh;background:var(--surface);color:var(--ink);box-shadow:var(--shadow);overflow:auto}#espdlg::backdrop{background:rgba(0,0,0,.6)}
 #espdlg .esbox{padding:20px}#espdlg h3{font-family:var(--display);font-size:26px;line-height:1.05;text-transform:uppercase;margin:0 36px 2px 0}#espdlg .esub{color:var(--muted);font-size:14px;margin:0 0 12px}
 #espdlg dl{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:0;font-size:15px}#espdlg dt{color:var(--muted)}#espdlg dd{margin:0;font-weight:700;text-align:right}#espdlg p.pend{margin:0;font-size:15px}
-#espdlg .x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface2);color:var(--ink);font-size:20px;line-height:1;cursor:pointer}#espdlg .cerrar{margin-top:16px;width:100%}
+#espdlg .bdib{display:block;width:100%;max-width:300px;margin:0 auto 14px;color:var(--ink)}#espdlg .x{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;border:0;background:var(--surface2);color:var(--ink);font-size:20px;line-height:1;cursor:pointer}#espdlg .cerrar{margin-top:16px;width:100%}
 .askwrap{position:relative}.askmenu{top:auto;bottom:calc(100% + 6px);left:0;right:0;min-width:0}
 .card .ph.foto{height:150px;padding:0;overflow:hidden}.card .ph.foto img{width:100%;height:100%;object-fit:cover}
 .tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}.tabs .chip{flex:none}
@@ -320,7 +320,7 @@ const modeloCaucho = p => detalleCaucho(p).modelo;
 // Marca (izquierda) y tipo (derecha, con las lonas entre paréntesis) en la misma línea; el modelo debajo. Cada uno con su etiqueta y el valor a su lado; lo que no tiene dato no se muestra
 const grupoBat = p => (p.g && p.g !== '-' ? String(p.g).replace(/^GRUPO\s+/i, '') : '');
 // Batería: Marca (y garantía a la derecha), Grupo y, debajo, la descripción (amperaje y polaridad), como en la tarjeta de caucho
-const datosBateria = p => `<div class="datos"><div class="fila"><span class="dest"><i>Marca</i> <b>${esc(p.m)}</b></span>${p.w ? `<span class="der"><i>Garantía</i> <b>${esc(p.w)} meses</b></span>` : ''}</div>${grupoBat(p) ? `<div class="dest"><i>Grupo</i> <b>${esc(grupoBat(p))}</b></div>` : ''}<h4 class="med">${esc(p.d)}</h4></div>`;
+const datosBateria = p => `<div class="datos"><div class="fila"><span class="dest"><i>Marca</i> <b>${esc(p.m)}</b></span>${p.w ? `<span class="der"><i>Garantía</i> <b>${esc(p.w)} meses</b></span>` : ''}</div>${grupoBat(p) ? `<div class="dest"><i>Grupo</i> <b>${esc(grupoBat(p))}</b></div>` : ''}${polBat(p) ? `<div class="dest"><i>Polaridad</i> <b>${esc(polTxt(p))}</b></div>` : ''}<h4 class="med">${esc(p.d)}</h4></div>`;
 const datosCaucho = p => `<div class="datos"><div class="fila"><span class="dest"><i>Marca</i> <b>${esc(marcaDe(p))}</b></span>${tipoLonas(p) ? `<span class="der"><i>Tipo</i> <b>${esc(tipoLonas(p))}</b></span>` : ''}</div>${modeloCaucho(p) ? `<div class="dest"><i>Modelo</i> <b>${esc(modeloCaucho(p))}</b></div>` : ''}<h4 class="med">${esc(p.z)}</h4></div>`;
 const tipoLonas = p => { const d = detalleCaucho(p); return [d.tipo, d.lonas ? `(${d.lonas} lonas)` : ''].filter(Boolean).join(' '); };      // a la derecha de la marca: «HT (16 lonas)»
 const ESPEC_ROT = { ic: 'Índice de carga', iv: 'Índice de velocidad' };                  // atajos de campos del catálogo, por si el cliente los envía así
@@ -334,6 +334,26 @@ const bloqueCaucho = p => {
   const info = esc(JSON.stringify({ t: [marcaDe(p), modeloCaucho(p)].filter(Boolean).join(' ') + ' · ' + p.z, e: es }));     // lo que muestra la ventana (ver #espdlg)
   const det = es.length || MOSTRAR_PENDIENTES ? `<button type="button" class="espbtn" data-esp="${info}">${ico} Ver especificaciones</button>` : '';
   return sv + det;
+};
+const polTxt = p => { const x = polBat(p).toLowerCase(); return x.charAt(0).toUpperCase() + x.slice(1); };
+const DIMS_BAT = [['Largo', 'l'], ['Ancho', 'a'], ['Alto', 'h']];
+const fmtDim = v => { const t = String(v ?? '').trim(); if (!/^[\d.,]+$/.test(t)) return t; const n = parseFloat(t.replace(',', '.')); return n ? `${String(n).replace('.', ',')} ${n < 60 ? 'cm' : 'mm'}` : t; };   // sin unidad: menos de 60 = cm, si no mm
+const dibujoBateria = d => {                                  // caja en perspectiva con sus tres medidas; las que faltan quedan como «—»
+  const v = k => esc(d[k] ? fmtDim(d[k]) : '—');
+  return `<svg class="bdib" viewBox="0 0 300 210" role="img" aria-label="Medidas de la batería: largo ${v('l')}, ancho ${v('a')}, alto ${v('h')}">
+    <g stroke="currentColor" stroke-width="2" stroke-linejoin="round">
+      <path d="M50 88h160v70H50z" fill="var(--surface2)"/><path d="M210 88l40-30v70l-40 30z" fill="var(--line)"/><path d="M50 88l40-30h160l-40 30z" fill="var(--surface)"/>
+      <rect x="100" y="46" width="16" height="12" rx="2" fill="var(--y)"/><rect x="205" y="46" width="16" height="12" rx="2" fill="var(--y)"/></g>
+    <g stroke="currentColor" stroke-width="1.2" fill="none" opacity=".7"><path d="M50 172h160M50 167v10M210 167v10"/><path d="M36 88v70M31 88h10M31 158h10"/><path d="M222 168l40-30M222 163l-4 8M262 133l-4 8"/></g>
+    <g font-family="inherit" font-size="13" font-weight="800" fill="currentColor"><text x="130" y="192" text-anchor="middle">Largo ${v('l')}</text><text transform="translate(22 123) rotate(-90)" text-anchor="middle">Alto ${v('h')}</text><text x="262" y="168" text-anchor="middle">Ancho</text><text x="262" y="184" text-anchor="middle">${v('a')}</text></g></svg>`;
+};
+const bloqueBateria = p => {
+  const e = p.e || {}, dims = Object.fromEntries(DIMS_BAT.map(([et, k]) => [k, e[et]]).filter(([, v]) => v)), resto = Object.entries(e).filter(([k, v]) => !DIMS_BAT.some(([et]) => et === k) && v !== '' && v != null);
+  const lista = p.sv || [], pol = polBat(p) ? polTxt(p) : '';
+  const sv = lista.length || MOSTRAR_PENDIENTES ? `<div class="incl"><b>Incluye con tu compra</b><ul>${lista.length ? lista.map(x => `<li>${esc(x)}</li>`).join('') : '<li class="pend">Por confirmar</li>'}</ul></div>` : '';
+  const hay = Object.keys(dims).length || resto.length, ico = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></svg>';
+  const info = esc(JSON.stringify({ t: `${p.m} · Grupo ${grupoBat(p)}`, e: resto, bd: Object.keys(dims).length ? dims : null, pol }));
+  return sv + (hay || MOSTRAR_PENDIENTES ? `<button type="button" class="espbtn" data-esp="${info}">${ico} Ver medidas y especificaciones</button>` : '');
 };
 // Combos de aceite (4 litros o más): incluyen filtro. El detalle del filtro (marca, tipo…) lo enviará el cliente: se escribe en COMBO_DETALLE y la tarjeta lo muestra sola.
 // Ej.: const COMBO_DETALLE = 'Filtro de aceite';
@@ -362,7 +382,7 @@ function card(p) {
     <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}<span class="stk ${k}">${t}</span>${CAT === 'aceites' ? bloqueAceite(p) : ''}
     <div class="price">${pu(p) > 0 ? `<div class="usd">${refGrande(pu(p))}<small>Oferta en divisa</small></div>${precioBs}` : '<div class="usd consulta">Consultar precio</div><div class="bs">Te lo confirmamos por WhatsApp</div>'}</div>
     ${conWa.length > 1 ? botonTiendas(p, c, ci, conWa) : TIENDAS[tk].wa ? `<a class="ask" href="${wa(`Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} Consultar por WhatsApp</a>` : ''}
-    ${CAT === 'cauchos' ? bloqueCaucho(p) : ''}</article>`;
+    ${CAT === 'cauchos' ? bloqueCaucho(p) : CAT === 'baterias' ? bloqueBateria(p) : ''}</article>`;
 }
 
 const clave = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
@@ -550,7 +570,8 @@ document.addEventListener('click', e => {
   const b = e.target.closest('[data-esp]'), d = $('#espdlg');
   if (b) { let x; try { x = JSON.parse(b.dataset.esp); } catch (_) { return; }
     $('#essub').textContent = x.t || '';
-    $('#escont').innerHTML = x.e && x.e.length ? `<dl>${x.e.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : '<p class="pend">Por confirmar</p>';
+    const filas = [...(x.pol ? [['Polaridad', x.pol]] : []), ...(x.e || [])];
+    $('#escont').innerHTML = (x.bd ? dibujoBateria(x.bd) : '') + (filas.length ? `<dl>${filas.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>` : (x.bd ? '' : '<p class="pend">Por confirmar</p>'));
     if (!d.open) d.showModal(); return; }
   if (e.target === d || e.target.closest('[data-cerrar]')) d.close();
 });

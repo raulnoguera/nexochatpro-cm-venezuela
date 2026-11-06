@@ -338,6 +338,8 @@ export const coincide = (r, i) => {
 }
 // Servicios que vienen con un caucho: los generales + los de las reglas que cumple (marca, o marca + modelo) + los propios del producto.
 // En el producto, una línea que empieza con «-» quita ese servicio solo para él (ej. «-Válvula nueva»).
+// Servicios de una batería: solo los de su fila en el inventario (los generales de «servicios_compra» son de cauchos)
+const propios = i => (i.servicios || []).filter(x => !String(x).startsWith('-'))
 export const serviciosDe = (i, aj = leerAjustes()) => {
   const lista = [...(aj.servicios_compra || [])]
   for (const r of aj.servicios_reglas || []) {
@@ -407,7 +409,7 @@ export const CATS = {
   baterias: {
     archivo: 'baterias.json', hoja: 'BATERIAS', leer: filasBaterias,
     nombre: i => `${i.marca} ${i.descripcion}`,
-    web: i => ({ ...comun(i), d: i.descripcion, g: i.grupo, k: gruposDe(i.grupo), ...(i.amp && { a: i.amp }), ...(i.garantia && { w: i.garantia }), ...(i.espec?.length && { e: Object.fromEntries(i.espec.map(x => [x.k, x.v])) }) }),
+    web: i => ({ ...comun(i), d: i.descripcion, g: i.grupo, k: gruposDe(i.grupo), ...(propios(i).length && { sv: propios(i) }), ...(i.amp && { a: i.amp }), ...(i.garantia && { w: i.garantia }), ...(i.espec?.length && { e: Object.fromEntries(i.espec.map(x => [x.k, x.v])) }) }),
     orden: (a, b) => a.g.localeCompare(b.g, 'es', { numeric: true }) || a.u - b.u,
     campos: b => {
       const descripcion = String(b.descripcion ?? '').trim(), grupo = String(b.grupo ?? '').trim()
