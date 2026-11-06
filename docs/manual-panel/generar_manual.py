@@ -112,7 +112,7 @@ S += tabla([
     ['5', 'Lista de productos: buscar, filtrar y cambiar precio o existencias'],
     ['6', 'Crear, editar y eliminar un producto, y poner fotos'],
     ['7', 'Vehículos → batería'],
-    ['8', 'Ajustes de la web (servicios incluidos y «Por confirmar»)'],
+    ['8', 'Ajustes de la web (servicios incluidos y «Por confirmar») y carrusel de marcas'],
     ['9', 'Cargar el Excel (Maracay y Caracas): formato del archivo y paso a paso completo'],
     ['10', 'Consumo de Nexo'],
     ['11', 'Restricciones y límites'],
@@ -312,6 +312,22 @@ S += tabla([['Máximo 12 servicios. / Cada servicio debe tener máximo 60 letras
             ['El detalle del filtro debe tener máximo 80 letras.', 'Texto del combo demasiado largo.']],
            [8.6 * cm, 8.6 * cm], ['Mensaje', 'Qué significa'])
 
+S += [CondPageBreak(14 * cm), Paragraph('Carrusel de marcas (los logos de la web)', H2),
+      Paragraph('Al elegir Cauchos, Baterías o Aceites en la web aparece, debajo de los filtros, una cinta con los logos de las marcas que se mueve sola. Desde «Carrusel de marcas» en el menú decides <b>qué marcas salen, en qué orden y con qué logo</b>. Al tocar un logo en la web, la lista se filtra por esa marca.', P)]
+S += fig('31-carrusel-panel.jpg', ['Pestañas por categoría: Cauchos, Baterías y Aceites (el número es la cantidad de marcas).', 'Cada fila es una marca: el logo se ve sobre fondo oscuro, como en la web. Sin logo se muestra el nombre.', '«Mostrar»: esconde o muestra la marca sin borrarla.', '«Subir logo» / «Cambiar logo» / «Quitar logo»; las flechas ↑ ↓ y el asa de la izquierda (arrastrar) cambian el orden; «Quitar» saca la marca del carrusel.'], 'Pantalla «Carrusel de marcas»', w=AN)
+S += fig('32-carrusel-web.jpg', None, 'Cómo se ve en la web, con el orden y los logos del panel', w=AN)
+S += pasos(['Entra a «Carrusel de marcas» en el menú y elige la categoría.', 'Sube el logo de cada marca con «Subir logo» (imagen PNG, JPG o WebP de hasta 2 MB; lo mejor es un PNG con fondo transparente, porque se ve sobre fondo oscuro).',
+            'Ordena las marcas arrastrándolas por el asa de la izquierda o con las flechas ↑ y ↓.', 'Para agregar otra marca, escribe su nombre abajo (el cuadro sugiere las marcas que hay en esa categoría) y pulsa «+ Agregar marca».',
+            'Pulsa <b>«Guardar carrusel»</b>. Hasta que guardes, los cambios no se ven en la web y el panel avisa «Hay cambios sin guardar». Se ve en la web en menos de un minuto.'])
+S += bl(['<b>Mientras no lo personalices</b>, la web arma la cinta sola con las marcas más conocidas que haya en la lista. Al guardar, queda exactamente como lo dejaste. Con «Volver al automático» regresa a lo anterior y se borran los logos que subiste.',
+         'Solo salen en la web las marcas que tienen productos en esa categoría; una marca sin productos no se muestra. Escribe el nombre como aparece al inicio del nombre de los productos (por ejemplo «Haida», no «Haida HT»).',
+         'Máximo 40 marcas por carrusel. Cada categoría tiene su propio carrusel.'])
+S += tabla([['Máximo 40 marcas en el carrusel.', 'Tienes más de 40 marcas en esa categoría.'],
+            ['La marca «X» está repetida.', 'La misma marca aparece dos veces.'],
+            ['El logo debe ser una imagen JPG, PNG o WebP de hasta 2 MB.', 'El archivo no es una imagen permitida o pesa demasiado. Usa una más liviana.'],
+            ['El logo de «X» ya no existe: súbelo otra vez.', 'El logo se borró; súbelo de nuevo y guarda.']],
+           [8.6 * cm, 8.6 * cm], ['Mensaje', 'Qué significa'])
+
 # ============ 9. Excel ============
 S += [PageBreak(), Paragraph('9. Cargar el Excel', H1),
       Paragraph('Es la forma de actualizar muchos productos a la vez. Se sube un solo archivo de Excel (.xlsx) con una pestaña por categoría, <b>uno para Maracay y otro para Caracas</b>. El panel <b>nunca publica nada sin que lo revises y lo confirmes</b>.', P)]
@@ -429,6 +445,7 @@ S += tabla([
     ['Especificaciones por caucho', 'Hasta 12 (nombre ≤ 40 letras y valor ≤ 60).'],
     ['Servicios', 'Hasta 12 generales y hasta 12 por regla o por producto, de máximo 60 letras cada uno. Hasta 60 reglas por marca o modelo.'],
     ['Detalle del filtro del combo', 'Hasta 80 letras.'],
+    ['Carrusel de marcas', 'Hasta 40 marcas por categoría (Cauchos, Baterías y Aceites). Logos JPG, PNG o WebP de hasta 2 MB.'],
     ['Textos de productos', 'Marca ≤ 60 letras, Modelo de caucho ≤ 40, Tipo ≤ 30, Descripción ≤ 80, Grupo ≤ 40, Tipo de aceite ≤ 60, Presentación ≤ 40, Modelo de bicicleta ≤ 30, Texto extra ≤ 60.'],
     ['Rin de bicicleta', 'Entre 10 y 32.'],
     ['Años de un vehículo', 'Entre 1900 y 2100; «desde» no puede ser mayor que «hasta».'],

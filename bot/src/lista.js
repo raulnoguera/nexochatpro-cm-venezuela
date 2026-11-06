@@ -480,6 +480,7 @@ export const aCatalogo = todo => {
   for (const [cat, c] of Object.entries(CATS)) salida[cat] = (todo[cat] ?? leer(cat)).filter(visible).map(i => c.web(i, aj)).sort(c.orden)
   salida.items = salida.cauchos                                            // compatibilidad con la primera versión de la web
   salida.ajustes = aj
+  salida.carrusel = carruselParaWeb()                                         // categorías con carrusel personalizado; las demás se arman solas
   salida.tasas = manualesVigentes()                                           // tasa fijada a mano en el panel (si vale hoy); la web la prefiere a la de la API
   return salida
 }
@@ -598,6 +599,50 @@ export function aplicarListaCaracas(porCategoria) {
   return totales
 }
 
+// ---------- carrusel de marcas ----------
+// La cinta de logos que la web muestra debajo de los filtros al elegir Cauchos, Baterías o Aceites. El administrador elige las marcas, sube su logo y
+// fija el orden (data/carrusel.json). Una categoría sin configurar se arma sola, como antes: las marcas más conocidas que haya en la lista.
+const CARRUSEL_CATS = ['cauchos', 'baterias', 'aceites']
+const ORDEN_MARCAS = {
+  cauchos: ['Sportrak', 'Haida', 'Habilead', 'Duringon', 'Novamaxx', 'Milemax', 'Kumho', 'Pneus Pirelli', 'Rockblade', 'Cotechoo'],
+  baterias: ['Duncan', 'Fulgor', 'PGT', 'Moura', 'AC Delco', 'Marussi'],
+  aceites: ['Valvoline', 'Mobil', 'Shell', 'Motul', 'Castrol', 'Inca', 'Sky', 'Voltex', 'Chronus', 'Gonher'],
+}
+const marcaBase = m => { const w = String(m || '').trim().split(/\s+/); return /^(AC|New|Pneus)$/i.test(w[0]) && w[1] ? `${w[0]} ${w[1]}` : w[0] || '' }     // misma regla que la web: «Haida HT» -> Haida
+const leerCarrusel = () => { try { return JSON.parse(fs.readFileSync(path.join(dir, 'carrusel.json'), 'utf8')) } catch { return {} } }
+const carruselUsa = f => Object.values(leerCarrusel()).some(l => (l || []).some(x => x.imagen === f))
+function marcasExistentes(cat) {                                             // marcas que hay en la lista de esa categoría, las más conocidas primero
+  const n = new Map()
+  for (const i of leer(cat).filter(visible)) { const m = marcaBase(i.marca); if (m && !/^(AC|New)$/i.test(m)) n.set(m, (n.get(m) || 0) + 1) }
+  const rango = m => { const k = (ORDEN_MARCAS[cat] || []).findIndex(o => o.toLowerCase() === m.toLowerCase()); return k < 0 ? 99 : k }
+  return [...n.keys()].sort((a, b) => rango(a) - rango(b) || n.get(b) - n.get(a) || a.localeCompare(b, 'es'))
+}
+function marcasAutomaticas(cat) {                                            // lo que la web muestra mientras nadie lo personalice
+  const todas = marcasExistentes(cat); if (cat === 'baterias') return todas
+  const hay = new Map(todas.map(m => [m.toLowerCase(), m]))
+  return (ORDEN_MARCAS[cat] || []).map(o => hay.get(o.toLowerCase())).filter(Boolean)
+}
+function validarCarrusel(l) {
+  if (!Array.isArray(l)) throw new Error('El carrusel no tiene el formato correcto.')
+  if (l.length > 40) throw new Error('Máximo 40 marcas en el carrusel.')
+  const vistas = new Set()
+  return l.map((x, n) => {
+    const marca = String(x?.marca ?? '').trim()
+    if (!marca || marca.length > 40) throw new Error(`Marca ${n + 1}: escribe el nombre (máximo 40 letras).`)
+    if (vistas.has(marca.toLowerCase())) throw new Error(`La marca «${marca}» está repetida.`)
+    vistas.add(marca.toLowerCase())
+    const imagen = x.imagen ? String(x.imagen) : null
+    if (imagen && !(/^[0-9a-f]{16}\.(jpg|png|webp)$/.test(imagen) && fs.existsSync(path.join(carpetaImg, imagen)))) throw new Error(`El logo de «${marca}» ya no existe: súbelo otra vez.`)
+    return { marca, imagen, visible: x.visible !== false }
+  })
+}
+const carruselParaWeb = () => Object.fromEntries(Object.entries(leerCarrusel()).filter(([c]) => CARRUSEL_CATS.includes(c))
+  .map(([c, l]) => [c, l.filter(x => x.visible !== false).map(x => ({ m: x.marca, ...(x.imagen && { i: `${PUBLICO}/img/${x.imagen}` }) }))]))
+const estadoCarrusel = () => Object.fromEntries(CARRUSEL_CATS.map(c => {
+  const g = leerCarrusel()[c], marcas = g ?? marcasAutomaticas(c).map(m => ({ marca: m, imagen: null, visible: true }))
+  return [c, { personalizado: Boolean(g), marcas, sugeridas: marcasExistentes(c).filter(m => !marcas.some(x => x.marca.toLowerCase() === m.toLowerCase())) }]
+}))
+
 // ---------- acceso ----------
 const clave = () => process.env.LISTA_CLAVE
 const iguales = (x, y) => { const a = Buffer.from(x), b = Buffer.from(y); return a.length === b.length && crypto.timingSafeEqual(a, b) }
@@ -629,7 +674,7 @@ const vista = (cat, i) => CATS[cat].vistaCompleta?.(i) ?? ({ sku: i.sku, marca: 
 
 const TIPOS = [[[0xff, 0xd8, 0xff], 'jpg'], [[0x89, 0x50, 0x4e, 0x47], 'png'], [[0x52, 0x49, 0x46, 0x46], 'webp']]
 const extension = b => TIPOS.find(([m]) => m.every((x, i) => b[i] === x))?.[1]
-const enUso = f => Object.keys(CATS).some(cat => leer(cat).some(i => i.imagen === f))
+const enUso = f => carruselUsa(f) || Object.keys(CATS).some(cat => leer(cat).some(i => i.imagen === f))
 const borrarSiSobra = f => { if (f && !enUso(f)) fs.rmSync(path.join(carpetaImg, f), { force: true }) }
 
 // Reemplaza las listas leídas del Excel conservando las fotos y los productos creados a mano. También la usa scripts/cargar_excel.mjs.
@@ -730,6 +775,32 @@ export function montarLista(app) {
       if (fs.existsSync(f)) { const c = JSON.parse(fs.readFileSync(f, 'utf8')); c.tasas = manualesVigentes(); escribir('catalogo.json', c) }   // la web lee la tasa fijada desde aquí
       res.json(estado)
     } catch (e) { res.status(400).json({ error: e.message }) }
+  })
+
+  // ---- carrusel de marcas: GET lo que hay (o lo automático), POST logo, PUT/DELETE por categoría
+  api.get('/carrusel', (_req, res) => res.json(estadoCarrusel()))
+  api.post('/carrusel/imagen', express.raw({ type: () => true, limit: '2mb' }), (req, res) => {
+    const ext = Buffer.isBuffer(req.body) && req.body.length && extension(req.body)
+    if (!ext) return res.status(400).json({ error: 'El logo debe ser una imagen JPG, PNG o WebP de hasta 2 MB.' })
+    const imagen = `${crypto.randomBytes(8).toString('hex')}.${ext}`
+    fs.mkdirSync(carpetaImg, { recursive: true }); fs.writeFileSync(path.join(carpetaImg, imagen), req.body)
+    res.json({ imagen })
+  })
+  const guardarCarrusel = (c, lista) => {
+    const antes = Object.values(leerCarrusel()).flat().map(x => x.imagen).filter(Boolean), todo = leerCarrusel()
+    if (lista) todo[c] = lista; else delete todo[c]
+    escribir('carrusel.json', todo); escribir('catalogo.json', aCatalogo({}))
+    antes.forEach(borrarSiSobra)
+  }
+  api.put('/carrusel/:cat', express.json(), (req, res) => {
+    try {
+      if (!CARRUSEL_CATS.includes(req.params.cat)) return res.status(404).json({ error: 'Esa categoría no tiene carrusel.' })
+      guardarCarrusel(req.params.cat, validarCarrusel(req.body?.marcas)); res.json(estadoCarrusel()[req.params.cat])
+    } catch (e) { res.status(400).json({ error: e.message }) }
+  })
+  api.delete('/carrusel/:cat', (req, res) => {                                    // vuelve al carrusel automático
+    if (!CARRUSEL_CATS.includes(req.params.cat)) return res.status(404).json({ error: 'Esa categoría no tiene carrusel.' })
+    guardarCarrusel(req.params.cat, null); res.json(estadoCarrusel()[req.params.cat])
   })
 
   // ---- ajustes de la web: servicios incluidos con los cauchos, detalle del filtro de los combos y los «Por confirmar»

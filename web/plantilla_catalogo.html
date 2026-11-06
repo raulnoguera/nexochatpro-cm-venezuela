@@ -137,7 +137,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;',
 const uniq = a => [...new Set(a)];
 const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z.]/g, '');
 const num = (a, b) => String(a).localeCompare(String(b), 'es', { numeric: true });
-let DATA = {}, COMPAT = [], TASAS = {}, CAT = 'cauchos', F = {}, V = {}, mostrar = PAGINA;   // V: vehículo que se está eligiendo; F.vm/vd/va: el que se buscó
+let DATA = {}, COMPAT = [], TASAS = {}, CARRUSEL = {}, CAT = 'cauchos', F = {}, V = {}, mostrar = PAGINA;   // V: vehículo que se está eligiendo; F.vm/vd/va: el que se buscó
 
 const MED = /^(\d+)\/(\d+)R(\d+(?:\.\d)?)$/;
 const ICONOS = {
@@ -255,16 +255,17 @@ function filtrosBaterias() {
     <label><select id="bmarca" aria-label="Marca de batería">${opt(marcasDisp(DATA.baterias || []), F.marca, 'Elige la marca')}</select></label></div></div>`;
 }
 const slug = m => m.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-function marcasCinta() {                                   // baterías: todas; cauchos y aceites: las marcas destacadas (ORDEN) que hay en la lista
-  if (CAT === 'baterias') return marcasBat();
+function marcasCinta() {                                   // [{ m, i? }]: lo que dejó el administrador; sin configurar, baterías: todas; cauchos y aceites: las destacadas (ORDEN) que hay en la lista
   const hay = new Set((DATA[CAT] || []).map(marcaDe).map(m => m.toLowerCase()));
-  return (ORDEN[CAT] || []).filter(m => hay.has(m.toLowerCase()));
+  if (CARRUSEL[CAT]) return CARRUSEL[CAT].filter(x => hay.has(x.m.toLowerCase()));
+  if (CAT === 'baterias') return marcasBat().map(m => ({ m }));
+  return (ORDEN[CAT] || []).filter(m => hay.has(m.toLowerCase())).map(m => ({ m }));
 }
 function cintaMarcas() {                                     // cinta de logos que avanza sola de derecha a izquierda, con flechas; el logo va en assets/marcas/<marca>.png
-  const box = $('#cinta'), ms = ciudad() && conDatos(ciudad()) ? marcasCinta() : [], k = CAT + ':' + ms.join('|');
+  const box = $('#cinta'), ms = ciudad() && conDatos(ciudad()) ? marcasCinta() : [], k = CAT + ':' + ms.map(x => x.m + '~' + (x.i || '')).join('|');
   if (!ms.length) { box.innerHTML = ''; box.dataset.k = ''; return; }
   if (box.dataset.k !== k) {
-    const t = (m, oculto) => `<button class="logo-m" data-marca="${esc(m)}" aria-label="${esc(CATS[CAT].nombre)} ${esc(m)}"${oculto ? ' aria-hidden="true" tabindex="-1"' : ''}><img src="assets/marcas/${slug(m)}.png" alt=""><b>${esc(m)}</b></button>`;
+    const t = (x, oculto) => `<button class="logo-m" data-marca="${esc(x.m)}" aria-label="${esc(CATS[CAT].nombre)} ${esc(x.m)}"${oculto ? ' aria-hidden="true" tabindex="-1"' : ''}><img src="${esc(x.i || 'assets/marcas/' + slug(x.m) + '.png')}" alt=""><b>${esc(x.m)}</b></button>`;
     box.innerHTML = `<div class="cinta-box"><h3>Nuestras marcas de ${esc(CATS[CAT].nombre.toLowerCase())}</h3><div class="cinta-wrap"><button class="flecha izq" data-mover="-1" aria-label="Marcas anteriores">«</button><div class="cinta"><div class="pista">${ms.map(m => t(m)).join('')}${ms.map(m => t(m, true)).join('')}</div></div><button class="flecha der" data-mover="1" aria-label="Más marcas">»</button></div></div>`;
     box.dataset.k = k; box.querySelector('.cinta').scrollLeft = 0;
   }
@@ -560,6 +561,7 @@ async function tasas() {                              // Maracay usa la tasa eur
   for (const k of ['euro', 'dolar']) { const m = j.tasas && j.tasas[k]; if (m && m.valor > 0 && m.fecha === hoyVE) TASAS[k] = m.valor; }
   DATA = { cauchos: j.cauchos || j.items || [], baterias: j.baterias || [], aceites: j.aceites || [], otros: j.otros || [], bicicletas: j.bicicletas || [] };
   COMPAT = (j.compatibilidad || []).map(c => ({ ...c, gr: c.r || c.g.join(' / ') }));
+  CARRUSEL = j.carrusel || {};                              // marcas, orden y logos que deja el administrador (sin configurar, la cinta se arma sola)
   aplicarAjustes(j.ajustes);
   const hash = location.hash.slice(1); if (CATS[hash]) CAT = hash;
   const P = new URLSearchParams(location.search);
