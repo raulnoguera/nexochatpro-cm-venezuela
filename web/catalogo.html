@@ -530,8 +530,8 @@ function card(p) {
   return `<article class="card"><div class="ph${p.i ? ' foto' : ''}">${p.i ? `<img src="${esc(p.i)}" alt="${esc(p.m + ' ' + c.titulo_p(p))}" loading="lazy">` : ICONOS[CAT]}</div><div>${CAT === 'cauchos' ? datosCaucho(p) : CAT === 'baterias' ? datosBateria(p) : `<div class="brand">${esc(p.m)}${p.mo ? ' · ' + esc(p.mo) : ''}</div><h4>${esc(c.titulo_p(p))}</h4>`}</div>
     <div class="tags">${tags.map(x => `<span class="tag">${esc(x)}</span>`).join('')}</div>${c.sub && c.sub(p) ? `<div class="sub">${esc(c.sub(p))}</div>` : ''}<span class="stk ${k}">${t}</span>${CAT === 'aceites' ? bloqueAceite(p) : ''}
     <div class="price">${pu(p) > 0 ? `<div class="usd">${refGrande(pu(p))}<small>Oferta en divisa</small></div>${precioBs}` : '<div class="usd consulta">Consultar precio</div><div class="bs">Te lo confirmamos por WhatsApp</div>'}</div>
-    ${conWa.length > 1 ? botonTiendas(p, c, ci, conWa) : TIENDAS[tk].wa ? `<a class="ask" href="${wa(`Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} Consultar por WhatsApp</a>` : ''}
-    ${CAT === 'cauchos' ? bloqueCaucho(p) : CAT === 'baterias' ? bloqueBateria(p) : ''}</article>`;
+    ${CAT === 'cauchos' ? bloqueCaucho(p) : CAT === 'baterias' ? bloqueBateria(p) : ''}
+    ${conWa.length > 1 ? botonTiendas(p, c, ci, conWa) : TIENDAS[tk].wa ? `<a class="ask" href="${wa(`Hola, me interesa ${c.msg(p)}. Vi que está en ${TIENDAS[tk].nombre} (${ci.nombre}). ¿Hay disponible?`, tk)}" target="_blank" rel="noopener">${CHAT} Consultar por WhatsApp</a>` : ''}</article>`;
 }
 
 const clave = s => String(s || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
