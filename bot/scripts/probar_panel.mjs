@@ -335,6 +335,11 @@ try {
   const ajC = await api('PUT', '/ajustes', { servicios_compra: '', combo_detalle: '' }), ajD = await api('PUT', '/ajustes', { servicios_compra: '', ayudas_espec: 'sin dos puntos' })
   ok('el administrador edita las explicaciones; si guarda sin enviarlas se conservan; una línea mal escrita se rechaza', () => { assert.equal(ajB.s, 200); assert.equal(ajB.j.ayudas_espec['Índice de carga'], 'Texto nuevo'); assert.equal(catalogo().ajustes.ayudas_espec.Voltaje, 'Tensión de la batería.'); assert.equal(ajC.j.ayudas_espec['Índice de carga'], 'Texto nuevo'); assert.equal(ajD.s, 400); assert.match(ajD.j.error, /Nombre: explicación/) })
   await api('PUT', '/ajustes', { servicios_compra: '', combo_detalle: '', ayudas_espec: Object.entries(AYUDAS_BASE).map(([k, t]) => `${k}: ${t}`).join('\n') })
+  // 10d) carga sin códigos y sin existencias: con precio «hay»; sin precio cargado, agotado
+  const libroP = new ExcelJS.Workbook(), hojaP = libroP.addWorksheet('INVENTARIO DE ACEITES')
+  hojaP.addRow(['CODIGO CM', 'CODIGO MC', 'Aceite', 'Combo', 'Marca', 'Precio', 'Bs']); hojaP.addRow(['', '', '15W-40', 'Litro', 'Mobil', 12, 13]); hojaP.addRow(['', '', '15W-40', '4 Litros', 'Mobil', 0, 0]); hojaP.addRow(['', '', '15W-40', '5 Litros', 'Mobil'])
+  const filasP = (await leerExcel(Buffer.from(await libroP.xlsx.writeBuffer()), { sinCodigo: true })).aceites.items
+  ok('sin existencias en el archivo: con precio cargado «hay»; sin precio cargado (0 o vacío) queda agotado', () => { assert.equal(filasP.length, 3); assert.deepEqual(filasP[0].stock, { tienda_1: 5, tienda_2: 5 }); assert.deepEqual(filasP[1].stock, { tienda_1: 0, tienda_2: 0 }); assert.deepEqual(filasP[2].stock, { tienda_1: 0, tienda_2: 0 }) })
   // 11) carrusel de marcas: el administrador elige las marcas, sube el logo y fija el orden
   const car0 = await api('GET', '/carrusel')
   ok('sin configurar, el carrusel se arma solo con las marcas conocidas que hay en la lista', () => { assert.equal(car0.s, 200); assert.equal(car0.j.cauchos.personalizado, false); assert.ok(car0.j.cauchos.marcas.some(x => x.marca === 'Habilead')); assert.deepEqual(Object.keys(car0.j), ['cauchos', 'baterias', 'aceites']) })
