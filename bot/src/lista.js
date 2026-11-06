@@ -524,7 +524,8 @@ CATS.compatibilidad = {
       if (!m || !norm(m[1]) || !gruposDe(m[2]).length) throw new Error(`Grupo por marca: «${l}» no se entiende. Escribe «Marca: grupo», por ejemplo «Fulgor: 24».`)
       grupos[norm(m[1])] = m[2].trim()
     }
-    const grupo = String(b.grupo ?? '').trim() || [...new Set(Object.values(grupos).flatMap(gruposDe))].join(', ')
+    const union = [...new Set(Object.values(grupos).flatMap(gruposDe))].join(', ')
+    const grupo = union || String(b.grupo ?? '').trim()                       // con grupos por marca, el general siempre sale de ellos (no queda desactualizado al editar)
     if (!gruposDe(grupo).length) throw new Error('Escribe el grupo de batería, por ejemplo GRUPO 24 (varios separados por coma), o el grupo de cada marca.')
     const pol = String(b.polaridad ?? '').trim().toUpperCase()
     if (pol && !['DERECHA', 'IZQUIERDA'].includes(pol)) throw new Error('La polaridad es DERECHA o IZQUIERDA.')
@@ -859,6 +860,12 @@ export function montarLista(app) {
   })
 
   // ---- carrusel de marcas: GET lo que hay (o lo automático), POST logo, PUT/DELETE por categoría
+  api.get('/compatibilidad/marcas', (_req, res) => {                           // marcas de batería para elegir en «grupo por marca»: las de la tabla y las que hay en la lista de baterías
+    const n = new Map()
+    for (const c of leer('compatibilidad')) for (const k of Object.keys(c.grupos || {})) n.set(k, nombreMarcaBateria(k))
+    for (const b of leer('baterias')) { const m = marcaBase(b.marca); if (m && !/^(AC|New)$/i.test(m) && ![...n.keys()].some(k => k === norm(m))) n.set(norm(m), m) }
+    res.json({ marcas: [...n.values()].sort((a, b) => a.localeCompare(b, 'es')) })
+  })
   api.get('/carrusel', (_req, res) => res.json(estadoCarrusel()))
   api.post('/carrusel/imagen', express.raw({ type: () => true, limit: '2mb' }), (req, res) => {
     const ext = Buffer.isBuffer(req.body) && req.body.length && extension(req.body)

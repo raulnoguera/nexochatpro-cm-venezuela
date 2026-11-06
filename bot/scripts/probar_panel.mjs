@@ -318,6 +318,9 @@ try {
   const cmv = (await api('GET', '/compatibilidad/items')).j.find(x => x.sku === cm.j.sku), cmw = catalogo().compatibilidad.find(x => x.o === 'ZZMARCA')
   ok('vehículo a mano: grupo por marca, polaridad y amperaje mínimo (el grupo general sale de las marcas)', () => { assert.equal(cm.s, 200); assert.equal(cmv.polaridad, 'IZQUIERDA'); assert.equal(cmv.amp_min, 600); assert.match(cmv.grupos, /Fulgor: 24/); assert.deepEqual(cmw.m, { FULGOR: ['24'], MARUSSIPLUS: ['34'] }); assert.equal(cmw.p, 'IZQUIERDA'); assert.equal(cmw.g.join(','), '24,34') })
   const bi = await api('POST', '/bicicletas/items', { marca: 'Bicicleta', usd: 100, cm: 1, mc: 0, rin: 20, modelo: '999', caracteristicas: 'Aluminio, frenos V-brake' })
+  const cmE = await api('PUT', `/compatibilidad/items/${cm.j.sku}`, { marca: 'zzmarca', modelo: 'prueba', desde: 2010, hasta: 2015, grupo: '24, 34', polaridad: 'IZQUIERDA', amp_min: 600, grupos: 'Fulgor: 24\nDuncan: 4D' })
+  const cmM = await api('GET', '/compatibilidad/marcas'), cmQ = await api('PUT', `/compatibilidad/items/${cm.j.sku}`, { marca: 'zzmarca', modelo: 'prueba', grupo: '24', grupos: '' })
+  ok('al editar las marcas de un vehículo el grupo general se actualiza solo; se pueden quitar todas; la lista de marcas ofrece las conocidas', () => { assert.equal(cmE.s, 200); assert.equal(cmE.j.grupo, '24, 4D'); assert.match(cmE.j.grupos, /Duncan: 4D/); assert.ok(!/Marussi/.test(cmE.j.grupos)); assert.equal(cmQ.s, 200); assert.equal(cmQ.j.grupos, ''); assert.equal(cmQ.j.grupo, '24'); assert.ok(cmM.j.marcas.includes('Fulgor')) })
   const biv = (await api('GET', '/bicicletas/items')).j.find(x => x.sku === bi.j.sku)
   ok('bicicleta a mano: guarda las características', () => { assert.equal(bi.s, 200); assert.equal(biv.caracteristicas, 'Aluminio, frenos V-brake') })
   // 10c) explicaciones de las especificaciones (columna W del inventario de cauchos) y dibujo del caucho
