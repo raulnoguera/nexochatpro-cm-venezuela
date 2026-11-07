@@ -466,7 +466,7 @@ const ampBat = p => (p.a ? p.a : ((String(p.d || '').match(/(\d{3,4})\s*AMP/i) |
 const nomenBat = p => String(p.d || '').replace(/\d{3,4}\s*AMP/gi, '').replace(/\b(DERECHA|IZQUIERDA)\b/gi, '').split('/').map(x => x.trim()).filter(Boolean).join(' ');      // nomenclatura de la descripción (M, MR, BD…): va en el título, al lado del grupo
 const tituloBateria = p => [p.m, grupoBat(p), nomenBat(p), ampBat(p) ? ampBat(p) + ' AMP' : ''].filter(Boolean).join(' ');
 const cabTarjeta = (cuerpo, t) => `<div class="cab"><div class="cab-t">${cuerpo}</div><span class="stk ${t[0]}">${t[1]}</span></div>`;      // estado arriba a la derecha, en línea con el título
-const subCaucho = p => { const d = detalleCaucho(p); return d.lonas ? `<div class="subt">${esc(d.lonas)} lonas</div>` : ''; };      // el modelo y el tipo ya no se repiten debajo
+const subCaucho = p => { const d = detalleCaucho(p), fila = [d.modelo ? `<i>Modelo</i> <b>${esc(d.modelo)}</b>` : '', d.lonas ? `<i>Lonas</i> <b>${esc(d.lonas)}</b>` : ''].filter(Boolean); return fila.length ? `<div class="datos"><div class="fila">${fila.map(x => `<span>${x}</span>`).join('')}</div></div>` : ''; };      // debajo del título: modelo y lonas (el tipo ya está en el título)
 const subBateria = p => {
   const fila = [polBat(p) ? `<i>Polaridad</i> <b>${esc(polTxt(p))}</b>` : '', p.w ? `<i>Garantía</i> <b>${esc(p.w)} meses</b>` : ''].filter(Boolean);
   return fila.length ? `<div class="datos"><div class="fila">${fila.map(x => `<span>${x}</span>`).join('')}</div></div>` : '';
