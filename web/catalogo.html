@@ -407,25 +407,37 @@ function cintaMarcas() {                                     // cinta de logos q
   if (box.dataset.k !== k) {
     const t = (x, oculto) => `<button class="logo-m" data-marca="${esc(x.m)}" aria-label="${esc(CATS[CAT].nombre)} ${esc(x.m)}"${oculto ? ' aria-hidden="true" tabindex="-1"' : ''}><img src="${esc(x.i || 'assets/marcas/' + slug(x.m) + '.png')}" alt=""><b>${esc(x.m)}</b></button>`;
     box.innerHTML = `<div class="cinta-box"><h3>Nuestras marcas de ${esc(CATS[CAT].nombre.toLowerCase())}</h3><div class="cinta-wrap"><button class="flecha izq" data-mover="-1" aria-label="Marcas anteriores">«</button><div class="cinta"><div class="pista">${ms.map(m => t(m)).join('')}${ms.map(m => t(m, true)).join('')}</div></div><button class="flecha der" data-mover="1" aria-label="Más marcas">»</button></div></div>`;
-    box.dataset.k = k; box.querySelector('.cinta').scrollLeft = 0;
+    box.dataset.k = k; box.querySelector('.cinta').scrollLeft = 0; cintaPos = null; cintaAcc = 0;
   }
   box.querySelectorAll('[data-marca]').forEach(b => b.setAttribute('aria-pressed', F.marca === b.dataset.marca));
 }
-let cintaPausa = 0;
+let cintaPausa = 0, cintaAcc = 0, cintaUlt = 0, cintaPos = null, cintaDedo = false, cintaVel = 0;
 const cintaQuieta = matchMedia('(prefers-reduced-motion: reduce)').matches;
-(function avanzar() {                                         // la pista está duplicada: al llegar a la mitad vuelve al inicio sin que se note
-  const c = document.querySelector('#cinta .cinta');
-  if (c && !cintaQuieta && Date.now() > cintaPausa && !c.matches(':hover')) { c.scrollLeft += 0.6; const mitad = c.scrollWidth / 2; if (c.scrollLeft >= mitad) c.scrollLeft -= mitad; }
+const cintaConHover = matchMedia('(hover: hover)').matches;                    // en el celular el «hover» se queda pegado tras tocar y frenaba la cinta para siempre
+const pausarCinta = ms => { cintaPausa = Math.max(cintaPausa, performance.now() + ms); };
+(function avanzar(t) {                                         // la pista está duplicada: al llegar a la mitad vuelve al inicio sin que se note
+  const c = document.querySelector('#cinta .cinta'), dt = Math.min(64, t - (cintaUlt || t)); cintaUlt = t;
+  if (c && !cintaQuieta) {
+    const mitad = c.scrollWidth / 2;
+    if (cintaPos != null && Math.abs(c.scrollLeft - cintaPos) > 1.5) { pausarCinta(2500); cintaVel = 0; }      // se movió sin que la moviéramos: es el dedo o su inercia; no pelear con él
+    const quieta = cintaDedo || t < cintaPausa || (cintaConHover && c.matches(':hover'));
+    cintaVel = quieta ? 0 : Math.min(38, cintaVel + dt * 0.05);                                                 // al reanudar acelera poco a poco, sin tirón
+    cintaAcc += cintaVel * dt / 1000;                                                                           // se acumula la fracción: en el celular scrollLeft no avanza con décimas de píxel
+    const paso = Math.trunc(cintaAcc);
+    if (paso && !quieta) { c.scrollLeft += paso; cintaAcc -= paso; if (c.scrollLeft >= mitad) c.scrollLeft -= mitad; }
+    cintaPos = c.scrollLeft;
+  }
   requestAnimationFrame(avanzar);
-})();
+})(0);
 document.addEventListener('click', e => {
   const f = e.target.closest('[data-mover]'); if (!f) return;
   const c = document.querySelector('#cinta .cinta'), mitad = c.scrollWidth / 2;
   if (f.dataset.mover < 0 && c.scrollLeft < 230) c.scrollLeft += mitad;
   if (f.dataset.mover > 0 && c.scrollLeft > mitad - 230) c.scrollLeft -= mitad;
-  cintaPausa = Date.now() + 4000; c.scrollBy({ left: f.dataset.mover * 224, behavior: 'smooth' });
+  pausarCinta(4000); c.scrollBy({ left: f.dataset.mover * 224, behavior: 'smooth' });
 });
-document.addEventListener('touchstart', e => { if (e.target.closest('#cinta')) cintaPausa = Date.now() + 4000; }, { passive: true });
+document.addEventListener('touchstart', e => { if (e.target.closest('#cinta')) { cintaDedo = true; cintaVel = 0; } }, { passive: true });      // con el dedo encima se detiene del todo
+for (const ev of ['touchend', 'touchcancel']) document.addEventListener(ev, () => { if (cintaDedo) { cintaDedo = false; pausarCinta(2500); } }, { passive: true });      // al soltar espera un poco (la inercia sigue) y reanuda suave
 document.addEventListener('error', e => { if (e.target.matches && e.target.matches('.logo-m img')) e.target.remove(); }, true);   // sin logo: queda el nombre
 document.addEventListener('load', e => { if (e.target.matches && e.target.matches('.logo-m img')) e.target.parentNode.classList.add('con-logo'); }, true);   // con logo: se oculta el nombre
 function marcasRapidas() {                                 // accesos directos por marca: las que tienen existencia en la ciudad, las más conocidas primero
