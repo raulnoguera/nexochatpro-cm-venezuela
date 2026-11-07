@@ -281,20 +281,22 @@ const WA_ICO = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 1
 const waItems = (ts, msg) => ts.map(t => t.wa ? `<a href="https://wa.me/${t.wa}?text=${msg}" target="_blank" rel="noopener">${WA_ICO}<span>${t.n}<small>${t.d}</small></span></a>` : `<div class="off">${WA_ICO}<span>${t.n}<small>${t.d} · WhatsApp próximamente</small></span></div>`).join('');
 // Tarjeta «Servicios»: con ciudad elegida abre el WhatsApp de esa ciudad (en Maracay, un menú para escoger la tienda); sin ciudad, el menú con todas
 const MSG_SERV = encodeURIComponent('Hola, quiero consultar por servicios (montura, balanceo, alineación)');
+const MSG_AYUDA = encodeURIComponent('Hola, necesito ayuda para elegir');
 document.addEventListener('click', e => {
   const menu = $('#wamenu'), b = e.target.closest('#wa'), msg = encodeURIComponent('Hola, quiero consultar un producto');
   if (b) { const ts = waDe(); if (ts.length === 1 && ts[0].wa) { b.href = 'https://wa.me/' + ts[0].wa + '?text=' + msg; return; } e.preventDefault();     // una sola tienda con número: abre directo
     menu.innerHTML = '<p>Escríbenos por WhatsApp</p>' + waItems(ts, msg);
     menu.hidden = !menu.hidden; return; }
   if (!e.target.closest('#wamenu')) menu.hidden = true;
-  const sm = $('#svmenu'), sv = e.target.closest('#servicios');
-  if (sv) { const ts = waDe(); if (ts.length === 1 && ts[0].wa) { sv.href = 'https://wa.me/' + ts[0].wa + '?text=' + MSG_SERV; return; } e.preventDefault();
-    const r = sv.getBoundingClientRect(), abrir = sm.hidden; sm.innerHTML = '<p>Servicios: elige la tienda</p>' + waItems(ts, MSG_SERV);
+  const sm = $('#svmenu'), sv = e.target.closest('#servicios, #wa2');          // «Servicios» y «¿No sabes cuál te sirve?»: igual que «Escríbenos»
+  if (sv) { const esAyuda = sv.id === 'wa2', m = esAyuda ? MSG_AYUDA : MSG_SERV, ts = waDe();
+    if (ts.length === 1 && ts[0].wa) { sv.href = 'https://wa.me/' + ts[0].wa + '?text=' + m; return; } e.preventDefault();     // una sola tienda con número: abre directo
+    const r = sv.getBoundingClientRect(), abrir = sm.hidden || sm.dataset.de !== sv.id; sm.innerHTML = `<p>${esAyuda ? 'Te ayudamos a elegir: elige la tienda' : 'Servicios: elige la tienda'}</p>` + waItems(ts, m); sm.dataset.de = sv.id;
     sm.hidden = !abrir; if (abrir) { sm.style.top = (r.bottom + scrollY + 6) + 'px'; sm.style.left = Math.max(8, Math.min(r.left + scrollX, innerWidth - sm.offsetWidth - 8)) + 'px'; }     // dentro de la pantalla, con margen
     return; }
   if (!e.target.closest('#svmenu')) sm.hidden = true;
 });
-$('#wa2').href = WA + encodeURIComponent('Hola, necesito ayuda para elegir');
+$('#wa2').href = WA + MSG_AYUDA;   // respaldo; al pulsar se usa el número de la ciudad o el menú de tiendas (ver arriba)
 $('#servicios').href = WA + MSG_SERV;   // respaldo; al pulsar se usa el número de la ciudad (ver arriba)
 
 function llenar(id, vals, cur) { $(id).innerHTML = '<option value="">—</option>' + vals.map(v => `<option ${v === cur ? 'selected' : ''}>${esc(v)}</option>`).join(''); }
