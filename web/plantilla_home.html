@@ -352,7 +352,7 @@ $('#goBicis').addEventListener('click', () => { if (pedirCiudad()) return; const
 const NO_ACEITE = /REFRIGERANTE|LIGAS|BUJIA|TUERCA|BORNE|ADITIVO|AMBIENTADOR|ELEVADOR|BASE DE|LIMPIA/i;
 const TIPOS_ACE = { min: 'Mineral', semi: 'Semisintético', sint: 'Sintético', otros: 'Otros (transmisión, 2 tiempos, paila…)' };
 const tipoAce = t => { const u = t.toUpperCase(); return /SEMISINT/.test(u) ? 'semi' : /SINT/.test(u) ? 'sint' : /MINERAL/.test(u) ? 'min' : 'otros'; };
-const viscAce = t => t.toUpperCase().replace(/\s*(SEMISINTETICO|SINTETICO|MINERAL)\s*$/, '');
+const viscAce = t => t.toUpperCase().replace(/\s*(SEMISINTETICO|SINTETICO|MINERAL)\s*$/, '').replace(/\bHIDAULICO\b/, 'HIDRÁULICO');      // corrige la errata del inventario al mostrarla
 const presAce = p => { const n = parseInt(p, 10); return n >= 4 && /Litros/i.test(p) ? `Combo ${n} litros` : /^Litro$/i.test(p) ? '1 litro' : p; };
 const aceDisp = () => ace.filter(p => hay(p) && !NO_ACEITE.test(p.t));
 function pintarAceites() {
