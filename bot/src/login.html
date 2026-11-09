@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Acceso administrador · CM Venezuela</title>
+<style>
+:root{--bg:#f4f4ef;--card:#fff;--ink:#141414;--muted:#5b5b55;--line:#dcdcd3;--y:#f5d90a;--bad:#b42318;--field:#fafaf6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d0d0d;--card:#181818;--ink:#f3f3ee;--muted:#a3a39b;--line:#2c2c2c;--bad:#ff8a80;--field:#111}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:16px;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{width:100%;max-width:400px}
+.marca{display:flex;align-items:center;justify-content:center;gap:10px;margin:0 0 18px;font-weight:900;letter-spacing:.04em;font-size:22px}
+.marca i{display:inline-block;width:36px;height:36px;border-radius:10px;background:var(--y);color:#141414;font-style:normal;display:grid;place-items:center;font-size:18px}
+form{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 10px 30px rgba(0,0,0,.08)}
+h1{margin:0 0 4px;font-size:20px}
+p.sub{margin:0 0 16px;color:var(--muted);font-size:14px}
+label{display:block;margin:12px 0 0;font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+input{width:100%;margin-top:5px;min-height:48px;padding:0 12px;border:1.5px solid var(--line);border-radius:12px;background:var(--field);color:var(--ink);font:inherit;font-size:16px}
+input:focus{outline:3px solid color-mix(in srgb,var(--y) 55%,transparent);border-color:var(--y)}
+.ver{display:flex;gap:8px;align-items:center;margin:10px 0 0;font-size:14px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:500}
+.ver input{width:auto;min-height:0;margin:0}
+button{width:100%;margin-top:16px;min-height:50px;border:0;border-radius:12px;background:var(--y);color:#141414;font:inherit;font-weight:800;font-size:17px;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+.err{min-height:20px;margin:12px 0 0;color:var(--bad);font-size:14px;font-weight:600}
+.pie{margin:16px 0 0;text-align:center;font-size:13px;color:var(--muted)}
+.pie a{color:inherit}
+</style>
+</head>
+<body>
+<main>
+  <div class="marca"><i aria-hidden="true">C</i><span>CM VENEZUELA</span></div>
+  <form id="f" autocomplete="on">
+    <h1>Acceso administrador</h1>
+    <p class="sub">Entra para cargar fotos, productos, marcas y precios de la página.</p>
+    <label for="u">Usuario</label>
+    <input id="u" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+    <label for="c">Clave</label>
+    <input id="c" name="password" type="password" autocomplete="current-password" required>
+    <label class="ver"><input type="checkbox" id="mostrar"> Mostrar la clave</label>
+    <button id="b" type="submit">Entrar</button>
+    <p class="err" id="e" role="alert"></p>
+  </form>
+  <p class="pie"><a href="https://cmvenezuela.com">← Volver a la página</a></p>
+</main>
+<script>
+const $ = s => document.querySelector(s)
+$('#mostrar').onchange = () => { $('#c').type = $('#mostrar').checked ? 'text' : 'password' }
+function destino() { const v = new URLSearchParams(location.search).get('volver') || ''; return /^\/admin(?![\w-])/.test(v) && !v.startsWith('//') && !v.startsWith('/admin/login') ? v : '/admin' }
+$('#f').onsubmit = async e => {
+  e.preventDefault(); $('#e').textContent = ''; $('#b').disabled = true
+  try {
+    const r = await fetch('/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ usuario: $('#u').value, clave: $('#c').value }) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error || 'No se pudo entrar. Inténtalo de nuevo.')
+    location.href = destino()
+  } catch (er) { $('#e').textContent = er.message; $('#b').disabled = false; $('#c').select() }
+}
+$('#u').focus()
+</script>
+</body>
+</html>

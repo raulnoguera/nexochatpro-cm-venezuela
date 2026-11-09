@@ -10,6 +10,7 @@ import { usoPorDia, usoPorConversacion } from './uso.js'
 import { estadoPresupuesto, LIMITE_HORA, LIMITE_DIA } from './limites.js'
 import { visible, conCodigo } from './store.js'
 import { estadoTasas, fijarTasas, manualesVigentes, olvidarTasasApi, consultarTasaApi } from './tasa.js'
+import { autenticar, montarAcceso, rutasAcceso } from './acceso.js'
 
 const dir = path.resolve('data')
 const carpetaImg = path.join(dir, 'imagenes')
@@ -720,16 +721,7 @@ const estadoCarrusel = () => Object.fromEntries(CARRUSEL_CATS.map(c => {
   return [c, { personalizado: Boolean(g), marcas, sugeridas: marcasExistentes(c).filter(m => !marcas.some(x => x.marca.toLowerCase() === m.toLowerCase())) }]
 }))
 
-// ---------- acceso ----------
-const clave = () => process.env.LISTA_CLAVE
-const iguales = (x, y) => { const a = Buffer.from(x), b = Buffer.from(y); return a.length === b.length && crypto.timingSafeEqual(a, b) }
-async function autenticar(req, res, next) {
-  if (!clave()) return res.status(404).end()
-  const [, ...p] = Buffer.from((req.headers.authorization || '').replace(/^Basic /, ''), 'base64').toString().split(':')
-  if (iguales(p.join(':'), clave())) return next()
-  await new Promise(r => setTimeout(r, 800))                                   // frena intentos repetidos
-  res.set('WWW-Authenticate', 'Basic realm="Administración CM Venezuela", charset="UTF-8"').status(401).send('Necesitas la clave para entrar.')
-}
+// ---------- acceso: ver acceso.js (pantalla de login, sesión y usuarios del cliente) ----------
 
 function validar(cat, b, previo = {}) {
   if (CATS[cat].validar) return CATS[cat].validar(b, previo)
@@ -831,12 +823,14 @@ export function montarLista(app) {
   app.use('/img', (_req, res, next) => { res.set({ 'Access-Control-Allow-Origin': '*', 'Cross-Origin-Resource-Policy': 'cross-origin' }); next() },
     express.static(carpetaImg, { maxAge: '30d', immutable: true, index: false }))
 
+  montarAcceso(app)                                                         // /admin/login, /admin/salir
   app.get('/lista', (_req, res) => res.redirect('/admin'))
   app.get('/admin', autenticar, (_req, res) => res.type('html').send(pagina))
   app.get('/admin/uso', autenticar, (_req, res) => res.type('html').send(paginaUso))
   const api = express.Router()
   api.use(autenticar)
   app.use('/admin/api', api)
+  rutasAcceso(api)                                                          // /yo, /accesos, /mi-clave
   api.get('/uso', (_req, res) => res.json(usoPorDia()))
   api.get('/uso/conversaciones', (_req, res) => res.json(usoPorConversacion()))
   api.get('/uso/presupuesto', (_req, res) => res.json({ ...estadoPresupuesto(), limite_hora: LIMITE_HORA, limite_dia: LIMITE_DIA }))
