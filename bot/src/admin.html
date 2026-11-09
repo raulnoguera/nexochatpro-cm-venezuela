@@ -141,8 +141,12 @@ details summary{cursor:pointer;font-weight:700}
   <a href="#carrusel" data-v="carrusel"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="7" height="10" rx="2"/><rect x="14" y="7" width="7" height="10" rx="2"/><path d="M11 12h2"/></svg>Carrusel de marcas</a>
   <a href="#ajustes" data-v="ajustes"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 00-.1-1.3l2-1.5-2-3.4-2.4 1a7 7 0 00-2.2-1.3L14 3h-4l-.4 2.5a7 7 0 00-2.2 1.3l-2.4-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .9.1 1.3l-2 1.5 2 3.4 2.4-1a7 7 0 002.2 1.3L10 21h4l.4-2.5a7 7 0 002.2-1.3l2.4 1 2-3.4-2-1.5c.1-.4.1-.9.1-1.3z"/></svg>Ajustes de la web</a>
   <a href="#excel" data-v="excel"><svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4"/></svg>Cargar Excel</a>
+  <a href="#accesos" data-v="accesos" id="nav-accesos" hidden><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0113 0M16 11l2 2 4-4"/></svg>Accesos</a>
   <a href="/admin/uso" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Consumo de Nexo ↗</a>
   <a href="https://cmvenezuela.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M10 6H5a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1v-5"/></svg>Ver la web ↗</a>
+  <div class="nav-t" id="sesion-t" hidden>Sesión</div>
+  <a href="#miclave" data-v="miclave" id="nav-miclave" hidden><svg viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M16 7l3 3"/></svg>Cambiar mi clave</a>
+  <a href="#" id="salir" hidden><svg viewBox="0 0 24 24"><path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4M16 8l4 4-4 4M20 12H9"/></svg>Salir <span class="n" id="quien"></span></a>
 </nav>
 
 <main>
@@ -173,6 +177,33 @@ details summary{cursor:pointer;font-weight:700}
 </section>
 
 <!-- ===== CARRUSEL DE MARCAS ===== -->
+<section class="vista" id="v-miclave">
+  <h1>Cambiar mi clave</h1>
+  <p class="muted">Al cambiarla se cierran tus sesiones abiertas en otros aparatos; esta sigue abierta.</p>
+  <div class="card" style="padding:16px;margin:12px 0;max-width:460px">
+    <div class="f" style="display:grid;gap:10px">
+      <label><span class="l">Clave actual</span><input id="mc-a" type="password" maxlength="100" autocomplete="current-password"></label>
+      <label><span class="l">Clave nueva (mínimo 8 caracteres)</span><input id="mc-n" type="password" maxlength="100" autocomplete="new-password"></label>
+      <label><span class="l">Repite la clave nueva</span><input id="mc-n2" type="password" maxlength="100" autocomplete="new-password"></label>
+    </div>
+    <p style="margin:12px 0 0"><button id="mc-guardar" type="button">Guardar clave nueva</button> <span id="mc-msg" class="muted"></span></p>
+  </div>
+</section>
+<section class="vista" id="v-accesos">
+  <h1>Accesos</h1>
+  <p class="muted">Usuarios que pueden entrar al panel desde <b>cmvenezuela.com → Acceso administrador</b>. Tienen acceso a todo el panel, menos a esta sección.</p>
+  <div class="card" style="padding:16px;margin:12px 0">
+    <h3 style="margin:0 0 8px">Crear o cambiar un acceso</h3>
+    <p class="muted" style="margin:0 0 8px">Si el usuario ya existe, se cambia su clave y se cierran sus sesiones abiertas. La clave la escribes tú aquí y no se muestra después.</p>
+    <div class="f" style="display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
+      <label><span class="l">Usuario (sin espacios)</span><input id="acc-u" maxlength="30" placeholder="cliente" autocomplete="off" autocapitalize="none"></label>
+      <label><span class="l">Clave (mínimo 8 caracteres)</span><input id="acc-c" type="password" maxlength="100" autocomplete="new-password"></label>
+      <label><span class="l">Repite la clave</span><input id="acc-c2" type="password" maxlength="100" autocomplete="new-password"></label>
+    </div>
+    <p style="margin:12px 0 0"><button id="acc-guardar" type="button">Guardar acceso</button> <span id="acc-msg" class="muted"></span></p>
+  </div>
+  <div id="acc-lista"></div>
+</section>
 <section class="vista" id="v-carrusel">
   <div class="cab"><div><h1>Carrusel de marcas</h1><p class="sub">La cinta de logos que sale en la web, debajo de los filtros, al elegir Cauchos, Baterías o Aceites. Elige las marcas, sube su logo y arrástralas para fijar el orden.</p></div></div>
   <div class="card" style="max-width:900px">
@@ -281,7 +312,8 @@ details summary{cursor:pointer;font-weight:700}
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)], esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
 const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z.]/g, '')
 const api = async (m, p, body, raw) => {
-  const r = await fetch('/admin/api' + p, { method: m, headers: body && !raw ? { 'Content-Type': 'application/json' } : raw ? { 'Content-Type': raw } : undefined, body: raw ? body : body ? JSON.stringify(body) : undefined })
+  const r = await fetch('/admin/api' + p, { method: m, headers: { 'X-Panel': '1', ...(body && !raw ? { 'Content-Type': 'application/json' } : raw ? { 'Content-Type': raw } : {}) }, body: raw ? body : body ? JSON.stringify(body) : undefined })
+  if (r.status === 401) { location.href = '/admin/login?volver=' + encodeURIComponent(location.pathname + location.hash); throw new Error('Tu sesión terminó. Vuelve a entrar.') }
   const j = await r.json().catch(() => ({})); if (!r.ok) throw new Error(j.error || 'No se pudo completar la acción.'); return j
 }
 const toast = t => { const e = $('#toast'); e.textContent = t; e.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => e.classList.remove('on'), 3500) }
@@ -308,7 +340,7 @@ const FILTROS = {
   sin_caracas: { t: 'Sin dato de Caracas', corto: 'sin dato de Caracas', fn: i => i.cc === '' },
   sin_precio_caracas: { t: 'Sin precio en Caracas', corto: 'sin precio en Caracas', fn: i => !(i.usd_c > 0) },
 }
-function ruta() { const [v, f] = location.hash.replace(/^#\/?/, '').split('/'); return [NOMBRES[v] || ['inicio', 'ajustes', 'excel', 'carrusel'].includes(v) ? v : 'inicio', FILTROS[f] ? f : ''] }
+function ruta() { const [v, f] = location.hash.replace(/^#\/?/, '').split('/'); return [NOMBRES[v] || ['inicio', 'ajustes', 'excel', 'carrusel', 'accesos', 'miclave'].includes(v) ? v : 'inicio', FILTROS[f] ? f : ''] }
 async function mostrar() {
   const [v, f] = ruta()
   $$('nav.lat [data-v]').forEach(a => a.classList.toggle('on', a.dataset.v === v))
@@ -319,7 +351,7 @@ async function mostrar() {
     $('#l-tit').textContent = NOMBRES[v]; $('#nuevo').textContent = esCompat() ? '＋ Nuevo vehículo' : '＋ Nuevo producto'
     $('#ord').hidden = esCompat(); $('#aviso').hidden = esCompat()
     try { await cargar(); if (NUEVO_AL_ABRIR) { NUEVO_AL_ABRIR = false; abrir(null) } } catch (er) { $('#cont').textContent = er.message }
-  } else { $('#v-' + v).classList.add('on'); if (v === 'inicio') cargarInicio().catch(er => { $('#ini-sub').textContent = er.message }); if (v === 'carrusel') cargarCarrusel().catch(er => { $('#car-msg').className = 'err'; $('#car-msg').textContent = er.message }); if (v === 'ajustes') cargarAjustes().catch(er => { $('#ajmsg').className = 'err'; $('#ajmsg').textContent = er.message }) }
+  } else { $('#v-' + v).classList.add('on'); if (v === 'inicio') cargarInicio().catch(er => { $('#ini-sub').textContent = er.message }); if (v === 'accesos') cargarAccesos().catch(er => { $('#acc-msg').textContent = er.message }); if (v === 'carrusel') cargarCarrusel().catch(er => { $('#car-msg').className = 'err'; $('#car-msg').textContent = er.message }); if (v === 'ajustes') cargarAjustes().catch(er => { $('#ajmsg').className = 'err'; $('#ajmsg').textContent = er.message }) }
   window.scrollTo(0, 0)
 }
 window.addEventListener('hashchange', mostrar)
@@ -602,6 +634,35 @@ $('#ajgu').onclick = async () => {
   } catch (er) { $('#ajmsg').className = 'err'; $('#ajmsg').textContent = er.message }
   $('#ajgu').disabled = false
 }
+
+// ---------- sesión y accesos ----------
+const ACC_FMT = f => (f ? new Date(f).toLocaleDateString('es-VE', { day: 'numeric', month: 'long', year: 'numeric' }) : '—')
+async function cargarAccesos() {
+  const l = await api('GET', '/accesos')
+  $('#acc-lista').innerHTML = l.length ? `<div class="rtab"><table><thead><tr><th>Usuario</th><th>Creado</th><th>Última clave nueva</th><th></th></tr></thead><tbody>${l.map(u => `<tr><td><b>${esc(u.usuario)}</b></td><td>${ACC_FMT(u.creado)}</td><td>${ACC_FMT(u.cambiado)}</td><td><button class="del" type="button" data-acc-quitar="${esc(u.usuario)}">Quitar acceso</button></td></tr>`).join('')}</tbody></table></div>` : '<p class="muted">Todavía no hay accesos para el cliente. Crea el primero arriba.</p>'
+}
+$('#acc-guardar').onclick = async () => {
+  const u = $('#acc-u').value.trim().toLowerCase(), c = $('#acc-c').value, msg = $('#acc-msg')
+  msg.textContent = ''
+  if (c !== $('#acc-c2').value) return (msg.textContent = 'Las dos claves no son iguales.')
+  try { const r = await api('PUT', `/accesos/${encodeURIComponent(u)}`, { clave: c }); $('#acc-c').value = $('#acc-c2').value = ''; msg.textContent = r.creado ? `Acceso «${u}» creado.` : `Clave de «${u}» cambiada.`; await cargarAccesos() } catch (er) { msg.textContent = er.message }
+}
+$('#acc-lista').onclick = async e => {
+  const b = e.target.closest('[data-acc-quitar]'); if (!b) return
+  if (!confirm(`¿Quitar el acceso «${b.dataset.accQuitar}»? Ya no podrá entrar al panel.`)) return
+  try { await api('DELETE', `/accesos/${encodeURIComponent(b.dataset.accQuitar)}`); await cargarAccesos() } catch (er) { toast(er.message) }
+}
+$('#mc-guardar').onclick = async () => {
+  const msg = $('#mc-msg'); msg.textContent = ''
+  if ($('#mc-n').value !== $('#mc-n2').value) return (msg.textContent = 'Las dos claves nuevas no son iguales.')
+  try { await api('POST', '/mi-clave', { actual: $('#mc-a').value, nueva: $('#mc-n').value }); $('#mc-a').value = $('#mc-n').value = $('#mc-n2').value = ''; msg.textContent = 'Listo: tu clave nueva ya está guardada.' } catch (er) { msg.textContent = er.message }
+}
+$('#salir').onclick = async e => { e.preventDefault(); try { await fetch('/admin/salir', { method: 'POST', headers: { 'X-Panel': '1' } }) } catch (_) {} location.href = '/admin/login' }
+api('GET', '/yo').then(y => {
+  $('#sesion-t').hidden = false; $('#salir').hidden = false; $('#quien').textContent = y.usuario
+  if (y.rol === 'dueno') $('#nav-accesos').hidden = false
+  if (y.cambia_clave) $('#nav-miclave').hidden = false
+}).catch(() => {})
 
 // ---------- carrusel de marcas ----------
 const CAR_NOMBRES = { cauchos: 'Cauchos', baterias: 'Baterías', aceites: 'Aceites' }
