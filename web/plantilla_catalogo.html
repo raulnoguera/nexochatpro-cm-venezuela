@@ -359,8 +359,8 @@ const DIMS_CAUCHO = ['Ancho', 'Alto', 'Diámetro'];
 const dibujoCaucho = d => {                                   // vista de frente (alto y diámetro del rin) y de perfil (ancho)
   const v = k => esc(d[k] || '—');
   return `<svg class="bdib" viewBox="0 0 340 205" role="img" aria-label="Medidas del caucho: ancho ${v('Ancho')}, alto ${v('Alto')}, diámetro del rin ${v('Diámetro')}">
-    <g stroke="currentColor" stroke-width="2"><circle cx="85" cy="90" r="70" fill="var(--ink)"/><circle cx="85" cy="90" r="36" fill="var(--surface2)"/><circle cx="85" cy="90" r="9" fill="var(--y)"/>
-      <rect x="225" y="40" width="50" height="100" rx="16" fill="var(--ink)"/></g>
+    <g stroke="currentColor" stroke-width="2"><circle cx="85" cy="90" r="70" fill="#262626"/><circle cx="85" cy="90" r="36" fill="#d9d9d2"/><circle cx="85" cy="90" r="9" fill="var(--y)"/>
+      <rect x="225" y="40" width="50" height="100" rx="16" fill="#262626"/></g>      <!-- colores fijos: el neumático siempre negro y el rin claro, también en el tema oscuro -->
     <g stroke="currentColor" stroke-width="1.3" fill="none" opacity=".75"><path d="M168 20v140M163 20h10M163 160h10"/><path d="M49 90h72M49 85v10M121 85v10" stroke-dasharray="4 3"/><path d="M225 154h50M225 149v10M275 149v10"/></g>
     <g font-family="inherit" font-size="13" font-weight="800" fill="currentColor"><text transform="translate(190 90) rotate(-90)" text-anchor="middle">Alto ${v('Alto')}</text>
       <text x="85" y="182" text-anchor="middle">Diámetro del rin</text><text x="85" y="198" text-anchor="middle">${v('Diámetro')}</text><text x="250" y="176" text-anchor="middle">Ancho</text><text x="250" y="192" text-anchor="middle">${v('Ancho')}</text></g></svg>`;
